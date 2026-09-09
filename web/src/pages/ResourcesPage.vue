@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useI18n } from '../composables/useI18n'
-import { appUrl, publicSiteUrl } from '../composables/api'
+import { appUrl } from '../composables/api'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { loadScenarios, type Scenario } from '../lib/data'
 import { downloadObject } from '../lib/storage'
