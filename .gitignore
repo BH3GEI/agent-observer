@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.secrets/
+.env
+.env.*
+!.env.example
+data/
+artifacts/
+test-results/
+web/node_modules/
+web/dist/
+web/.env
+supabase/.temp/
+supabase/.branches/
+legacy/fastapi/data/

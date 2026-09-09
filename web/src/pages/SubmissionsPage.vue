@@ -1,0 +1,56 @@
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { useI18n } from '../composables/useI18n'
+import { supabase } from '../lib/supabase'
+import { SUBMISSION_SELECT, PENDING_STATUSES } from '../lib/data'
+import { fmtUtc, num, pct } from '../lib/format'
+import { useAuth } from '../stores/auth'
+import { useSubmissionWatch } from '../composables/useSubmissionWatch'
+import DashShell from '../components/layout/DashShell.vue'
+import StatusPill from '../components/layout/StatusPill.vue'
+
+const { t, pick } = useI18n()
+const { team, refreshMe } = useAuth()
+const rows = ref<any[]>([])
+const loading = ref(true)
+const watcher = useSubmissionWatch(load, () => rows.value.some(r => PENDING_STATUSES.has(r.status)))
+
+async function load() {
+  if (!team.value) { rows.value = []; return }
+  const { data } = await supabase.from('submissions').select(`${SUBMISSION_SELECT}, profiles(name)`).eq('team_id', team.value.id).order('created_at', { ascending: false }).limit(200)
+  rows.value = data ?? []
+}
+
+onMounted(async () => {
+  await refreshMe()
+  try { await load() } finally { loading.value = false }
+  if (team.value) watcher.start(team.value.id)
+})
+</script>
+
+<template>
+  <DashShell :kicker="t('dash.title')" :title="t('subs.title')">
+    <p v-if="loading" class="text3 text-sm">{{ t('common.loading') }}</p>
+    <div v-else-if="!team" class="panel"><p class="text2">{{ t('submit.errors.need_team') }}</p><p class="mt-5"><router-link class="btn primary sm" to="/team">{{ t('nav.team') }} →</router-link></p></div>
+    <p v-else-if="!rows.length" class="text2">{{ t('subs.empty') }} <router-link class="accent-l" to="/submit">{{ t('dash.new_submission') }} →</router-link></p>
+    <div v-else class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>{{ t('subs.id') }}</th><th>{{ t('subs.when') }}</th><th>{{ t('subs.phase') }}</th><th>{{ t('subs.kind') }}</th><th>{{ t('subs.scenario') }}</th><th>{{ t('common.status') }}</th><th class="r">{{ t('subs.score') }}</th><th class="r">{{ t('subs.science') }}</th><th class="r">{{ t('subs.completion') }}</th><th>{{ t('subs.by') }}</th></tr></thead>
+        <tbody>
+          <tr v-for="s in rows" :key="s.id">
+            <td><router-link class="accent-l m" :to="`/submissions/${s.id}`">#{{ s.id }}</router-link><div v-if="s.title" class="text3 text-xs">{{ s.title }}</div></td>
+            <td class="m xs whitespace-nowrap">{{ fmtUtc(s.created_at) }}</td>
+            <td>{{ s.phases ? pick(s.phases.name_en, s.phases.name_zh) : '—' }}</td>
+            <td>{{ t(`kind.${s.kind}`) }}</td>
+            <td class="m xs">{{ s.scenarios?.slug ?? '—' }}</td>
+            <td><StatusPill :status="s.status" /></td>
+            <td class="r m">{{ num(s.score) }}</td>
+            <td class="r m">{{ num(s.science_score) }}</td>
+            <td class="r m">{{ pct(s.completion) }}</td>
+            <td class="text-sm">{{ s.profiles?.name ?? '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </DashShell>
+</template>

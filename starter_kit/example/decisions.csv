@@ -1,0 +1,32 @@
+decision_id,slot_id,action,tile_id,program,reason
+0,N01-S001,observe,200069,DARK,highest visible target value in the matching weather band
+1,N01-S001,observe,200003,DARK,highest visible target value in the matching weather band
+2,N01-S002,observe,200045,DARK,highest visible target value in the matching weather band
+3,N01-S002,observe,200057,DARK,highest visible target value in the matching weather band
+4,N01-S003,observe,200018,DARK,highest visible target value in the matching weather band
+5,N01-S004,observe,200030,DARK,highest visible target value in the matching weather band
+6,N01-S005,observe,200039,DARK,highest visible target value in the matching weather band
+7,N01-S006,observe,200025,BRIGHT,highest visible target value in the matching weather band
+8,N01-S006,observe,200028,BRIGHT,highest visible target value in the matching weather band
+9,N01-S007,wait,,,weather is unavailable
+10,N01-S008,observe,200010,BRIGHT,highest visible target value in the matching weather band
+11,N01-S008,wait,,,no visible tile matches the weather band
+12,N01-S009,observe,200061,BRIGHT,highest visible target value in the matching weather band
+13,N01-S009,observe,200019,BRIGHT,highest visible target value in the matching weather band
+14,N01-S010,observe,200065,BACKUP,highest visible target value in the matching weather band
+15,N01-S011,observe,200056,BACKUP,highest visible target value in the matching weather band
+16,N01-S012,observe,200070,BRIGHT,highest visible target value in the matching weather band
+17,N02-S001,wait,,,no visible tile matches the weather band
+18,N02-S002,observe,200027,DARK,highest visible target value in the matching weather band
+19,N02-S002,wait,,,no visible tile matches the weather band
+20,N02-S003,wait,,,no visible tile matches the weather band
+21,N02-S004,wait,,,no visible tile matches the weather band
+22,N02-S005,wait,,,no visible tile matches the weather band
+23,N02-S006,wait,,,no visible tile matches the weather band
+24,N02-S007,observe,200046,BRIGHT,highest visible target value in the matching weather band
+25,N02-S007,wait,,,no visible tile matches the weather band
+26,N02-S008,wait,,,no visible tile matches the weather band
+27,N02-S009,observe,200004,BRIGHT,highest visible target value in the matching weather band
+28,N02-S010,observe,200005,BACKUP,highest visible target value in the matching weather band
+29,N02-S011,observe,200032,BACKUP,highest visible target value in the matching weather band
+30,N02-S012,observe,200041,BACKUP,highest visible target value in the matching weather band

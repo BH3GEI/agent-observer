@@ -1,0 +1,32 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  scorer-and-functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno test -A _shared
+        working-directory: supabase/functions
+      - run: deno check score-results/index.ts leaderboard/index.ts
+        working-directory: supabase/functions
+  platform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest pgserver "psycopg[binary]"
+      - name: Fetch PostgREST
+        run: |
+          curl -sSL -o postgrest.tar.xz https://github.com/PostgREST/postgrest/releases/download/v16.2/postgrest-v16.2-linux-static-x86-64.tar.xz
+          tar xJf postgrest.tar.xz && chmod +x postgrest
+      - run: SAC_POSTGREST_BIN=$PWD/postgrest pytest tests/supabase -q
