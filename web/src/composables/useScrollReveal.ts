@@ -29,6 +29,9 @@ export function useScrollReveal() {
       observer.observe(el)
     })
 
+    // safety net: never leave content hidden (printing, screenshots, observers that never fire)
+    window.setTimeout(() => document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-blur, .reveal-scale').forEach((el) => el.classList.add('visible')), 2500)
+
     // Start parallax
     rafId = requestAnimationFrame(updateParallax)
   })

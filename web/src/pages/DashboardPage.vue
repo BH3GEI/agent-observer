@@ -11,7 +11,6 @@ import { useFlash } from '../stores/flash'
 import { useSubmissionWatch } from '../composables/useSubmissionWatch'
 import DashShell from '../components/layout/DashShell.vue'
 import StatusPill from '../components/layout/StatusPill.vue'
-import PhaseTable from '../components/content/PhaseTable.vue'
 
 const { t, tf, pick } = useI18n()
 const route = useRoute()
@@ -97,7 +96,6 @@ onMounted(async () => {
               </tbody>
             </table>
           </div>
-          <PhaseTable v-if="false" :phases="phases" compact />
         </div>
       </div>
 

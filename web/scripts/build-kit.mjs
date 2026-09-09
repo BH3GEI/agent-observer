@@ -23,15 +23,23 @@ if (!existsSync(kitDir)) {
 }
 mkdirSync(outDir, { recursive: true })
 
+// Placeholders in SKILL.md / README.md are filled from the build environment so the downloaded kit is ready to use.
+const subst = {
+  '{{BASE_URL}}': (process.env.VITE_SITE_URL || '').replace(/\/+$/, '') || 'https://<site>',
+  '{{SUPABASE_URL}}': process.env.VITE_SUPABASE_URL || 'https://<ref>.supabase.co',
+  '{{SUPABASE_ANON_KEY}}': process.env.VITE_SUPABASE_ANON_KEY || '<anon key>',
+}
+const fill = (buf) => Buffer.from(Object.entries(subst).reduce((t, [k, v]) => t.split(k).join(v), buf.toString('utf8')))
 const entries = {}
 const mtime = new Date('2026-09-09T00:00:00Z')
 for (const rel of files) {
   const abs = resolve(kitDir, rel)
   if (!existsSync(abs)) { console.warn(`[build-kit] missing ${rel}`); continue }
-  entries[`agent-observer-starter-kit/${rel}`] = [readFileSync(abs), { mtime, level: 9 }]
+  const raw = readFileSync(abs)
+  entries[`agent-observer-starter-kit/${rel}`] = [/\.md$/.test(rel) ? fill(raw) : raw, { mtime, level: 9 }]
 }
 const zip = zipSync(entries, { level: 9, mtime })
 writeFileSync(resolve(outDir, 'agent-observer-starter-kit.zip'), zip)
 for (const name of ['scorer.py', 'protocol.py', 'score_config.json']) copyFileSync(resolve(kitDir, name), resolve(outDir, name))
-copyFileSync(resolve(kitDir, 'SKILL.md'), resolve(root, 'public', 'skill.md'))
+writeFileSync(resolve(root, 'public', 'skill.md'), fill(readFileSync(resolve(kitDir, 'SKILL.md'))))
 console.log(`[build-kit] wrote ${Object.keys(entries).length} files into public/downloads/agent-observer-starter-kit.zip (${zip.length} bytes)`)

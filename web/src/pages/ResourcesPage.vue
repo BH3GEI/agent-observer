@@ -20,10 +20,16 @@ const kit = [
   { n: '03', title: 'resources.protocol', desc: 'resources.protocol_desc', href: appUrl('/downloads/protocol.py'), primary: false, label: 'common.download' },
   { n: '04', title: 'resources.skill', desc: 'resources.skill_desc', href: appUrl('/skill.md'), primary: false, label: 'common.view', view: true },
 ]
-const cli = `unzip agent-observer-starter-kit.zip && cd agent-observer-starter-kit
+const cli = `# environment for sac_submit.py (also printed in SKILL.md inside the kit)
+export SAC_URL=${import.meta.env.VITE_SUPABASE_URL || 'https://<ref>.supabase.co'}
+export SAC_KEY=${import.meta.env.VITE_SUPABASE_ANON_KEY || '<anon key>'}
+export SAC_EMAIL=you@example.org SAC_PASSWORD='...'
+
+unzip agent-observer-starter-kit.zip && cd agent-observer-starter-kit
 python3 local_runner.py --agent agent.py --weather example/weather.csv --tiles example/tiles.csv --config score_config.json --out run_output
 python3 generate_example_data.py --seed 7 --n-nights 5 --slots-per-night 20 --n-tiles 150 --output-dir scenario7
-python3 sac_submit.py --base ${publicSiteUrl()} --phase practice --kind agent --file agent.py`
+python3 sac_submit.py --phase practice --kind results --scenario dev-example --file run_output/decisions.csv --wait
+python3 sac_submit.py --phase online --kind agent --file agent.py --wait`
 
 async function download(scenario: Scenario, file: string) {
   const key = `${scenario.slug}/${file}`

@@ -34,9 +34,23 @@ export function interpolate(template: unknown, params: Record<string, string | n
   return text.replace(/\{(\w+)\}/g, (match, name) => (name in params ? String(params[name]) : match))
 }
 
+/** Same negotiation order as the legacy site: ?lang= → saved preference → browser language → zh. */
+export function negotiateLocale(): Locale {
+  if (typeof window === 'undefined') return 'zh'
+  const query = new URLSearchParams(window.location.search).get('lang')
+  if (query === 'en' || query === 'zh') return query
+  const saved = window.localStorage.getItem(STORAGE_KEY) || window.localStorage.getItem('cosmos-locale')
+  if (saved === 'en' || saved === 'zh') return saved
+  for (const tag of navigator.languages ?? [navigator.language]) {
+    const lower = String(tag || '').toLowerCase()
+    if (lower.startsWith('zh')) return 'zh'
+    if (lower.startsWith('en')) return 'en'
+  }
+  return 'zh'
+}
+
 export function provideI18n(): I18n {
-  const saved = typeof window !== 'undefined' ? window.localStorage.getItem(STORAGE_KEY) || window.localStorage.getItem('cosmos-locale') : null
-  const locale = ref<Locale>(saved === 'en' || saved === 'zh' ? saved : 'zh')
+  const locale = ref<Locale>(negotiateLocale())
 
   if (typeof document !== 'undefined') {
     watch(locale, (value) => {
