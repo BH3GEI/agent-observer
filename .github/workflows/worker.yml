@@ -1,0 +1,37 @@
+name: Evaluation worker
+
+# Runs the Python evaluation worker on a GitHub-hosted runner: claims queued submissions from Supabase,
+# executes agent packages in a sandbox against the hidden scenarios, scores them and writes results back.
+# Public repositories get unlimited Actions minutes, so this needs no server of its own.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: evaluation-worker
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Process the queue until it is empty
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SAC_WORKER_ID: gha-${{ github.run_id }}
+          SAC_WORKER_KINDS: agent,results
+          SAC_AGENT_TIMEOUT_SECONDS: "600"
+          SAC_AGENT_STEP_TIMEOUT_SECONDS: "20"
+          SAC_AGENT_MEMORY_MB: "1024"
+          SAC_DATA_DIR: ${{ runner.temp }}/sac
+        run: python -m worker.main once
