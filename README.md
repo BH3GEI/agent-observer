@@ -41,7 +41,10 @@ legacy/fastapi/      The earlier self-hosted monolith (reference only)
    `supabase functions deploy leaderboard --no-verify-jwt`; set secret `SCORER_WEBHOOK_SECRET`; create a
    Database Webhook on `public.submissions` INSERT → `https://<ref>.functions.supabase.co/score-results`
    with header `x-webhook-secret`. See `supabase/functions/README.md`.
-4. **Worker** (any Linux box, or the organizer's laptop during the competition):
+4. **Worker**. Default: `.github/workflows/worker.yml` runs `python -m worker.main once` on a GitHub-hosted
+   runner every 5 minutes (repository secrets `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`; public repos have
+   unlimited Actions minutes). Trigger it manually from the Actions tab when you want a queue drained now.
+   For lower latency or OS-level network isolation run it on your own machine instead:
    `docker build -f worker/Dockerfile -t sac-worker . && docker run -e SUPABASE_URL -e SUPABASE_SERVICE_ROLE_KEY -e SAC_SANDBOX_MODE=subprocess sac-worker`
    or `python -m worker.main run`. `SAC_WORKER_KINDS=agent` restricts it to agent runs when the edge function
    scores results files. Several workers can run in parallel.
