@@ -164,7 +164,7 @@ async function submitForgot() {
               <label class="field"><span>{{ t('auth.affiliation') }} · {{ t('common.optional') }}</span><input v-model="reg.affiliation" type="text" maxlength="200" autocomplete="organization"></label>
             </div>
             <label class="check"><input v-model="reg.looking_for_team" type="checkbox"> {{ t('auth.looking_for_team') }}</label>
-            <label class="check"><input data-testid="reg-agree" v-model="reg.agree" type="checkbox"> <span>{{ t('auth.agree') }} <router-link class="accent-l" to="/rules" target="_blank">{{ t('nav.rules') }} ↗</router-link></span></label>
+            <label class="check"><input data-testid="reg-agree" v-model="reg.agree" type="checkbox"> <span>{{ t('auth.agree') }} <router-link class="accent-l underline underline-offset-2" to="/rules" target="_blank">{{ t('nav.rules') }} ↗</router-link></span></label>
             <button data-testid="reg-submit" class="btn primary" type="submit" :disabled="busy || !registrationOpen || !isSupabaseConfigured">{{ busy ? t('common.working') : t('auth.submit_register') }} →</button>
             <p class="text3 mt-6 text-sm">{{ t('auth.have_account') }} <button type="button" class="accent-l" @click="setMode('login')">{{ t('nav.login') }}</button></p>
           </form>

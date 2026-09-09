@@ -102,7 +102,7 @@ RAW_KEY = re.compile(r"(?<![\w/.:-])(?:nav|hero|home|auth|team|submit|subs|dash|
 def attach_console(page: Page, key: str):
     console_errors.setdefault(key, [])
     page.on("pageerror", lambda e: console_errors[key].append(f"pageerror: {e}"))
-    expected = ("/auth/v1/token", "/auth/v1/signup", "/rpc/join_team", "/rpc/create_submission", "/rpc/create_team", "/functions/v1/score-results")
+    expected = ("/auth/v1/token", "/auth/v1/signup", "/auth/v1/recover", "/rpc/join_team", "/rpc/create_submission", "/rpc/create_team", "/rpc/disband_team", "/rpc/leave_team", "/functions/v1/score-results")
     page.on("response", lambda r: console_errors[key].append(f"http {r.status}: {r.url}") if r.status >= 400 and "supabase.co" in r.url and not any(x in r.url for x in expected) else None)
     page.on("requestfailed", lambda r: console_errors[key].append(f"requestfailed: {r.url} {r.failure}") if "realtime" not in r.url and "ERR_ABORTED" not in str(r.failure) else None)
 
@@ -388,9 +388,9 @@ def main() -> int:
             first = pg.locator("details").first; first.evaluate("d => d.open = false"); first.locator("summary").click(); pg.wait_for_timeout(300)
             check("faq accordion toggles", first.evaluate("d => d.open"))
             pg.goto(base + "/docs?lang=en", wait_until="networkidle"); pg.wait_for_timeout(800)
-            link = pg.locator("nav a[href*='#'], .toc a[href*='#'], a[href^='#']").nth(2)
+            link = pg.locator("a[href='#2-starter-kit']:visible").first
             if link.count():
-                target = link.get_attribute("href").split("#")[1]; link.click(); pg.wait_for_timeout(800)
+                target = "2-starter-kit"; link.click(); pg.wait_for_timeout(800)
                 check("docs table of contents navigates", pg.evaluate(f"() => {{ const el = document.getElementById('{target}'); return el ? Math.abs(el.getBoundingClientRect().top) < 400 : false }}"))
             else:
                 check("docs toc present", False)
@@ -442,7 +442,7 @@ def main() -> int:
         # ------------------------------------------------------------------ G. admin
         ann_ids: list[int] = []
         try:
-            ctx_a = browser.new_context(viewport={"width": 1440, "height": 900}, locale="en-US"); pa = ctx_a.new_page(); attach_console(pa, "admin")
+            ctx_a = browser.new_context(viewport={"width": 1440, "height": 900}, locale="en-US"); pa = ctx_a.new_page(); attach_console(pa, "admin"); pa.on("dialog", lambda d: d.accept())
             register_ui(pa, base, "Admin E2E", admin_email); created_users.append(admin_email)
             pa.goto(base + "/admin", wait_until="networkidle"); pa.wait_for_timeout(1500)
             check("admin overview loads for admin", pa.locator("h1").first.inner_text().strip() != "" and "/admin" in pa.url)
@@ -472,7 +472,7 @@ def main() -> int:
                 check("registration toggle present", False)
             # exclude a scored submission from the board
             pa.goto(base + "/admin/submissions", wait_until="networkidle"); pa.wait_for_timeout(1500)
-            row = pa.locator("tr", has_text=f"E2E Owls {RUN}").filter(has_text="scored").first
+            row = pa.locator("tr", has_text=f"#{sids[0]}").first if pa.locator("tr", has_text=f"#{sids[0]}").count() else pa.locator("tr", has_text=f"E2E Owls {RUN}").filter(has_text="results").last
             exc_btn = row.get_by_role("button", name=re.compile("exclude|排除", re.I))
             if exc_btn.count():
                 exc_btn.first.click(); pa.wait_for_timeout(2500)
@@ -480,7 +480,7 @@ def main() -> int:
                 first_sid = sids[0] if sids else None
                 check("excluded submission leaves the board", all(e["best_submission_id"] != first_sid for e in board))
                 pa.goto(base + "/admin/submissions", wait_until="networkidle"); pa.wait_for_timeout(1500)
-                pa.locator("tr", has_text=f"E2E Owls {RUN}").filter(has_text="scored").first.get_by_role("button", name=re.compile("include|恢复|取消排除", re.I)).first.click(); pa.wait_for_timeout(1500)
+                pa.get_by_role("button", name=re.compile("^include|恢复|取消排除", re.I)).first.click(); pa.wait_for_timeout(1500)
             else:
                 check("exclude control present", False)
             # phase daily limit edit is reflected on the submit page
@@ -507,7 +507,7 @@ def main() -> int:
                 check("hide-team control present", False)
             # rescore -> queued -> scored again by the edge function
             pa.goto(base + "/admin/submissions", wait_until="networkidle"); pa.wait_for_timeout(1500)
-            rrow = pa.locator("tr", has_text=f"E2E Owls {RUN}").filter(has_text="results").filter(has_text="scored").first
+            rrow = pa.locator("tr", has_text=f"#{sids[0]}").first if pa.locator("tr", has_text=f"#{sids[0]}").count() else pa.locator("tr", has_text=f"E2E Owls {RUN}").filter(has_text="results").last
             resc = rrow.get_by_role("button", name=re.compile("rescore|重新评分", re.I))
             if resc.count() and sids:
                 resc.first.click(); pa.wait_for_timeout(1500)

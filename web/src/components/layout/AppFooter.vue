@@ -22,7 +22,7 @@ const progressPct = computed(() => `${(state.progress * 100).toFixed(1)}%`)
       <div class="flex flex-col justify-between gap-8 md:flex-row md:items-end">
         <div>
           <div class="text-2xl font-semibold tracking-[-.05em] text-[#f5f5f5]">OPEN <span class="text-[#315efb]">/</span> OBSERVER</div>
-          <div class="mt-3 max-w-xl text-xs leading-relaxed text-white/45">{{ t('footer.copyright') }}</div>
+          <div class="mt-3 max-w-xl text-xs leading-relaxed text-white/60">{{ t('footer.copyright') }}</div>
         </div>
         <nav class="flex flex-wrap gap-5 font-mono text-xs uppercase tracking-[.12em] text-white/70">
           <router-link to="/rules" class="transition-colors hover:text-[#78a6ff]">{{ t('footer.links.rules') }}</router-link>

@@ -17,7 +17,7 @@ const criteria = computed(() => t('home.evaluation.criteria') as Criterion[])
           <p class="mt-8"><router-link to="/rules" class="label accent">{{ t('home.evaluation.link') }} →</router-link></p>
         </div>
         <div class="reveal reveal-delay-1 min-w-0">
-          <pre class="code-block">{{ t('home.evaluation.formula') }}</pre>
+          <pre class="code-block" tabindex="0">{{ t('home.evaluation.formula') }}</pre>
           <dl class="dl dl-2 mt-10">
             <div v-for="item in criteria" :key="item.term"><dt>{{ item.term }}</dt><dd>{{ item.desc }}</dd></div>
           </dl>

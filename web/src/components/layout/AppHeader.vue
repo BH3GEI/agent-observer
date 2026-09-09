@@ -50,7 +50,7 @@ async function logout() {
       <router-link to="/" aria-label="Agent Observer home" class="flex items-center gap-3">
         <span class="cosmos-wordmark shrink-0 whitespace-nowrap text-lg text-[#f5f5f5]">GOSIM <span class="text-[#315efb]">Create</span></span>
         <span class="hidden h-4 w-px bg-white/25 sm:block"></span>
-        <span class="hidden whitespace-nowrap font-mono text-xs uppercase tracking-[.1em] text-white/45 sm:block">{{ t('meta.wordmark_note') }}</span>
+        <span class="hidden whitespace-nowrap font-mono text-xs uppercase tracking-[.1em] text-white/60 sm:block">{{ t('meta.wordmark_note') }}</span>
       </router-link>
 
       <nav class="hidden items-center gap-5 lg:flex">

@@ -79,7 +79,7 @@ onMounted(async () => {
       </div>
 
       <h2 class="label accent mt-20 mb-4">{{ t('resources.cli') }}</h2>
-      <pre class="code-block">{{ cli }}</pre>
+      <pre class="code-block" tabindex="0">{{ cli }}</pre>
     </div></section>
   </main>
 </template>

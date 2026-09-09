@@ -23,6 +23,7 @@ function decorate() {
     heading.id = id
     items.push({ id, text, level: heading.tagName === 'H2' ? 2 : 3 })
   })
+  root.querySelectorAll('pre').forEach((pre) => { if (!pre.hasAttribute('tabindex')) pre.setAttribute('tabindex', '0') })
   emit('toc', items)
 }
 

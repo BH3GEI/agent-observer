@@ -106,10 +106,10 @@ const sections = computed(() => t('vision.sections') as Section[])
             </div>
           </div>
 
-          <div v-if="section.starterCode" class="mt-10"><pre class="code-block">{{ section.starterCode }}</pre></div>
-          <div v-if="section.archCode" class="mt-4"><pre class="code-block">{{ section.archCode }}</pre></div>
-          <div v-if="section.formula" class="mt-10"><pre class="code-block">{{ section.formula }}</pre></div>
-          <div v-if="section.actionCode" class="mt-10"><pre class="code-block">{{ section.actionCode }}</pre></div>
+          <div v-if="section.starterCode" class="mt-10"><pre class="code-block" tabindex="0">{{ section.starterCode }}</pre></div>
+          <div v-if="section.archCode" class="mt-4"><pre class="code-block" tabindex="0">{{ section.archCode }}</pre></div>
+          <div v-if="section.formula" class="mt-10"><pre class="code-block" tabindex="0">{{ section.formula }}</pre></div>
+          <div v-if="section.actionCode" class="mt-10"><pre class="code-block" tabindex="0">{{ section.actionCode }}</pre></div>
 
           <div v-if="section.rounds" class="mt-12 space-y-4">
             <div v-for="round in section.rounds" :key="round.number" class="grid border-t border-white/25 py-7 md:grid-cols-[8rem_1fr] md:gap-8">

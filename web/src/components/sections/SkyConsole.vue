@@ -50,7 +50,7 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
   <div class="sky-console" data-testid="sky-console" @mouseenter="clock.setPaused(true)" @mouseleave="clock.setPaused(false)">
     <div class="sky-console-head">
       <span class="flex items-center gap-3"><span class="live-dot" :class="{ 'is-paused': paused || reduced }"></span>{{ t('hero.console.title') }}</span>
-      <span class="text-white/45">{{ paused ? t('hero.console.paused') : t('hero.console.replay_note') }}</span>
+      <span class="text-white/60">{{ paused ? t('hero.console.paused') : t('hero.console.replay_note') }}</span>
     </div>
     <canvas ref="canvas" class="sky-canvas" role="img" :aria-label="t('hero.console.aria')"></canvas>
     <div class="sky-legend" aria-hidden="true">
