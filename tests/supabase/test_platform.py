@@ -247,3 +247,59 @@ def test_banned_user_cannot_create_or_join_team(hs, seeded):
     assert st == 400 and res["message"] == "banned"
     st, res = dave.rpc("join_team", {"p_invite_code": "ABCDEFGH"})
     assert st == 400 and res["message"] == "banned"
+
+
+def test_redeem_codes_claim_flow(hs, alice, bob, mallory, service):
+    admin = signup(hs, "admin2@test.org", name="Admin2")
+    hs.sql("update public.profiles set is_admin = true where email = 'admin2@test.org'")
+    st, n = admin.rpc("admin_import_redeem_codes", {"p_provider": "deepseek", "p_codes": "sk-aaa\nsk-bbb\n\nsk-aaa\n", "p_note": "500k tokens"})
+    assert st == 200 and n == 2
+    st, res = alice.rpc("admin_import_redeem_codes", {"p_provider": "x", "p_codes": "y"})
+    assert st == 400 and res["message"] == "admin_only"
+    st, provs = alice.rpc("redeem_providers")
+    assert st == 200 and provs[0]["provider"] == "deepseek" and provs[0]["available"] == 2 and provs[0]["claimed_by_my_team"] is False
+    st, c1 = alice.rpc("claim_redeem_code", {"p_provider": "deepseek"})
+    assert st == 200 and c1["code"] in ("sk-aaa", "sk-bbb") and c1["already"] is False
+    st, c2 = bob.rpc("claim_redeem_code", {"p_provider": "deepseek"})  # same team -> same code
+    assert st == 200 and c2["code"] == c1["code"] and c2["already"] is True
+    st, c3 = mallory.rpc("claim_redeem_code", {"p_provider": "deepseek"})
+    assert st == 200 and c3["code"] != c1["code"]
+    carol = signup(hs, "carol2@test.org", name="Carol2")
+    carol.rpc("create_team", {"p_name": "Third Team", "p_max_size": 1})
+    st, res = carol.rpc("claim_redeem_code", {"p_provider": "deepseek"})
+    assert st == 400 and res["message"] == "no_codes_left"
+    # RLS: teams only see their own code rows
+    st, rows = mallory.select("redeem_codes", "select=code")
+    assert st == 200 and [r["code"] for r in rows] == [c3["code"]]
+    st, rows = admin.select("redeem_codes", "select=code,status")
+    assert st == 200 and len(rows) == 2 and all(r["status"] == "assigned" for r in rows)
+
+
+
+def test_redeem_admin_tools(hs, alice, mallory):
+    admin = signup(hs, "admin3@test.org", name="Admin3")
+    hs.sql("update public.profiles set is_admin = true where email = 'admin3@test.org'")
+    st, n = admin.rpc("admin_import_redeem_codes", {"p_provider": "kimi", "p_codes": "k-1\nk-2\nk-3", "p_note": "1M tokens"})
+    assert st == 200 and n == 3
+    st, stats = admin.rpc("admin_redeem_stats")
+    kimi = next(s for s in stats if s["provider"] == "kimi")
+    assert (kimi["available"], kimi["assigned"], kimi["note"]) == (3, 0, "1M tokens")
+    assert alice.rpc("admin_redeem_stats")[1] == []
+    st, code = admin.rpc("admin_assign_redeem_code", {"p_team_id": alice.team_id, "p_provider": "kimi"})
+    assert st == 200 and code == "k-1"
+    st, res = admin.rpc("admin_assign_redeem_code", {"p_team_id": alice.team_id, "p_provider": "kimi"})
+    assert st == 400 and res["message"] == "already_assigned"
+    st, code2 = admin.rpc("admin_assign_redeem_code", {"p_team_id": alice.team_id, "p_provider": "kimi", "p_replace": True})
+    assert code2 == "k-2"
+    st, mine = alice.rpc("my_redeem_codes")
+    assert st == 200 and [m["code"] for m in mine if m["provider"] == "kimi"] == ["k-2"]
+    assert [m["code"] for m in mallory.rpc("my_redeem_codes")[1] if m["provider"] == "kimi"] == []
+    st, rows = admin.rpc("admin_redeem_codes", {"p_provider": "kimi", "p_status": None})
+    assert {r["code"]: r["status"] for r in rows} == {"k-1": "revoked", "k-2": "assigned", "k-3": "available"}
+    assert next(r for r in rows if r["code"] == "k-2")["team_name"] == "Night Owls"
+    k3 = next(r["id"] for r in rows if r["code"] == "k-3")
+    st, _ = admin.rpc("admin_revoke_redeem_code", {"p_id": k3, "p_delete": True})
+    assert st in (200, 204)
+    assert {r["code"] for r in admin.rpc("admin_redeem_codes", {"p_provider": "kimi"})[1]} == {"k-1", "k-2"}
+    st, note = Client(hs.url).select("site_settings", "select=key,value&key=eq.credits_note")
+    assert st == 200 and note[0]["value"] == {"en": "", "zh": ""}
