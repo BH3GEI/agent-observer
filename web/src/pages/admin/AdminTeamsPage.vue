@@ -2,9 +2,11 @@
 import { onMounted, ref } from 'vue'
 import { useAdmin } from '../../composables/useAdmin'
 import DashShell from '../../components/layout/DashShell.vue'
+import SkeletonRows from '../../components/layout/SkeletonRows.vue'
 
 const { t, busy, rpc, run } = useAdmin()
 const rows = ref<any[]>([])
+const loading = ref(true)
 const renames = ref<Record<string, string>>({})
 
 async function load() { rows.value = (await rpc<any[]>('admin_teams')) ?? [] }
@@ -13,7 +15,7 @@ async function action(id: string, name: string, value: string | null = null) {
   const ok = await run(() => rpc('admin_set_team', { p_team_id: id, p_action: name, p_value: value }), t('admin.done'), ['team.errors'])
   if (ok) { renames.value[id] = ''; await load() }
 }
-onMounted(load)
+onMounted(async () => { try { await load() } finally { loading.value = false } })
 </script>
 
 <template>
@@ -37,7 +39,8 @@ onMounted(load)
               </div>
             </td>
           </tr>
-          <tr v-if="!rows.length"><td colspan="6" class="text3">{{ t('common.no_data') }}</td></tr>
+          <tr v-if="loading"><td colspan="6" class="p-0"><SkeletonRows :rows="5" :cols="4" :label="t('common.loading')" /></td></tr>
+          <tr v-else-if="!rows.length"><td colspan="6" class="text3">{{ t('common.no_data') }}</td></tr>
         </tbody>
       </table>
     </div>

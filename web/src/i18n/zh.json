@@ -2,7 +2,82 @@
   "meta": {
     "title": "巡天智能体 · GOSIM 黑客松",
     "description": "面向智能巡天的 GOSIM 黑客松：构建观测智能体，读取天空状态，并在每 900 秒选择下一次观测。",
-    "wordmark_note": "AGENT HACKATHON"
+    "wordmark_note": "AGENT HACKATHON",
+    "brand": "巡天智能体",
+    "pages": {
+      "home": {
+        "title": "首页",
+        "description": "面向智能巡天的 GOSIM 黑客松：构建观测智能体，读取天空状态，并在每 900 秒选择下一次观测。"
+      },
+      "brief": {
+        "title": "赛题简报",
+        "description": "巡天智能体黑客松的任务、日程、奖金与评测方式。"
+      },
+      "rules": {
+        "title": "规则",
+        "description": "参赛资格、提交次数、评分与行为规范。"
+      },
+      "docs": {
+        "title": "文档",
+        "description": "observer-v1 协议、计分器、场景文件与入门套件。"
+      },
+      "faq": {
+        "title": "常见问题",
+        "description": "关于报名、组队、提交与评分的常见问题。"
+      },
+      "resources": {
+        "title": "资源",
+        "description": "入门套件、计分器、协议参考与公开开发场景。"
+      },
+      "leaderboard": {
+        "title": "排行榜",
+        "description": "各阶段实时排名：总分、科学产出、完成度与均匀性。"
+      },
+      "announcements": {
+        "title": "公告",
+        "description": "主办方发布的赛事公告。"
+      },
+      "register": {
+        "title": "报名",
+        "description": "创建账号或登录，以提交智能体与结果。"
+      },
+      "reset": {
+        "title": "重置密码",
+        "description": "为你的账号设置新密码。"
+      },
+      "dashboard": {
+        "title": "控制台",
+        "description": "你的队伍、配额与最近提交。"
+      },
+      "team": {
+        "title": "队伍",
+        "description": "创建队伍或凭邀请码加入。"
+      },
+      "submit": {
+        "title": "提交",
+        "description": "上传 decisions.csv 或智能体以进行评测。"
+      },
+      "submissions": {
+        "title": "提交记录",
+        "description": "本队全部提交及其状态与得分。"
+      },
+      "submission": {
+        "title": "提交详情",
+        "description": "单次提交的评测报告、观测天图与动作时间线。"
+      },
+      "profile": {
+        "title": "个人资料",
+        "description": "账号信息与偏好设置。"
+      },
+      "admin": {
+        "title": "管理",
+        "description": "主办方管理后台。"
+      },
+      "not_found": {
+        "title": "页面不存在",
+        "description": "该页面不存在。"
+      }
+    }
   },
   "nav": {
     "brief": "赛事说明",
@@ -70,7 +145,20 @@
         "label": "个人与团队均可"
       }
     ],
-    "side_note": "Human judgment / machine speed / one shared sky"
+    "side_note": "Human judgment / machine speed / one shared sky",
+    "console": {
+      "title": "观测站控制台",
+      "replay_note": "回放 · 基线智能体 · dev-example",
+      "paused": "已暂停",
+      "aria": "基线智能体的天图回放：已观测天区按时隙逐一填充",
+      "slot": "时隙",
+      "weather": "视宁度 · 透明度 · 天光",
+      "dome_closed": "圆顶关闭",
+      "score": "得分",
+      "tiles": "天区",
+      "legend_visible": "高度 ≥ 30°",
+      "legend_meridian": "子午线 (LST)"
+    }
   },
   "home": {
     "vision": {
@@ -179,7 +267,10 @@
     "leaderboard": {
       "kicker": "05 / 排行榜",
       "title": "实时排名",
-      "lede": "提交评分完成后榜单即时更新。练习榜仅供参考，线上比赛榜决定奖项。"
+      "lede": "提交评分完成后榜单即时更新。练习榜仅供参考，线上比赛榜决定奖项。",
+      "signal_live": "CosmosBench 信号在线",
+      "signal_waiting": "等待基准信号",
+      "feed": "实时评测数据"
     },
     "evaluation": {
       "kicker": "05 / 评测",
@@ -889,7 +980,17 @@
       "disabled": "已停用"
     },
     "no_phases": "尚未配置任何阶段。",
-    "me": "你的队伍"
+    "me": "你的队伍",
+    "chart": {
+      "title": "得分构成 · 前 10 名",
+      "penalty": "浪费扣分",
+      "your_team": "你的队伍",
+      "your_position": "你的位置",
+      "teams_on_board": "上榜队伍",
+      "scored_runs": "已评分提交",
+      "last_update": "最近更新",
+      "tooltip": "总分 {score} · 科学产出 {science} · 扣分 {penalty}"
+    }
   },
   "cta": {
     "title": "把夜空的下一步，交给你写的智能体",
@@ -910,7 +1011,13 @@
       "code": "行为准则",
       "contact": "联系"
     },
-    "contact_email": "hackathon@gosim.org"
+    "contact_email": "hackathon@gosim.org",
+    "ticker": {
+      "per_decision": "一次决策",
+      "slot": "时隙",
+      "open": "圆顶开启",
+      "closed": "圆顶关闭"
+    }
   },
   "common": {
     "save": "保存",
@@ -1208,7 +1315,18 @@
     "no_report": "报告尚未生成。",
     "refresh": "刷新",
     "back": "全部提交",
-    "live": "实时"
+    "live": "实时",
+    "skymap": {
+      "title": "已观测天区",
+      "hidden": "本场景的天区目录不公开",
+      "decision": "决策",
+      "play": "播放",
+      "pause": "暂停",
+      "start": "首次决策之前",
+      "night": "夜",
+      "tiles": "个天区",
+      "score_gained": "得分"
+    }
   },
   "flash": {
     "profile_saved": "资料已保存。",
@@ -1308,7 +1426,20 @@
   "docs_page": {
     "kicker": "文档",
     "title": "参赛文档",
-    "toc": "目录"
+    "toc": "目录",
+    "protocol": {
+      "title": "协议速览",
+      "tabs": {
+        "init": "init",
+        "step": "step",
+        "answer": "answer"
+      },
+      "desc": {
+        "init": "运行开始时通过 stdin 发送一次：场景元数据、冻结的计分配置、台址与完整天区目录。",
+        "step": "每次决策发送一次：当前时隙、天气、预报、当前进度以及合法候选天区及其期望收益。",
+        "answer": "智能体回复一行 JSON：在某个观测程序下观测一个天区，或等待本时隙结束。"
+      }
+    }
   },
   "ann": {
     "kicker": "公告",
@@ -1461,5 +1592,22 @@
     "not_configured": "本部署尚未连接 Supabase（VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY）。",
     "session_required": "请先登录。",
     "admin_required": "需要管理员权限。"
+  },
+  "a11y": {
+    "skip": "跳到正文"
+  },
+  "phase_clock": {
+    "now": "当前",
+    "next": "下一阶段",
+    "no_open": "暂无开放阶段",
+    "fallback_next": "线上比赛",
+    "ends": "{name}结束",
+    "in": "{d} 天 {h} 小时后",
+    "days": "天",
+    "hours": "时",
+    "minutes": "分",
+    "seconds": "秒",
+    "countdown_aria": "距下一阶段开始的倒计时",
+    "none_scheduled": "暂无后续阶段安排"
   }
 }

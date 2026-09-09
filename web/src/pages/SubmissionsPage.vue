@@ -8,6 +8,7 @@ import { useAuth } from '../stores/auth'
 import { useSubmissionWatch } from '../composables/useSubmissionWatch'
 import DashShell from '../components/layout/DashShell.vue'
 import StatusPill from '../components/layout/StatusPill.vue'
+import SkeletonRows from '../components/layout/SkeletonRows.vue'
 
 const { t, pick } = useI18n()
 const { team, refreshMe } = useAuth()
@@ -30,7 +31,7 @@ onMounted(async () => {
 
 <template>
   <DashShell :kicker="t('dash.title')" :title="t('subs.title')">
-    <p v-if="loading" class="text3 text-sm">{{ t('common.loading') }}</p>
+    <SkeletonRows v-if="loading" :rows="6" :cols="6" :label="t('common.loading')" />
     <div v-else-if="!team" class="panel"><p class="text2">{{ t('submit.errors.need_team') }}</p><p class="mt-5"><router-link class="btn primary sm" to="/team">{{ t('nav.team') }} →</router-link></p></div>
     <p v-else-if="!rows.length" class="text2">{{ t('subs.empty') }} <router-link class="accent-l" to="/submit">{{ t('dash.new_submission') }} →</router-link></p>
     <div v-else class="table-wrap">

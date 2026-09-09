@@ -5,6 +5,8 @@ import { isSupabaseConfigured, supabase } from '../../lib/supabase'
 import { loadLeaderboard, loadPhases, mainPhase, type LeaderboardEntry, type Phase } from '../../lib/data'
 import { useAuth } from '../../stores/auth'
 import { fmtUtc, num, pct } from '../../lib/format'
+import ScoreBars from '../leaderboard/ScoreBars.vue'
+import SkeletonRows from '../layout/SkeletonRows.vue'
 
 const { t, pick } = useI18n()
 const { team } = useAuth()
@@ -18,6 +20,7 @@ const teamCount = ref<number | null>(null)
 const updatedAt = ref<Date | null>(null)
 let timer: number | undefined
 
+const top = computed(() => entries.value.slice(0, 10))
 const scoredRuns = computed(() => entries.value.reduce((sum, row) => sum + row.submission_count, 0))
 const boardLink = computed(() => phase.value ? `/leaderboard/${phase.value.slug}` : '/leaderboard')
 
@@ -28,9 +31,10 @@ async function load() {
     const phases = await loadPhases()
     phase.value = mainPhase(phases)
     hidden.value = phase.value?.leaderboard_mode === 'hidden'
-    entries.value = phase.value && !hidden.value ? await loadLeaderboard(phase.value.slug, 10) : []
+    entries.value = phase.value && !hidden.value ? await loadLeaderboard(phase.value.slug, 500) : []
     updatedAt.value = new Date()
     error.value = false
+    loading.value = false
     const { count, error: countError } = await supabase.from('teams').select('id', { count: 'exact', head: true })
     teamCount.value = countError ? null : count
   } catch { error.value = true }
@@ -52,7 +56,7 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
 
           <div class="mt-12 flex items-center gap-4 font-mono text-xs uppercase tracking-[.1em] text-[#315efb]">
             <span class="signal-dot"></span>
-            {{ entries.length ? pick('CosmosBench signal live', 'CosmosBench 信号在线') : pick('Awaiting benchmark signal', '等待基准信号') }}
+            {{ entries.length ? t('home.leaderboard.signal_live') : t('home.leaderboard.signal_waiting') }}
           </div>
           <div class="stats stats-2 mt-10">
             <div class="stat"><b>{{ teamCount ?? entries.length }}</b><span>{{ t('home.stats_labels.teams') }}</span></div>
@@ -60,12 +64,12 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
           </div>
         </div>
 
-        <div class="reveal reveal-delay-1 border-y poster-rule">
+        <div class="reveal reveal-delay-1 border-y poster-rule min-w-0">
           <div class="flex flex-wrap items-center justify-between gap-4 border-b poster-rule py-5">
             <span class="font-mono text-xs uppercase tracking-[.1em] text-text-muted">
               <template v-if="phase">{{ pick(phase.name_en, phase.name_zh) }} · {{ t(`leaderboard.status.${phase.status}`) }}</template>
               <template v-if="updatedAt"> · {{ t('leaderboard.updated') }} {{ fmtUtc(updatedAt.toISOString()) }} UTC</template>
-              <template v-else-if="!phase">{{ pick('Live evaluation feed', '实时评测数据') }}</template>
+              <template v-else-if="!phase">{{ t('home.leaderboard.feed') }}</template>
             </span>
             <div class="flex gap-5">
               <button type="button" class="font-mono text-xs uppercase tracking-[.1em] text-text-tertiary hover:text-[#315efb] disabled:opacity-50" :disabled="refreshing" @click="load">↻ {{ t('leaderboard.refresh') }}</button>
@@ -73,31 +77,35 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
             </div>
           </div>
 
-          <div v-if="loading || !entries.length" class="grid min-h-80 place-items-center py-16 text-center">
+          <div v-if="loading" class="py-6"><SkeletonRows :rows="6" :cols="5" :label="t('leaderboard.loading')" /></div>
+          <div v-else-if="!entries.length" class="grid min-h-80 place-items-center py-16 text-center">
             <div>
               <div class="empty-zero">00</div>
               <p class="mt-4 max-w-sm text-sm leading-relaxed text-text-secondary">
-                {{ loading ? t('leaderboard.loading') : hidden ? t('leaderboard.hidden') : error ? t('leaderboard.unavailable') : t('leaderboard.empty') }}
+                {{ hidden ? t('leaderboard.hidden') : error ? t('leaderboard.unavailable') : t('leaderboard.empty') }}
               </p>
             </div>
           </div>
 
-          <div v-else class="table-wrap">
-            <table class="data-table min-w-[720px]">
-              <thead><tr><th>#</th><th>{{ t('leaderboard.team') }}</th><th class="r">{{ t('leaderboard.score') }}</th><th class="r">{{ t('leaderboard.science') }}</th><th class="r">{{ t('leaderboard.completion') }}</th><th class="r">{{ t('leaderboard.uniformity') }}</th><th class="r">{{ t('leaderboard.submissions') }}</th></tr></thead>
-              <tbody>
-                <tr v-for="row in entries" :key="row.team_id" data-testid="lb-row" :class="{ me: team && team.id === row.team_id }">
-                  <td class="m text-[#315efb]">{{ row.rank }}</td>
-                  <td class="font-medium text-text-primary">{{ row.team_name }}</td>
-                  <td class="r m">{{ num(row.total_score) }}</td>
-                  <td class="r m">{{ num(row.science_score) }}</td>
-                  <td class="r m">{{ pct(row.completion_rate) }}</td>
-                  <td class="r m">{{ num(row.uniformity_score, 3) }}</td>
-                  <td class="r m">{{ row.submission_count }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <template v-else>
+            <div class="py-6"><ScoreBars :entries="entries" :team-id="team?.id ?? null" :updated-at="updatedAt" /></div>
+            <div class="table-wrap">
+              <table class="data-table min-w-[720px]">
+                <thead><tr><th>#</th><th>{{ t('leaderboard.team') }}</th><th class="r">{{ t('leaderboard.score') }}</th><th class="r">{{ t('leaderboard.science') }}</th><th class="r">{{ t('leaderboard.completion') }}</th><th class="r">{{ t('leaderboard.uniformity') }}</th><th class="r">{{ t('leaderboard.submissions') }}</th></tr></thead>
+                <tbody>
+                  <tr v-for="row in top" :key="row.team_id" data-testid="lb-row" :class="{ me: team && team.id === row.team_id }">
+                    <td class="m text-[#315efb]">{{ row.rank }}</td>
+                    <td class="font-medium text-text-primary">{{ row.team_name }}</td>
+                    <td class="r m">{{ num(row.total_score) }}</td>
+                    <td class="r m">{{ num(row.science_score) }}</td>
+                    <td class="r m">{{ pct(row.completion_rate) }}</td>
+                    <td class="r m">{{ num(row.uniformity_score, 3) }}</td>
+                    <td class="r m">{{ row.submission_count }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </template>
         </div>
       </div>
     </div>

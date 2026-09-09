@@ -599,3 +599,57 @@ details.plain summary { cursor: pointer; }
 .live-dot { display: inline-block; width: .5rem; height: .5rem; background: #78a6ff; animation: blink 1.6s infinite; }
 @keyframes blink { 50% { opacity: .25; } }
 .empty-zero { font-size: 2.5rem; font-weight: 600; color: rgba(255,255,255,.08); }
+
+/* ------------------------------------------------------------------ */
+/* v2: observatory-console identity, a11y, skeletons                   */
+/* ------------------------------------------------------------------ */
+:focus-visible { outline: 2px solid #315efb; outline-offset: 2px; }
+.skip-link {
+  position: absolute; top: 0; left: 0; z-index: 100; transform: translateY(-120%);
+  border: 1px solid #315efb; background: #000; color: #f5f5f5; padding: .6rem 1rem;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase;
+  transition: transform .15s ease;
+}
+.skip-link:focus { transform: translateY(0); }
+#main-content:focus { outline: none; }
+
+/* tabular figures wherever numbers line up */
+.data-table, .m, .mono, .num, .kv dd, .stat b, .score-big, .hero-metrics b, .timer { font-variant-numeric: tabular-nums; }
+
+/* graticule section rule: 1 px line with a tick every 12.5 % (the 8 RA regions) */
+.poster-section {
+  border-top: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.18), rgba(255,255,255,.18)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.45) 0 1px, transparent 1px 12.5%),
+    linear-gradient(rgba(255,255,255,.45), rgba(255,255,255,.45));
+  background-size: 100% 1px, 100% 7px, 1px 7px;
+  background-position: left top, left top, right top;
+  background-repeat: no-repeat;
+}
+
+/* skeleton rows in the poster style */
+.skeleton { display: grid; gap: .6rem; padding: .25rem 0; }
+.skeleton-row { display: grid; gap: 1rem; align-items: center; border-bottom: 1px solid rgba(255,255,255,.06); padding: .55rem 0; }
+.skeleton-row i { display: block; height: .8rem; background: rgba(255,255,255,.08); animation: skeleton-pulse 1.4s ease-in-out infinite; }
+.skeleton-row i:first-child { background: rgba(49,94,251,.25); }
+@keyframes skeleton-pulse { 50% { opacity: .35; } }
+
+/* docs: active TOC entry + mobile chip row */
+.toc a.active { color: #f5f5f5; box-shadow: inset 2px 0 0 #315efb; padding-left: .6rem; }
+.toc-chips {
+  position: sticky; top: 4rem; z-index: 20; display: flex; gap: .4rem; overflow-x: auto; scrollbar-width: none;
+  padding: .6rem clamp(1.25rem, 4vw, 3.5rem); border-bottom: 1px solid rgba(255,255,255,.16); background: rgba(6,6,7,.92);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.toc-chips::-webkit-scrollbar { display: none; }
+.toc-chips a { flex-shrink: 0; border: 1px solid rgba(255,255,255,.2); padding: .3rem .6rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; color: #a8a8a8; white-space: nowrap; }
+.toc-chips a.active { border-color: #315efb; color: #f5f5f5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-row i, .live-dot { animation: none !important; }
+}
+
+.header-phase-pill { display: none; align-items: center; height: 1.6rem; }
+@media (min-width: 1024px) { .header-phase-pill { display: inline-flex; } }
+@media (min-width: 1024px) { .toc-chips { display: none; } }

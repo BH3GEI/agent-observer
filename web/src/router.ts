@@ -1,38 +1,39 @@
 import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
 import HomePage from './pages/HomePage.vue'
 import { initAuth, refreshMe, useAuth } from './stores/auth'
+import { applyDocumentMeta } from './composables/useI18n'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', component: HomePage },
-    { path: '/brief', component: () => import('./pages/VisionPage.vue') },
+    { path: '/', component: HomePage , meta: { page: 'home' }},
+    { path: '/brief', component: () => import('./pages/VisionPage.vue') , meta: { page: 'brief' }},
     { path: '/vision', redirect: '/brief' },
-    { path: '/rules', component: () => import('./pages/RulesPage.vue') },
-    { path: '/docs', component: () => import('./pages/DocsPage.vue') },
-    { path: '/faq', component: () => import('./pages/FaqPage.vue') },
-    { path: '/resources', component: () => import('./pages/ResourcesPage.vue') },
-    { path: '/leaderboard/:phase?', component: () => import('./pages/LeaderboardPage.vue') },
-    { path: '/announcements', component: () => import('./pages/AnnouncementsPage.vue') },
-    { path: '/register', component: () => import('./pages/RegisterPage.vue') },
+    { path: '/rules', component: () => import('./pages/RulesPage.vue') , meta: { page: 'rules' }},
+    { path: '/docs', component: () => import('./pages/DocsPage.vue') , meta: { page: 'docs' }},
+    { path: '/faq', component: () => import('./pages/FaqPage.vue') , meta: { page: 'faq' }},
+    { path: '/resources', component: () => import('./pages/ResourcesPage.vue') , meta: { page: 'resources' }},
+    { path: '/leaderboard/:phase?', component: () => import('./pages/LeaderboardPage.vue') , meta: { page: 'leaderboard' }},
+    { path: '/announcements', component: () => import('./pages/AnnouncementsPage.vue') , meta: { page: 'announcements' }},
+    { path: '/register', component: () => import('./pages/RegisterPage.vue') , meta: { page: 'register' }},
     { path: '/login', redirect: to => ({ path: '/register', query: { ...to.query, mode: 'login' } }) },
     { path: '/forgot', redirect: to => ({ path: '/register', query: { ...to.query, mode: 'forgot' } }) },
-    { path: '/reset', component: () => import('./pages/ResetPage.vue') },
-    { path: '/dashboard', component: () => import('./pages/DashboardPage.vue'), meta: { auth: true } },
-    { path: '/team', component: () => import('./pages/TeamPage.vue'), meta: { auth: true } },
-    { path: '/submit', component: () => import('./pages/SubmitPage.vue'), meta: { auth: true } },
-    { path: '/submissions', component: () => import('./pages/SubmissionsPage.vue'), meta: { auth: true } },
-    { path: '/submissions/:id', component: () => import('./pages/SubmissionDetailPage.vue'), meta: { auth: true } },
-    { path: '/profile', component: () => import('./pages/ProfilePage.vue'), meta: { auth: true } },
-    { path: '/admin', component: () => import('./pages/admin/AdminOverviewPage.vue'), meta: { auth: true, admin: true } },
-    { path: '/admin/phases', component: () => import('./pages/admin/AdminPhasesPage.vue'), meta: { auth: true, admin: true } },
-    { path: '/admin/scenarios', component: () => import('./pages/admin/AdminScenariosPage.vue'), meta: { auth: true, admin: true } },
-    { path: '/admin/submissions', component: () => import('./pages/admin/AdminSubmissionsPage.vue'), meta: { auth: true, admin: true } },
-    { path: '/admin/users', component: () => import('./pages/admin/AdminUsersPage.vue'), meta: { auth: true, admin: true } },
-    { path: '/admin/teams', component: () => import('./pages/admin/AdminTeamsPage.vue'), meta: { auth: true, admin: true } },
-    { path: '/admin/announcements', component: () => import('./pages/admin/AdminAnnouncementsPage.vue'), meta: { auth: true, admin: true } },
-    { path: '/admin/settings', component: () => import('./pages/admin/AdminSettingsPage.vue'), meta: { auth: true, admin: true } },
-    { path: '/:pathMatch(.*)*', component: () => import('./pages/NotFoundPage.vue') },
+    { path: '/reset', component: () => import('./pages/ResetPage.vue') , meta: { page: 'reset' }},
+    { path: '/dashboard', component: () => import('./pages/DashboardPage.vue'), meta: { page: 'dashboard', auth: true } },
+    { path: '/team', component: () => import('./pages/TeamPage.vue'), meta: { page: 'team', auth: true } },
+    { path: '/submit', component: () => import('./pages/SubmitPage.vue'), meta: { page: 'submit', auth: true } },
+    { path: '/submissions', component: () => import('./pages/SubmissionsPage.vue'), meta: { page: 'submissions', auth: true } },
+    { path: '/submissions/:id', component: () => import('./pages/SubmissionDetailPage.vue'), meta: { page: 'submission', auth: true } },
+    { path: '/profile', component: () => import('./pages/ProfilePage.vue'), meta: { page: 'profile', auth: true } },
+    { path: '/admin', component: () => import('./pages/admin/AdminOverviewPage.vue'), meta: { page: 'admin', auth: true, admin: true } },
+    { path: '/admin/phases', component: () => import('./pages/admin/AdminPhasesPage.vue'), meta: { page: 'admin', auth: true, admin: true } },
+    { path: '/admin/scenarios', component: () => import('./pages/admin/AdminScenariosPage.vue'), meta: { page: 'admin', auth: true, admin: true } },
+    { path: '/admin/submissions', component: () => import('./pages/admin/AdminSubmissionsPage.vue'), meta: { page: 'admin', auth: true, admin: true } },
+    { path: '/admin/users', component: () => import('./pages/admin/AdminUsersPage.vue'), meta: { page: 'admin', auth: true, admin: true } },
+    { path: '/admin/teams', component: () => import('./pages/admin/AdminTeamsPage.vue'), meta: { page: 'admin', auth: true, admin: true } },
+    { path: '/admin/announcements', component: () => import('./pages/admin/AdminAnnouncementsPage.vue'), meta: { page: 'admin', auth: true, admin: true } },
+    { path: '/admin/settings', component: () => import('./pages/admin/AdminSettingsPage.vue'), meta: { page: 'admin', auth: true, admin: true } },
+    { path: '/:pathMatch(.*)*', component: () => import('./pages/NotFoundPage.vue') , meta: { page: 'not_found' }},
   ],
   scrollBehavior(to, _from, savedPosition) {
     if (savedPosition) return savedPosition
@@ -56,5 +57,7 @@ router.beforeEach(async (to: RouteLocationNormalized) => {
   }
   return true
 })
+
+router.afterEach(to => { applyDocumentMeta(typeof to.meta.page === 'string' ? to.meta.page : 'home') })
 
 export default router

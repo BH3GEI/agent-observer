@@ -11,6 +11,7 @@ import { useFlash } from '../stores/flash'
 import { useSubmissionWatch } from '../composables/useSubmissionWatch'
 import DashShell from '../components/layout/DashShell.vue'
 import StatusPill from '../components/layout/StatusPill.vue'
+import SkeletonRows from '../components/layout/SkeletonRows.vue'
 
 const { t, tf, pick } = useI18n()
 const route = useRoute()
@@ -50,7 +51,7 @@ onMounted(async () => {
 
 <template>
   <DashShell :kicker="t('dash.title')" :title="tf('dash.welcome', { name: me?.name || me?.email || '' })">
-    <p v-if="loading" class="text3 text-sm">{{ t('dash.loading') }}</p>
+    <div v-if="loading" class="dash-grid"><div class="panel"><SkeletonRows :rows="5" :cols="5" :label="t('dash.loading')" /></div><div class="panel"><SkeletonRows :rows="3" :cols="2" :label="t('dash.loading')" /></div></div>
     <div v-else class="dash-grid">
       <div>
         <div v-if="!team" class="panel">

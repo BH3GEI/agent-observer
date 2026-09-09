@@ -2,7 +2,82 @@
   "meta": {
     "title": "Agent Observer · GOSIM Hackathon",
     "description": "A GOSIM hackathon for intelligent survey operations: build an agent observer that reads the sky state and chooses the next observation every 900 seconds.",
-    "wordmark_note": "AGENT HACKATHON"
+    "wordmark_note": "AGENT HACKATHON",
+    "brand": "Agent Observer",
+    "pages": {
+      "home": {
+        "title": "Home",
+        "description": "A GOSIM hackathon for intelligent survey operations: build an agent observer that reads the sky state and chooses the next observation every 900 seconds."
+      },
+      "brief": {
+        "title": "Event brief",
+        "description": "Mission, timeline, prizes and evaluation of the Agent Observer hackathon."
+      },
+      "rules": {
+        "title": "Rules",
+        "description": "Eligibility, submission limits, scoring and conduct rules for the Agent Observer hackathon."
+      },
+      "docs": {
+        "title": "Docs",
+        "description": "The observer-v1 protocol, the scorer, scenario files and the starter kit."
+      },
+      "faq": {
+        "title": "FAQ",
+        "description": "Answers to common questions about registration, teams, submissions and scoring."
+      },
+      "resources": {
+        "title": "Resources",
+        "description": "Starter kit, scorer, protocol reference and public development scenarios."
+      },
+      "leaderboard": {
+        "title": "Leaderboard",
+        "description": "Live standings per phase: score, science yield, completion and uniformity."
+      },
+      "announcements": {
+        "title": "Announcements",
+        "description": "Organizer announcements for the Agent Observer hackathon."
+      },
+      "register": {
+        "title": "Register",
+        "description": "Create an account or log in to submit agents and results."
+      },
+      "reset": {
+        "title": "Reset password",
+        "description": "Set a new password for your account."
+      },
+      "dashboard": {
+        "title": "Dashboard",
+        "description": "Your team, quota and recent submissions."
+      },
+      "team": {
+        "title": "Team",
+        "description": "Create or join a team with an invite code."
+      },
+      "submit": {
+        "title": "Submit",
+        "description": "Upload a decisions.csv or an agent for evaluation."
+      },
+      "submissions": {
+        "title": "Submissions",
+        "description": "All submissions of your team with status and score."
+      },
+      "submission": {
+        "title": "Submission",
+        "description": "Evaluation report, observed sky map and action timeline of one submission."
+      },
+      "profile": {
+        "title": "Profile",
+        "description": "Your account details and preferences."
+      },
+      "admin": {
+        "title": "Admin",
+        "description": "Organizer console."
+      },
+      "not_found": {
+        "title": "Page not found",
+        "description": "This page does not exist."
+      }
+    }
   },
   "nav": {
     "brief": "Event brief",
@@ -70,7 +145,20 @@
         "label": "worldwide · solo or team"
       }
     ],
-    "side_note": "Human judgment / machine speed / one shared sky"
+    "side_note": "Human judgment / machine speed / one shared sky",
+    "console": {
+      "title": "Observatory console",
+      "replay_note": "Replay · baseline agent · dev-example",
+      "paused": "Paused",
+      "aria": "Sky map replay of the baseline agent: observed tiles fill in slot by slot",
+      "slot": "Slot",
+      "weather": "Seeing · transp · sky",
+      "dome_closed": "Dome closed",
+      "score": "Score",
+      "tiles": "Tiles",
+      "legend_visible": "Above 30°",
+      "legend_meridian": "Meridian (LST)"
+    }
   },
   "home": {
     "vision": {
@@ -179,7 +267,10 @@
     "leaderboard": {
       "kicker": "05 / Leaderboard",
       "title": "Live standings",
-      "lede": "The board updates as soon as a submission is scored. Practice standings are informational; the online competition board decides the awards."
+      "lede": "The board updates as soon as a submission is scored. Practice standings are informational; the online competition board decides the awards.",
+      "signal_live": "CosmosBench signal live",
+      "signal_waiting": "Awaiting benchmark signal",
+      "feed": "Live evaluation feed"
     },
     "evaluation": {
       "kicker": "05 / Evaluation",
@@ -889,7 +980,17 @@
       "disabled": "disabled"
     },
     "no_phases": "No phase has been configured yet.",
-    "me": "your team"
+    "me": "your team",
+    "chart": {
+      "title": "Score composition · top 10",
+      "penalty": "waste penalty",
+      "your_team": "Your team",
+      "your_position": "Your position",
+      "teams_on_board": "Teams on board",
+      "scored_runs": "Scored runs",
+      "last_update": "Last update",
+      "tooltip": "Score {score} · science {science} · penalty {penalty}"
+    }
   },
   "cta": {
     "title": "Hand the next move of the night sky to the agent you wrote",
@@ -910,7 +1011,13 @@
       "code": "Code of conduct",
       "contact": "Contact"
     },
-    "contact_email": "hackathon@gosim.org"
+    "contact_email": "hackathon@gosim.org",
+    "ticker": {
+      "per_decision": "per decision",
+      "slot": "Slot",
+      "open": "dome open",
+      "closed": "dome closed"
+    }
   },
   "common": {
     "save": "Save",
@@ -1208,7 +1315,18 @@
     "no_report": "Report not available yet.",
     "refresh": "Refresh",
     "back": "All submissions",
-    "live": "live"
+    "live": "live",
+    "skymap": {
+      "title": "Observed universe",
+      "hidden": "Tile catalogue hidden for this scenario",
+      "decision": "Decision",
+      "play": "Play",
+      "pause": "Pause",
+      "start": "Before the first decision",
+      "night": "Night",
+      "tiles": "tiles",
+      "score_gained": "score gained"
+    }
   },
   "flash": {
     "profile_saved": "Profile saved.",
@@ -1308,7 +1426,20 @@
   "docs_page": {
     "kicker": "Docs",
     "title": "Participant documentation",
-    "toc": "Contents"
+    "toc": "Contents",
+    "protocol": {
+      "title": "Protocol at a glance",
+      "tabs": {
+        "init": "init",
+        "step": "step",
+        "answer": "answer"
+      },
+      "desc": {
+        "init": "Sent once on stdin when the run starts: scenario metadata, the frozen score configuration, the site and the full tile catalogue.",
+        "step": "Sent once per decision: current slot, weather, forecast, progress so far and the legal candidate tiles with their expected gain.",
+        "answer": "Your agent replies with one JSON line: observe a tile in a program, or wait for the rest of the slot."
+      }
+    }
   },
   "ann": {
     "kicker": "Announcements",
@@ -1461,5 +1592,22 @@
     "not_configured": "This deployment is not connected to Supabase yet (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).",
     "session_required": "Please log in to continue.",
     "admin_required": "Admin access required."
+  },
+  "a11y": {
+    "skip": "Skip to content"
+  },
+  "phase_clock": {
+    "now": "Now",
+    "next": "Next",
+    "no_open": "No open phase",
+    "fallback_next": "Online Competition",
+    "ends": "{name} ends",
+    "in": "in {d}d {h}h",
+    "days": "d",
+    "hours": "h",
+    "minutes": "m",
+    "seconds": "s",
+    "countdown_aria": "Countdown to the next phase",
+    "none_scheduled": "No further phase scheduled"
   }
 }

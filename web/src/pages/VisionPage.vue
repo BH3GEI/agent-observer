@@ -33,7 +33,7 @@ const sections = computed(() => t('vision.sections') as Section[])
   <main class="poster-canvas min-h-screen pb-24">
     <header class="vision-hero hero-section relative min-h-[720px] overflow-hidden border-b border-white/20">
       <div class="vision-hero-photo" aria-hidden="true">
-        <img :src="domeImage" alt="">
+        <img :src="domeImage" alt="" loading="lazy" width="1536" height="1024">
         <div class="vision-plasma plasma-field"></div>
       </div>
       <div class="vision-hero-overlay" aria-hidden="true"></div>

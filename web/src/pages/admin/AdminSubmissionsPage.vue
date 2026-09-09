@@ -5,12 +5,14 @@ import { loadPhases, type Phase } from '../../lib/data'
 import { fmtUtc, num } from '../../lib/format'
 import { useAdmin } from '../../composables/useAdmin'
 import DashShell from '../../components/layout/DashShell.vue'
+import SkeletonRows from '../../components/layout/SkeletonRows.vue'
 import StatusPill from '../../components/layout/StatusPill.vue'
 
 const STATUSES = ['queued', 'running', 'scored', 'invalid', 'failed', 'cancelled']
 const { t, busy, rpc, run } = useAdmin()
 const phases = ref<Phase[]>([])
 const rows = ref<any[]>([])
+const loading = ref(true)
 const filter = ref({ status: '', phase: '', team: '' })
 
 async function load() {
@@ -26,7 +28,7 @@ async function action(id: number, name: string) {
   const ok = await run(() => rpc('admin_submission_action', { p_id: id, p_action: name }), t('admin.done'))
   if (ok) await load()
 }
-onMounted(async () => { phases.value = await loadPhases(); await load() })
+onMounted(async () => { try { phases.value = await loadPhases(); await load() } finally { loading.value = false } })
 </script>
 
 <template>
@@ -54,7 +56,8 @@ onMounted(async () => { phases.value = await loadPhases(); await load() })
               </div>
             </td>
           </tr>
-          <tr v-if="!rows.length"><td colspan="11" class="text3">{{ t('common.no_data') }}</td></tr>
+          <tr v-if="loading"><td colspan="11" class="p-0"><SkeletonRows :rows="5" :cols="4" :label="t('common.loading')" /></td></tr>
+          <tr v-else-if="!rows.length"><td colspan="11" class="text3">{{ t('common.no_data') }}</td></tr>
         </tbody>
       </table>
     </div>

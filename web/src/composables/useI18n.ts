@@ -49,15 +49,31 @@ export function negotiateLocale(): Locale {
   return 'zh'
 }
 
+/** Locale readable outside components (router hooks); provideI18n keeps it in sync. */
+export const currentLocale = ref<Locale>('zh')
+let currentPage = 'home'
+
+/** Set document.title + description for a route page key (see meta.pages in the i18n files). */
+export function applyDocumentMeta(page: string): void {
+  if (typeof document === 'undefined') return
+  currentPage = page
+  const locale = currentLocale.value
+  const entry = translate(locale, `meta.pages.${page}`)
+  const known = entry && typeof entry === 'object'
+  const brand = translate(locale, 'meta.brand')
+  document.title = page === 'home' || !known ? translate(locale, 'meta.title') : `${entry.title} · ${brand}`
+  const description = document.querySelector<HTMLMetaElement>('meta[name="description"]')
+  if (description) description.content = known && entry.description ? entry.description : translate(locale, 'meta.description')
+}
+
 export function provideI18n(): I18n {
   const locale = ref<Locale>(negotiateLocale())
 
   if (typeof document !== 'undefined') {
     watch(locale, (value) => {
+      currentLocale.value = value
       document.documentElement.lang = value === 'zh' ? 'zh-CN' : 'en'
-      document.title = translate(value, 'meta.title')
-      const description = document.querySelector<HTMLMetaElement>('meta[name="description"]')
-      if (description) description.content = translate(value, 'meta.description')
+      applyDocumentMeta(currentPage)
       window.localStorage.setItem(STORAGE_KEY, value)
     }, { immediate: true })
   }

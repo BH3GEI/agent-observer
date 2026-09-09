@@ -94,5 +94,5 @@ export async function loadLeaderboard(phaseSlug: string | null, limit = 500): Pr
   }))
 }
 
-export const SUBMISSION_SELECT = '*, phases(slug,name_en,name_zh), scenarios(slug,name), evaluations(*, scenarios(slug,name))'
+export const SUBMISSION_SELECT = '*, phases(slug,name_en,name_zh), scenarios(slug,name), evaluations(*, scenarios(slug,name,tiles_public))'
 export const PENDING_STATUSES = new Set(['queued', 'running'])

@@ -32,7 +32,7 @@ const cards = computed(() => t('home.mission.cards') as Card[])
 
         <div class="relative z-10">
           <div class="mission-photo photo-wash reveal mb-12 h-[300px] md:h-[440px]">
-            <img :src="instrumentImage" alt="" loading="lazy">
+            <img :src="instrumentImage" alt="" loading="lazy" width="1881" height="836">
             <span>{{ pick('INSTRUMENT CALIBRATION / HUMAN OVERSIGHT', '仪器标定 / 人类监督') }}</span>
           </div>
           <article v-for="(card, index) in cards" :key="card.title" class="poster-card reveal py-9 md:grid md:grid-cols-[5rem_1fr] md:gap-8 md:py-12" :class="`reveal-delay-${index + 1}`">

@@ -4,12 +4,14 @@ import { supabase } from '../../lib/supabase'
 import { fmtUtc, num } from '../../lib/format'
 import { useAdmin } from '../../composables/useAdmin'
 import DashShell from '../../components/layout/DashShell.vue'
+import SkeletonRows from '../../components/layout/SkeletonRows.vue'
 import StatusPill from '../../components/layout/StatusPill.vue'
 
 const { t, rpc, report } = useAdmin()
 const stats = ref<Record<string, number>>({})
 const recent = ref<any[]>([])
 const audit = ref<any[]>([])
+const loading = ref(true)
 const keys = ['users', 'teams', 'submissions', 'queued', 'scored', 'failed']
 
 onMounted(async () => {
@@ -23,6 +25,7 @@ onMounted(async () => {
     recent.value = r.data ?? []
     audit.value = a.data ?? []
   } catch (e) { report(e) }
+  finally { loading.value = false }
 })
 </script>
 
@@ -43,7 +46,8 @@ onMounted(async () => {
                 <td>{{ s.teams?.name ?? '—' }}</td><td class="m xs">{{ s.phases?.slug ?? '—' }}</td><td>{{ s.kind }}</td>
                 <td><StatusPill :status="s.status" /></td><td class="r m">{{ num(s.score) }}</td><td class="m xs">{{ fmtUtc(s.created_at, { short: true }) }}</td>
               </tr>
-              <tr v-if="!recent.length"><td colspan="7" class="text3">{{ t('common.no_data') }}</td></tr>
+              <tr v-if="loading"><td colspan="7" class="p-0"><SkeletonRows :rows="5" :cols="4" :label="t('common.loading')" /></td></tr>
+              <tr v-else-if="!recent.length"><td colspan="7" class="text3">{{ t('common.no_data') }}</td></tr>
             </tbody>
           </table>
         </div>

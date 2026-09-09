@@ -5,14 +5,24 @@ import { useI18n } from '../../composables/useI18n'
 import { useAuth } from '../../stores/auth'
 import { useFlash } from '../../stores/flash'
 import { useRegistrationOpen } from '../../composables/useRegistrationOpen'
+import { usePhaseClock } from '../../composables/usePhaseClock'
+import { computed } from 'vue'
 
-const { t, pick, toggleLocale } = useI18n()
+const { t, tf, pick, toggleLocale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const { isLoggedIn, isAdmin, signOut } = useAuth()
 const { registrationOpen } = useRegistrationOpen()
 const flash = useFlash()
 const mobileOpen = ref(false)
+const { current, next, usingFallback, countdown } = usePhaseClock()
+const pad = (n: number) => String(n).padStart(2, '0')
+const phasePill = computed(() => {
+  if (current.value) return { text: `${pick(current.value.name_en, current.value.name_zh)} · ${t('leaderboard.status.open')}`, cls: 'open' }
+  const name = next.value ? pick(next.value.name_en, next.value.name_zh) : usingFallback.value ? t('phase_clock.fallback_next') : null
+  if (!name || (!next.value && !usingFallback.value)) return null
+  return { text: `${name} · ${tf('phase_clock.in', { d: countdown.value.days, h: pad(countdown.value.hours) })}`, cls: 'upcoming' }
+})
 
 const items = [
   { key: 'nav.brief', to: '/brief' },
@@ -56,6 +66,7 @@ async function logout() {
       </nav>
 
       <div class="flex items-center gap-2">
+        <router-link v-if="phasePill" to="/leaderboard" class="pill header-phase-pill" :class="phasePill.cls" data-testid="phase-pill">{{ phasePill.text }}</router-link>
         <button data-testid="lang-toggle" type="button" @click="toggleLocale" class="inline-flex h-10 min-w-12 items-center justify-center border border-white/25 px-2 font-mono text-xs uppercase text-white/55 transition-colors hover:border-white/60 hover:text-white">
           {{ pick('中文', 'EN') }}
         </button>

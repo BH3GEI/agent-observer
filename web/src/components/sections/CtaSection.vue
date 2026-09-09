@@ -12,7 +12,7 @@ const { registrationOpen } = useRegistrationOpen()
   <section class="poster-section poster-canvas py-8 md:py-12">
     <div class="mx-auto max-w-[1600px] px-5 md:px-10 xl:px-14">
       <div class="cta-poster reveal relative min-h-[650px] overflow-hidden border border-white/20 p-6 md:min-h-[760px] md:p-10 lg:p-14">
-        <img :src="heroImage" alt="" loading="lazy">
+        <img :src="heroImage" alt="" loading="lazy" width="1821" height="864">
         <div class="cta-plasma plasma-field" aria-hidden="true"></div>
         <div class="cta-overlay" aria-hidden="true"></div>
 

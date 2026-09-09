@@ -8,6 +8,8 @@ import { useAuth } from '../stores/auth'
 import { fmtUtc, num, pct } from '../lib/format'
 import PageHead from '../components/layout/PageHead.vue'
 import StatusPill from '../components/layout/StatusPill.vue'
+import ScoreBars from '../components/leaderboard/ScoreBars.vue'
+import SkeletonRows from '../components/layout/SkeletonRows.vue'
 
 const { t, tf, pick } = useI18n()
 const route = useRoute()
@@ -69,14 +71,16 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
         </div>
         <div class="min-w-0">
           <p v-if="!visible" class="text2 py-12">{{ t('leaderboard.hidden') }}</p>
+          <SkeletonRows v-else-if="boardLoading && !entries.length" :rows="8" :cols="6" :label="t('common.loading')" />
           <div v-else-if="!entries.length" class="py-16 text-center">
             <div class="empty-zero">00</div>
-            <p class="text2 mt-3 text-sm">{{ boardLoading ? t('common.loading') : t('leaderboard.empty') }}</p>
+            <p class="text2 mt-3 text-sm">{{ t('leaderboard.empty') }}</p>
           </div>
           <template v-else>
             <p v-if="phase.leaderboard_mode === 'frozen'" class="notice">{{ t('leaderboard.frozen') }}</p>
             <p v-else-if="phase.leaderboard_mode === 'published'" class="notice">{{ t('leaderboard.published') }}</p>
             <p class="label mb-4">{{ tf('leaderboard.n_entries', { n: entries.length }) }}</p>
+            <ScoreBars class="mb-8" :entries="entries" :team-id="team?.id ?? null" :updated-at="updatedAt" />
             <div class="table-wrap">
               <table class="data-table">
                 <thead><tr><th>{{ t('leaderboard.rank') }}</th><th>{{ t('leaderboard.team') }}</th><th class="r">{{ t('leaderboard.score') }}</th><th class="r">{{ t('leaderboard.science') }}</th><th class="r">{{ t('leaderboard.completion') }}</th><th class="r">{{ t('leaderboard.uniformity') }}</th><th class="r">{{ t('leaderboard.submissions') }}</th><th>{{ t('leaderboard.kind') }}</th></tr></thead>

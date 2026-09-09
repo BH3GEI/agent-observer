@@ -19,7 +19,7 @@ const stats = computed(() => t('home.vision.stats') as Stat[])
 
         <div class="reveal reveal-delay-1">
           <div class="vision-photo photo-wash h-[340px] md:h-[540px]">
-            <img :src="controlRoomImage" alt="" loading="lazy">
+            <img :src="controlRoomImage" alt="" loading="lazy" width="1788" height="880">
             <div class="vision-plasma plasma-field" aria-hidden="true"></div>
             <div class="vision-stamp">{{ pick('OBSERVATORY CONTROL / HUMAN IN THE LOOP', '观测站控制 / 人在回路') }}</div>
           </div>

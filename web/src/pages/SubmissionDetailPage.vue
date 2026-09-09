@@ -12,8 +12,10 @@ import { useFlash } from '../stores/flash'
 import { useSubmissionWatch } from '../composables/useSubmissionWatch'
 import DashShell from '../components/layout/DashShell.vue'
 import StatusPill from '../components/layout/StatusPill.vue'
+import ObservedSkyMap from '../components/submissions/ObservedSkyMap.vue'
+import SkeletonRows from '../components/layout/SkeletonRows.vue'
 
-interface ReportAction { decision_id: number; slot_id: number; action: string; tile_id: number | null; program: string | null; valid: boolean; message: string; elapsed_seconds: number; unproductive_seconds: number; science_score: number }
+interface ReportAction { decision_id: number; slot_id: string | number; action: string; tile_id: string | number | null; program: string | null; valid: boolean; message: string; start_timestamp_utc?: string | null; elapsed_seconds: number; unproductive_seconds: number; science_score: number }
 interface Report { actions: ReportAction[]; region_completion?: Record<string, number> }
 
 const { t, tf, pick } = useI18n()
@@ -78,13 +80,13 @@ onMounted(async () => {
 <template>
   <DashShell :kicker="t('subs.title')" :title="tf('subs.detail_title', { id })">
     <template #title-extra><span v-if="sub?.title" class="text3"> · {{ sub.title }}</span></template>
-    <p v-if="loading" class="text3 text-sm">{{ t('common.loading') }}</p>
+    <SkeletonRows v-if="loading" :rows="6" :cols="3" :label="t('common.loading')" />
     <div v-else-if="missing || !sub" class="panel"><p class="text2">{{ t('common.not_found') }}</p><p class="mt-5"><router-link class="btn sm" to="/submissions">{{ t('subs.back') }}</router-link></p></div>
     <div v-else class="dash-grid">
       <div>
         <div class="panel">
           <div class="hd">
-            <h2 class="flex flex-wrap items-center gap-2"><StatusPill :status="sub.status" testid="sub-status" /> {{ sub.phases ? pick(sub.phases.name_en, sub.phases.name_zh) : '' }} · {{ t(`kind.${sub.kind}`) }}</h2>
+            <h2 class="flex flex-wrap items-center gap-2"><StatusPill :status="sub.status" testid="sub-status" live /> {{ sub.phases ? pick(sub.phases.name_en, sub.phases.name_zh) : '' }} · {{ t(`kind.${sub.kind}`) }}</h2>
             <span class="m xs">{{ fmtUtc(sub.created_at) }} UTC</span>
           </div>
           <p v-if="pending" class="text2 flex items-center gap-3"><span class="live-dot"></span>{{ t('subs.waiting') }}</p>
@@ -127,6 +129,7 @@ onMounted(async () => {
               <template v-if="summaryOf(ev).steps"><dt>{{ t('subs.steps') }}</dt><dd class="m text-sm">{{ summaryOf(ev).steps }} · {{ num(summaryOf(ev).agent_wall_seconds ?? 0, 1) }}s</dd></template>
             </dl>
             <template v-if="reports[ev.id]">
+              <ObservedSkyMap v-if="ev.scenarios?.slug" class="mt-8" :slug="ev.scenarios.slug" :actions="reports[ev.id]!.actions" :tiles-public="Boolean(ev.scenarios?.tiles_public)" />
               <h3 class="label mt-8">{{ t('subs.actions_title') }}</h3>
               <div class="timeline mt-3">
                 <i v-for="a in reports[ev.id]!.actions" :key="a.decision_id" :class="barClass(a)" :style="{ flex: String(a.elapsed_seconds || 1) }" :title="`#${a.decision_id} ${a.action} ${a.tile_id ?? ''} ${a.message} ${num(a.science_score, 1)}`"></i>

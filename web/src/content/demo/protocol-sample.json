@@ -1,0 +1,284 @@
+{
+  "init": {
+    "type": "init",
+    "protocol": "observer-v1",
+    "scenario": {
+      "slug": "dev-example",
+      "name": "Development example",
+      "n_slots": 24,
+      "n_nights": 2
+    },
+    "config": {
+      "schema_version": "stage1-score-v1",
+      "slot_seconds": 900,
+      "site": {
+        "latitude_deg": 31.9634,
+        "longitude_deg": -111.599,
+        "minimum_altitude_deg": 30.0
+      },
+      "quality_thresholds": {
+        "dark": 0.3,
+        "bright": 0.14
+      },
+      "program_bonus": {
+        "DARK": 0.25,
+        "BRIGHT": 0.15,
+        "BACKUP": 0.05
+      },
+      "target_weights": {
+        "LRG": 1.0,
+        "ELG": 1.0,
+        "QSO": 1.7,
+        "BGS": 0.45
+      },
+      "characteristic_flux": {
+        "LRG": 0.35,
+        "ELG": 0.55,
+        "QSO": 0.18,
+        "BGS": 1.25
+      },
+      "reference_flux": 1.0,
+      "low_flux_threshold": 0.2,
+      "low_flux_bonus": 1.3,
+      "idle_penalty_per_second": 0.02
+    },
+    "site": {
+      "latitude_deg": 31.9634,
+      "longitude_deg": -111.599,
+      "minimum_altitude_deg": 30.0
+    },
+    "slot_seconds": 900,
+    "n_tiles": 72,
+    "tiles": [
+      {
+        "tile_id": "200000",
+        "ra_deg": 162.856639,
+        "dec_deg": 34.184067,
+        "program": "DARK",
+        "region": 3,
+        "priority": 8.2055,
+        "nominal_exptime_seconds": 1350,
+        "n_lrg": 1449,
+        "n_elg": 1953,
+        "n_qso": 351,
+        "n_bgs": 0
+      },
+      {
+        "tile_id": "200001",
+        "ra_deg": 68.364731,
+        "dec_deg": 51.273022,
+        "program": "BRIGHT",
+        "region": 1,
+        "priority": 3.2153,
+        "nominal_exptime_seconds": 900,
+        "n_lrg": 121,
+        "n_elg": 161,
+        "n_qso": 39,
+        "n_bgs": 2462
+      },
+      {
+        "tile_id": "200002",
+        "ra_deg": 51.046247,
+        "dec_deg": 32.708546,
+        "program": "BACKUP",
+        "region": 1,
+        "priority": 2.4676,
+        "nominal_exptime_seconds": 1200,
+        "n_lrg": 0,
+        "n_elg": 0,
+        "n_qso": 2,
+        "n_bgs": 1209
+      },
+      "… 69 more tiles"
+    ],
+    "limits": {
+      "step_timeout_seconds": 20,
+      "total_timeout_seconds": 600,
+      "max_steps": 50000
+    }
+  },
+  "step": {
+    "type": "step",
+    "step": 0,
+    "now": {
+      "slot_id": "N01-S001",
+      "night_id": "N01",
+      "slot_index": 0,
+      "timestamp_utc": "2026-10-02T02:00:00Z",
+      "slot_elapsed_seconds": 0.0,
+      "slot_remaining_seconds": 900.0,
+      "night_remaining_seconds": 10800.0,
+      "slots_remaining_in_night": 12,
+      "slots_remaining_total": 24
+    },
+    "weather": {
+      "seeing_arcsec": 1.0732,
+      "transparency": 0.8748,
+      "sky_brightness": 0.9187,
+      "is_observable": true,
+      "zenith_quality": 0.887267,
+      "zenith_program": "DARK"
+    },
+    "forecast": [
+      {
+        "slot_id": "N01-S002",
+        "night_id": "N01",
+        "timestamp_utc": "2026-10-02T02:15:00Z",
+        "duration_seconds": 900,
+        "seeing_arcsec": 0.8383,
+        "transparency": 0.9098,
+        "sky_brightness": 1.0513,
+        "is_observable": true
+      },
+      {
+        "slot_id": "N01-S003",
+        "night_id": "N01",
+        "timestamp_utc": "2026-10-02T02:30:00Z",
+        "duration_seconds": 900,
+        "seeing_arcsec": 0.9997,
+        "transparency": 0.8583,
+        "sky_brightness": 1.0626,
+        "is_observable": true
+      },
+      {
+        "slot_id": "N01-S004",
+        "night_id": "N01",
+        "timestamp_utc": "2026-10-02T02:45:00Z",
+        "duration_seconds": 900,
+        "seeing_arcsec": 1.0176,
+        "transparency": 0.99,
+        "sky_brightness": 1.0199,
+        "is_observable": true
+      },
+      {
+        "slot_id": "N01-S005",
+        "night_id": "N01",
+        "timestamp_utc": "2026-10-02T03:00:00Z",
+        "duration_seconds": 900,
+        "seeing_arcsec": 1.0421,
+        "transparency": 0.8336,
+        "sky_brightness": 0.936,
+        "is_observable": true
+      }
+    ],
+    "progress": {
+      "completed_tiles": 0,
+      "total_tiles": 72,
+      "science_score": 0.0,
+      "waste_seconds": 0.0,
+      "idle_seconds": 0.0,
+      "invalid_seconds": 0.0,
+      "unproductive_exposure_seconds": 0.0,
+      "invalid_actions": 0,
+      "region_completion": {
+        "0": 0.0,
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0,
+        "4": 0.0,
+        "5": 0.0,
+        "6": 0.0,
+        "7": 0.0
+      },
+      "completed_tile_ids": []
+    },
+    "available_tiles": [
+      {
+        "tile_id": "200057",
+        "ra_deg": 272.822103,
+        "dec_deg": 25.759547,
+        "program": "DARK",
+        "region": 6,
+        "priority": 7.6389,
+        "nominal_exptime_seconds": 600,
+        "n_lrg": 1222,
+        "n_elg": 1594,
+        "n_qso": 493,
+        "n_bgs": 0,
+        "altitude_deg": 73.3765,
+        "airmass": 1.04362,
+        "quality": 0.850184,
+        "condition_program": "DARK",
+        "program_match": true,
+        "target_value": 1500.5154,
+        "expected_gain": 1406.3875,
+        "expected_gain_per_second": 2.343979
+      },
+      {
+        "tile_id": "200069",
+        "ra_deg": 229.848179,
+        "dec_deg": 32.073331,
+        "program": "DARK",
+        "region": 5,
+        "priority": 8.8646,
+        "nominal_exptime_seconds": 600,
+        "n_lrg": 1205,
+        "n_elg": 2252,
+        "n_qso": 420,
+        "n_bgs": 0,
+        "altitude_deg": 39.3332,
+        "airmass": 1.57771,
+        "quality": 0.562376,
+        "condition_program": "DARK",
+        "program_match": true,
+        "target_value": 1827.426,
+        "expected_gain": 1211.6972,
+        "expected_gain_per_second": 2.019495
+      },
+      {
+        "tile_id": "200019",
+        "ra_deg": 294.408702,
+        "dec_deg": 12.4649,
+        "program": "BRIGHT",
+        "region": 6,
+        "priority": 4.2129,
+        "nominal_exptime_seconds": 1200,
+        "n_lrg": 48,
+        "n_elg": 40,
+        "n_qso": 47,
+        "n_bgs": 3968,
+        "altitude_deg": 70.2646,
+        "airmass": 1.0624,
+        "quality": 0.835151,
+        "condition_program": "DARK",
+        "program_match": false,
+        "target_value": 1843.0966,
+        "expected_gain": 1093.8703,
+        "expected_gain_per_second": 0.911559
+      },
+      {
+        "tile_id": "200003",
+        "ra_deg": 235.412112,
+        "dec_deg": 38.089389,
+        "program": "DARK",
+        "region": 5,
+        "priority": 7.2769,
+        "nominal_exptime_seconds": 450,
+        "n_lrg": 811,
+        "n_elg": 2276,
+        "n_qso": 127,
+        "n_bgs": 0,
+        "altitude_deg": 45.4013,
+        "airmass": 1.40441,
+        "quality": 0.631771,
+        "condition_program": "DARK",
+        "program_match": true,
+        "target_value": 1586.1706,
+        "expected_gain": 1082.071,
+        "expected_gain_per_second": 2.404602
+      },
+      "… more candidates"
+    ],
+    "last_action": null
+  },
+  "answer_observe": {
+    "action": "observe",
+    "tile_id": "200057",
+    "program": "DARK",
+    "reason": "highest expected gain in the matching weather band"
+  },
+  "answer_wait": {
+    "action": "wait",
+    "reason": "dome closed for this slot"
+  }
+}

@@ -6,14 +6,17 @@ import AppFooter from './components/layout/AppFooter.vue'
 import AnnouncementBanner from './components/layout/AnnouncementBanner.vue'
 import FlashContainer from './components/layout/FlashContainer.vue'
 
-provideI18n()
+const { t } = provideI18n()
 provideTheme()
 </script>
 
 <template>
+  <a href="#main-content" class="skip-link">{{ t('a11y.skip') }}</a>
   <AppHeader />
   <AnnouncementBanner />
-  <router-view />
+  <div id="main-content" tabindex="-1">
+    <router-view />
+  </div>
   <AppFooter />
   <FlashContainer />
 </template>
