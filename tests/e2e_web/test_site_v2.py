@@ -42,10 +42,10 @@ def test_hero_console_and_meta(page: Page, site):
     expect(page.locator("[data-testid=protocol-explorer]")).to_be_visible()
     page.click("[data-testid=protocol-tab-step]")
     expect(page.locator("[data-testid=protocol-explorer] pre")).to_contain_text('"type": "step"')
-    assert re.search(r"(Docs · Agent Observer|文档 · 巡天智能体)", page.title()), page.title()
+    assert re.search(r"(Docs\W+Agent Observer|文档\W+巡天智能体)", page.title()), page.title()
     shot(page, "04-docs-protocol")
     page.goto(base + "/leaderboard")
-    assert re.search(r"(Leaderboard · Agent Observer|排行榜 · 巡天智能体)", page.title()), page.title()
+    assert re.search(r"(Leaderboard\W+Agent Observer|排行榜\W+巡天智能体)", page.title()), page.title()
 
 
 def test_mobile_hero_canvas(page: Page, site):
