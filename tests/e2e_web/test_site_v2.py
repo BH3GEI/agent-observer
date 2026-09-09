@@ -98,3 +98,54 @@ def test_observed_map_and_score_bars(page: Page, site):
     shot(page, "03b-home-leaderboard")
     page.click("[data-testid=nav-logout]")
     expect(page.locator("[data-testid=nav-register]")).to_be_visible(timeout=10000)
+
+
+def _login(page: Page, base: str, email: str, password: str = "correct-horse-9"):
+    page.goto(base + "/register?mode=login")
+    page.fill("[data-testid=login-email]", email)
+    page.fill("[data-testid=login-password]", password)
+    page.click("[data-testid=login-submit]")
+    expect(page).to_have_url(re.compile(r"/dashboard"), timeout=20000)
+
+
+def test_api_credits_claim_and_admin(page: Page, site):
+    """Sponsor API credits: a team claims one code per provider from the dashboard; admins import codes and read the stock."""
+    base = site["base"]
+    site["hs"].sql("insert into public.redeem_codes (provider, code, note) values ('deepseek','K-TEST-1','500k tokens'),('deepseek','K-TEST-2','500k tokens')")
+
+    # participant (team "Analytical Engines", created in test_site.py) claims a deepseek code
+    _login(page, base, "ada@e2e.org")
+    page.goto(base + "/dashboard")
+    expect(page.locator("[data-testid=credits-panel]")).to_be_visible(timeout=15000)
+    page.click("[data-testid=credits-claim-deepseek]")
+    page.click("[data-testid=credits-reveal-deepseek]")
+    expect(page.locator("[data-testid=credits-code-deepseek]")).to_contain_text("K-TEST-", timeout=15000)
+    code = page.locator("[data-testid=credits-code-deepseek]").inner_text().strip()
+    assert code.startswith("K-TEST-"), code
+    expect(page.locator("[data-testid=credits-panel]")).to_contain_text("500k tokens")
+    # the code survives a reload (loaded from my_redeem_codes), masked until revealed again
+    page.reload()
+    expect(page.locator("[data-testid=credits-code-deepseek]")).to_be_visible(timeout=15000)
+    assert "K-TEST-" not in page.locator("[data-testid=credits-code-deepseek]").inner_text()
+    page.click("[data-testid=credits-reveal-deepseek]")
+    expect(page.locator("[data-testid=credits-code-deepseek]")).to_have_text(code)
+    assert page.locator("[data-testid=credits-claim-deepseek]").count() == 0
+    page.locator("[data-testid=credits-panel]").scroll_into_view_if_needed()
+    shot(page, "11-dashboard-credits", full=True)
+    page.locator("[data-testid=credits-panel]").screenshot(path=str(SHOTS_V2 / "11b-credits-panel.png"))
+    page.click("[data-testid=nav-logout]")
+    expect(page.locator("[data-testid=nav-register]")).to_be_visible(timeout=10000)
+
+    # admin: stock table reflects the claim, and the import form adds a new provider
+    _login(page, base, "admin@e2e.org")
+    page.goto(base + "/admin/credits")
+    expect(page.locator("[data-testid=credits-stats]")).to_be_visible(timeout=15000)
+    expect(page.locator("[data-testid=credits-stat-deepseek-available]")).to_have_text("1", timeout=15000)
+    expect(page.locator("[data-testid=credits-list]")).to_contain_text("Analytical Engines", timeout=15000)
+    page.fill("[data-testid=credits-import-provider]", "kimi")
+    page.fill("[data-testid=credits-import-note]", "1M tokens")
+    page.fill("[data-testid=credits-import-codes]", "KIMI-TEST-1\nKIMI-TEST-2\n")
+    page.click("[data-testid=credits-import-submit]")
+    expect(page.locator("[data-testid=credits-stat-kimi-available]")).to_have_text("2", timeout=15000)
+    expect(page.locator("[data-testid=flash]")).to_contain_text("2", timeout=10000)
+    shot(page, "12-admin-credits", full=True)

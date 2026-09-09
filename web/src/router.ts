@@ -32,6 +32,7 @@ const router = createRouter({
     { path: '/admin/users', component: () => import('./pages/admin/AdminUsersPage.vue'), meta: { page: 'admin', auth: true, admin: true } },
     { path: '/admin/teams', component: () => import('./pages/admin/AdminTeamsPage.vue'), meta: { page: 'admin', auth: true, admin: true } },
     { path: '/admin/announcements', component: () => import('./pages/admin/AdminAnnouncementsPage.vue'), meta: { page: 'admin', auth: true, admin: true } },
+    { path: '/admin/credits', component: () => import('./pages/admin/AdminCreditsPage.vue'), meta: { page: 'admin', auth: true, admin: true } },
     { path: '/admin/settings', component: () => import('./pages/admin/AdminSettingsPage.vue'), meta: { page: 'admin', auth: true, admin: true } },
     { path: '/:pathMatch(.*)*', component: () => import('./pages/NotFoundPage.vue') , meta: { page: 'not_found' }},
   ],

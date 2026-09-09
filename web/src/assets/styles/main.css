@@ -653,3 +653,14 @@ details.plain summary { cursor: pointer; }
 .header-phase-pill { display: none; align-items: center; height: 1.6rem; }
 @media (min-width: 1024px) { .header-phase-pill { display: inline-flex; } }
 @media (min-width: 1024px) { .toc-chips { display: none; } }
+
+/* sponsor API credits (redeem codes) */
+.pill.available { border-color: #1f5a38; color: #59d78d; }
+.pill.assigned { border-color: #315efb; color: #78a6ff; }
+.pill.revoked { border-color: #7a2a2a; color: #ff6b6b; }
+.credits-list { list-style: none; margin: 0; padding: 0; }
+.credits-row { padding: .85rem 0; border-bottom: 1px solid rgba(255,255,255,.1); }
+.credits-row:last-child { border-bottom: 0; }
+.credits-row .provider { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .95rem; color: #f5f5f5; letter-spacing: .02em; }
+.credits-code { display: inline-block; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .85rem; letter-spacing: .08em; color: #f5f5f5; border: 1px solid #3a3a3a; background: #0b0b0b; padding: .35rem .7rem; overflow-wrap: anywhere; min-width: 8rem; }
+.credits-code.masked { color: #858585; letter-spacing: .2em; }

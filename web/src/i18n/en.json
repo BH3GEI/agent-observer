@@ -1172,6 +1172,25 @@
     "loading": "Loading dashboard…",
     "quota_used": "{used} / {limit} today"
   },
+  "credits": {
+    "title": "API credits",
+    "kicker": "sponsor codes",
+    "lede": "Sponsor API codes for local development. One code per provider per team.",
+    "need_team": "Codes are issued per team. Create or join a team to claim them.",
+    "empty": "No sponsor codes are available yet.",
+    "available": "{n} left",
+    "claim": "Claim code",
+    "reveal": "Reveal",
+    "hide": "Hide",
+    "claimed": "Code claimed.",
+    "already": "Your team already holds a code for this provider.",
+    "loading": "Loading credits…",
+    "errors": {
+      "need_team": "Join or create a team before claiming a code.",
+      "no_codes_left": "No codes left for this provider.",
+      "banned": "This account is suspended."
+    }
+  },
   "profile": {
     "title": "Profile",
     "role": "Role",
@@ -1412,6 +1431,10 @@
       {
         "q": "Are prizes taxed?",
         "a": "Prize amounts are gross. Payment details are confirmed with winning teams after Awards Day."
+      },
+      {
+        "q": "Are there API credits for development?",
+        "a": "Registered teams can claim sponsor API codes from the dashboard, one code per provider per team. Platform runs on hidden weather have no network access, so use the credits for local development."
       }
     ]
   },
@@ -1463,6 +1486,7 @@
       "teams": "Teams",
       "users": "Users",
       "announcements": "Announcements",
+      "credits": "Credits",
       "settings": "Settings"
     },
     "stats": {
@@ -1573,13 +1597,60 @@
       "deleted": "Announcement deleted.",
       "delete_confirm": "Delete this announcement?"
     },
+    "credits": {
+      "stats": "Stock per provider",
+      "provider": "provider",
+      "available": "available",
+      "assigned": "assigned",
+      "revoked": "revoked",
+      "total": "total",
+      "note": "note",
+      "import": "Import codes",
+      "import_provider": "provider",
+      "import_note": "note (shown to teams)",
+      "import_codes": "codes, one per line",
+      "import_submit": "Import",
+      "imported": "{n} codes imported.",
+      "assign": "Assign a code to a team",
+      "assign_team": "team",
+      "assign_provider": "provider",
+      "replace": "replace the team's current code for this provider",
+      "assign_submit": "Assign",
+      "assigned_flash": "Assigned code {code}.",
+      "list": "Codes",
+      "any_provider": "any provider",
+      "any_status": "any status",
+      "code": "code",
+      "team": "team",
+      "assigned_by": "assigned by",
+      "assigned_at": "assigned at",
+      "revoke": "revoke",
+      "delete": "delete",
+      "revoke_confirm": "Revoke this code? It will not be handed out again.",
+      "delete_confirm": "Delete this unused code?",
+      "revoked_flash": "Code revoked.",
+      "deleted_flash": "Code deleted.",
+      "status": {
+        "available": "available",
+        "assigned": "assigned",
+        "revoked": "revoked"
+      },
+      "errors": {
+        "already_assigned": "This team already has a code for that provider. Tick \"replace\" to revoke it first.",
+        "no_codes_left": "No codes left for this provider."
+      }
+    },
     "settings": {
       "registration_open": "registration open",
       "saved": "Settings saved.",
       "runtime": "Runtime (from environment)",
       "site_url": "site url",
       "supabase_url": "supabase url",
-      "base_path": "base path"
+      "base_path": "base path",
+      "credits_note": "API credits note",
+      "credits_note_hint": "Shown at the top of the dashboard credits panel. Leave empty to hide.",
+      "credits_note_en": "note (en)",
+      "credits_note_zh": "note (zh)"
     }
   },
   "construction": {

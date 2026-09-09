@@ -11,6 +11,7 @@ const items = [
   { to: '/admin/teams', key: 'admin.nav.teams' },
   { to: '/admin/users', key: 'admin.nav.users' },
   { to: '/admin/announcements', key: 'admin.nav.announcements' },
+  { to: '/admin/credits', key: 'admin.nav.credits' },
   { to: '/admin/settings', key: 'admin.nav.settings' },
 ]
 const isActive = (to: string) => to === '/admin' ? route.path === '/admin' : route.path.startsWith(to)

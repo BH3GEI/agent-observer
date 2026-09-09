@@ -1172,6 +1172,25 @@
     "loading": "正在加载面板…",
     "quota_used": "今日 {used} / {limit}"
   },
+  "credits": {
+    "title": "API 额度",
+    "kicker": "赞助商兑换码",
+    "lede": "赞助商提供的本地开发 API 兑换码，每队每个服务商一个。",
+    "need_team": "兑换码按队伍发放。请先创建或加入队伍再领取。",
+    "empty": "暂无可领取的赞助商兑换码。",
+    "available": "剩余 {n}",
+    "claim": "领取兑换码",
+    "reveal": "显示",
+    "hide": "隐藏",
+    "claimed": "已领取兑换码。",
+    "already": "你的队伍已持有该服务商的兑换码。",
+    "loading": "正在加载额度…",
+    "errors": {
+      "need_team": "请先加入或创建队伍再领取兑换码。",
+      "no_codes_left": "该服务商的兑换码已领完。",
+      "banned": "该账号已被封禁。"
+    }
+  },
   "profile": {
     "title": "个人资料",
     "role": "角色",
@@ -1412,6 +1431,10 @@
       {
         "q": "奖金是否含税？",
         "a": "奖金为税前金额。支付细节在颁奖日后与获奖队伍确认。"
+      },
+      {
+        "q": "开发阶段有 API 额度吗？",
+        "a": "已注册队伍可在控制台领取赞助商 API 兑换码，每队每个服务商一个。平台在隐藏天气上运行时不联网，请将额度用于本地开发。"
       }
     ]
   },
@@ -1463,6 +1486,7 @@
       "teams": "队伍",
       "users": "用户",
       "announcements": "公告",
+      "credits": "额度",
       "settings": "设置"
     },
     "stats": {
@@ -1573,13 +1597,60 @@
       "deleted": "公告已删除。",
       "delete_confirm": "删除该公告？"
     },
+    "credits": {
+      "stats": "各服务商库存",
+      "provider": "服务商",
+      "available": "可领取",
+      "assigned": "已发放",
+      "revoked": "已撤销",
+      "total": "总计",
+      "note": "备注",
+      "import": "导入兑换码",
+      "import_provider": "服务商",
+      "import_note": "备注（向队伍展示）",
+      "import_codes": "兑换码，每行一个",
+      "import_submit": "导入",
+      "imported": "已导入 {n} 个兑换码。",
+      "assign": "为队伍分配兑换码",
+      "assign_team": "队伍",
+      "assign_provider": "服务商",
+      "replace": "替换该队伍在此服务商的现有兑换码",
+      "assign_submit": "分配",
+      "assigned_flash": "已分配兑换码 {code}。",
+      "list": "兑换码",
+      "any_provider": "全部服务商",
+      "any_status": "全部状态",
+      "code": "兑换码",
+      "team": "队伍",
+      "assigned_by": "发放人",
+      "assigned_at": "发放时间",
+      "revoke": "撤销",
+      "delete": "删除",
+      "revoke_confirm": "撤销此兑换码？撤销后不会再发放。",
+      "delete_confirm": "删除此未使用的兑换码？",
+      "revoked_flash": "兑换码已撤销。",
+      "deleted_flash": "兑换码已删除。",
+      "status": {
+        "available": "可领取",
+        "assigned": "已发放",
+        "revoked": "已撤销"
+      },
+      "errors": {
+        "already_assigned": "该队伍已持有此服务商的兑换码，勾选“替换”可先撤销旧码。",
+        "no_codes_left": "该服务商的兑换码已领完。"
+      }
+    },
     "settings": {
       "registration_open": "开放报名",
       "saved": "设置已保存。",
       "runtime": "运行环境",
       "site_url": "站点地址",
       "supabase_url": "Supabase 地址",
-      "base_path": "基础路径"
+      "base_path": "基础路径",
+      "credits_note": "API 额度说明",
+      "credits_note_hint": "显示在控制台 API 额度面板顶部，留空则不显示。",
+      "credits_note_en": "说明（英文）",
+      "credits_note_zh": "说明（中文）"
     }
   },
   "construction": {

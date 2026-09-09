@@ -9,6 +9,8 @@ There are two ways to get a score:
 
 Both paths use the same `scorer.py`. The starter kit contains every file the platform uses.
 
+Sponsor API credits for local development are handed out as redeem codes: once your team is registered, open the dashboard and claim one code per provider from the API credits panel. Platform runs are offline, so the credits only matter while you develop locally.
+
 ## 2. Starter kit
 
 Download `agent-observer-starter-kit.zip` from the Resources page. Contents:

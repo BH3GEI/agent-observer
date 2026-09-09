@@ -96,3 +96,30 @@ export async function loadLeaderboard(phaseSlug: string | null, limit = 500): Pr
 
 export const SUBMISSION_SELECT = '*, phases(slug,name_en,name_zh), scenarios(slug,name), evaluations(*, scenarios(slug,name,tiles_public))'
 export const PENDING_STATUSES = new Set(['queued', 'running'])
+
+// --- sponsor API credits (redeem codes) -----------------------------------
+export interface RedeemProvider { provider: string; available: number; claimed_by_my_team: boolean }
+export interface RedeemCode { provider: string; code: string; note: string; assigned_at: string | null }
+export interface CreditsNote { en: string; zh: string }
+
+export async function loadRedeemProviders(): Promise<RedeemProvider[]> {
+  const { data, error } = await supabase.rpc('redeem_providers')
+  if (error) throw error
+  return ((data ?? []) as any[]).map(row => ({ provider: String(row.provider), available: Number(row.available ?? 0), claimed_by_my_team: Boolean(row.claimed_by_my_team) }))
+}
+
+export async function loadMyRedeemCodes(): Promise<RedeemCode[]> {
+  const { data, error } = await supabase.rpc('my_redeem_codes')
+  if (error) throw error
+  return ((data ?? []) as any[]).map(row => ({ provider: String(row.provider), code: String(row.code), note: String(row.note ?? ''), assigned_at: row.assigned_at ?? null }))
+}
+
+/** Optional explanatory text above the credits panel (site_settings.credits_note = {en, zh}); empty strings when unset. */
+export async function loadCreditsNote(): Promise<CreditsNote> {
+  try {
+    const { data, error } = await supabase.from('site_settings').select('value').eq('key', 'credits_note').maybeSingle()
+    if (error || !data) return { en: '', zh: '' }
+    const value = ((data as { value: unknown }).value ?? {}) as Record<string, unknown>
+    return { en: typeof value.en === 'string' ? value.en : '', zh: typeof value.zh === 'string' ? value.zh : '' }
+  } catch { return { en: '', zh: '' } }
+}

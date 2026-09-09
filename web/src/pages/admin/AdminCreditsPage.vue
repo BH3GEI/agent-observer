@@ -1,0 +1,148 @@
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
+import { fmtUtc } from '../../lib/format'
+import { useAdmin } from '../../composables/useAdmin'
+import DashShell from '../../components/layout/DashShell.vue'
+import SkeletonRows from '../../components/layout/SkeletonRows.vue'
+import StatusPill from '../../components/layout/StatusPill.vue'
+
+interface Stat { provider: string; available: number; assigned: number; revoked: number; total: number; note: string }
+interface CodeRow { id: number; provider: string; code: string; note: string; status: string; team_id: string | null; team_name: string | null; assigned_by_email: string | null; assigned_at: string | null; created_at: string }
+interface TeamRow { id: string; name: string }
+
+const STATUSES = ['available', 'assigned', 'revoked']
+const ERROR_NS = ['admin.credits.errors']
+const { t, tf, busy, rpc, run, flash, report } = useAdmin()
+const stats = ref<Stat[]>([])
+const rows = ref<CodeRow[]>([])
+const teams = ref<TeamRow[]>([])
+const loading = ref(true)
+const importForm = ref({ provider: '', note: '', codes: '' })
+const assignForm = ref({ team_id: '', provider: '', replace: false })
+const filter = ref({ provider: '', status: '' })
+const providerNames = computed(() => stats.value.map(s => s.provider))
+
+async function loadStats() {
+  stats.value = ((await rpc<any[]>('admin_redeem_stats')) ?? []).map(s => ({ provider: String(s.provider), available: Number(s.available ?? 0), assigned: Number(s.assigned ?? 0), revoked: Number(s.revoked ?? 0), total: Number(s.total ?? 0), note: String(s.note ?? '') }))
+}
+async function loadCodes() {
+  rows.value = ((await rpc<any[]>('admin_redeem_codes', { p_provider: filter.value.provider || null, p_status: filter.value.status || null })) ?? []) as CodeRow[]
+}
+async function loadTeams() {
+  teams.value = ((await rpc<any[]>('admin_teams')) ?? []).map(team => ({ id: String(team.id), name: String(team.name) }))
+}
+async function reload() { await Promise.all([loadStats(), loadCodes()]) }
+
+async function importCodes() {
+  const provider = importForm.value.provider.trim()
+  if (!provider || !importForm.value.codes.trim()) return
+  let inserted = 0
+  const ok = await run(async () => { inserted = Number(await rpc<number>('admin_import_redeem_codes', { p_provider: provider, p_codes: importForm.value.codes, p_note: importForm.value.note.trim() })) })
+  if (!ok) return
+  importForm.value.codes = ''
+  await reload()
+  flash.success(tf('admin.credits.imported', { n: inserted }))
+}
+async function assignCode() {
+  const provider = assignForm.value.provider.trim()
+  if (!assignForm.value.team_id || !provider) return
+  let code = ''
+  const ok = await run(async () => { code = String(await rpc<string>('admin_assign_redeem_code', { p_team_id: assignForm.value.team_id, p_provider: provider, p_replace: assignForm.value.replace })) }, undefined, ERROR_NS)
+  if (!ok) return
+  flash.success(tf('admin.credits.assigned_flash', { code }))
+  await reload()
+}
+async function revoke(row: CodeRow, remove: boolean) {
+  if (!window.confirm(t(remove ? 'admin.credits.delete_confirm' : 'admin.credits.revoke_confirm'))) return
+  const ok = await run(() => rpc('admin_revoke_redeem_code', { p_id: row.id, p_delete: remove }), t(remove ? 'admin.credits.deleted_flash' : 'admin.credits.revoked_flash'))
+  if (ok) await reload()
+}
+
+onMounted(async () => { try { await Promise.all([reload(), loadTeams()]) } catch (e) { report(e) } finally { loading.value = false } })
+</script>
+
+<template>
+  <DashShell admin :kicker="t('admin.kicker')" :title="t('admin.nav.credits')">
+    <div class="panel mt-2">
+      <div class="hd"><h2>{{ t('admin.credits.stats') }}</h2><span class="label">{{ t('credits.kicker') }}</span></div>
+      <div class="table-wrap">
+        <table class="data-table" data-testid="credits-stats">
+          <thead><tr><th>{{ t('admin.credits.provider') }}</th><th class="r">{{ t('admin.credits.available') }}</th><th class="r">{{ t('admin.credits.assigned') }}</th><th class="r">{{ t('admin.credits.revoked') }}</th><th class="r">{{ t('admin.credits.total') }}</th><th>{{ t('admin.credits.note') }}</th></tr></thead>
+          <tbody>
+            <tr v-for="s in stats" :key="s.provider" :data-testid="`credits-stat-${s.provider}`">
+              <td class="m">{{ s.provider }}</td>
+              <td class="r m" :data-testid="`credits-stat-${s.provider}-available`">{{ s.available }}</td>
+              <td class="r m">{{ s.assigned }}</td>
+              <td class="r m">{{ s.revoked }}</td>
+              <td class="r m">{{ s.total }}</td>
+              <td class="text3 text-sm">{{ s.note || '—' }}</td>
+            </tr>
+            <tr v-if="loading"><td colspan="6" class="p-0"><SkeletonRows :rows="3" :cols="5" :label="t('common.loading')" /></td></tr>
+            <tr v-else-if="!stats.length"><td colspan="6" class="text3">{{ t('common.no_data') }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mt-8 grid gap-8 lg:grid-cols-2">
+      <form class="panel" @submit.prevent="importCodes">
+        <div class="hd"><h2>{{ t('admin.credits.import') }}</h2></div>
+        <div class="grid-form">
+          <label class="field"><span>{{ t('admin.credits.import_provider') }}</span><input data-testid="credits-import-provider" v-model="importForm.provider" type="text" required list="credits-provider-names" autocomplete="off"></label>
+          <label class="field"><span>{{ t('admin.credits.import_note') }}</span><input data-testid="credits-import-note" v-model="importForm.note" type="text"></label>
+          <label class="field full"><span>{{ t('admin.credits.import_codes') }}</span><textarea data-testid="credits-import-codes" v-model="importForm.codes" rows="6" required spellcheck="false"></textarea></label>
+        </div>
+        <button data-testid="credits-import-submit" class="btn primary sm" type="submit" :disabled="busy">{{ t('admin.credits.import_submit') }}</button>
+      </form>
+
+      <form class="panel" @submit.prevent="assignCode">
+        <div class="hd"><h2>{{ t('admin.credits.assign') }}</h2></div>
+        <div class="grid-form">
+          <label class="field"><span>{{ t('admin.credits.assign_team') }}</span>
+            <select data-testid="credits-assign-team" v-model="assignForm.team_id" required>
+              <option value="" disabled>—</option>
+              <option v-for="team in teams" :key="team.id" :value="team.id">{{ team.name }}</option>
+            </select>
+          </label>
+          <label class="field"><span>{{ t('admin.credits.assign_provider') }}</span><input data-testid="credits-assign-provider" v-model="assignForm.provider" type="text" required list="credits-provider-names" autocomplete="off"></label>
+        </div>
+        <label class="check"><input data-testid="credits-assign-replace" v-model="assignForm.replace" type="checkbox"> {{ t('admin.credits.replace') }}</label>
+        <button data-testid="credits-assign-submit" class="btn sm" type="submit" :disabled="busy">{{ t('admin.credits.assign_submit') }}</button>
+      </form>
+    </div>
+    <datalist id="credits-provider-names"><option v-for="name in providerNames" :key="name" :value="name"></option></datalist>
+
+    <div class="panel mt-8">
+      <div class="hd"><h2>{{ t('admin.credits.list') }}</h2></div>
+      <form class="actions-inline mb-4" @submit.prevent="loadCodes">
+        <select v-model="filter.provider" class="input w-auto" data-testid="credits-filter-provider"><option value="">{{ t('admin.credits.any_provider') }}</option><option v-for="name in providerNames" :key="name" :value="name">{{ name }}</option></select>
+        <select v-model="filter.status" class="input w-auto" data-testid="credits-filter-status"><option value="">{{ t('admin.credits.any_status') }}</option><option v-for="s in STATUSES" :key="s" :value="s">{{ t(`admin.credits.status.${s}`) }}</option></select>
+        <button class="btn sm" type="submit" :disabled="busy">{{ t('common.filter') }}</button>
+      </form>
+      <div class="table-wrap">
+        <table class="data-table" data-testid="credits-list">
+          <thead><tr><th>{{ t('admin.credits.code') }}</th><th>{{ t('admin.credits.provider') }}</th><th>{{ t('common.status') }}</th><th>{{ t('admin.credits.team') }}</th><th>{{ t('admin.credits.assigned_by') }}</th><th>{{ t('admin.credits.assigned_at') }}</th><th>{{ t('admin.credits.note') }}</th><th>{{ t('common.actions') }}</th></tr></thead>
+          <tbody>
+            <tr v-for="row in rows" :key="row.id" :data-testid="`credits-code-row-${row.id}`">
+              <td class="m">{{ row.code }}</td>
+              <td class="m xs">{{ row.provider }}</td>
+              <td><StatusPill :status="row.status" ns="admin.credits.status" /></td>
+              <td>{{ row.team_name ?? '—' }}</td>
+              <td class="xs">{{ row.assigned_by_email ?? '—' }}</td>
+              <td class="m xs">{{ fmtUtc(row.assigned_at, { short: true }) }}</td>
+              <td class="text3 text-xs">{{ row.note }}</td>
+              <td>
+                <div class="actions-inline">
+                  <button v-if="row.status !== 'revoked'" type="button" class="copy-btn" :disabled="busy" @click="revoke(row, false)">{{ t('admin.credits.revoke') }}</button>
+                  <button v-if="row.status === 'available'" type="button" class="copy-btn danger" :disabled="busy" @click="revoke(row, true)">{{ t('admin.credits.delete') }}</button>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="loading"><td colspan="8" class="p-0"><SkeletonRows :rows="5" :cols="5" :label="t('common.loading')" /></td></tr>
+            <tr v-else-if="!rows.length"><td colspan="8" class="text3">{{ t('common.no_data') }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </DashShell>
+</template>

@@ -12,6 +12,7 @@ import { useSubmissionWatch } from '../composables/useSubmissionWatch'
 import DashShell from '../components/layout/DashShell.vue'
 import StatusPill from '../components/layout/StatusPill.vue'
 import SkeletonRows from '../components/layout/SkeletonRows.vue'
+import CreditsPanel from '../components/dashboard/CreditsPanel.vue'
 
 const { t, tf, pick } = useI18n()
 const route = useRoute()
@@ -112,6 +113,7 @@ onMounted(async () => {
             <li v-for="m in members" :key="m.id">{{ m.name }}<template v-if="m.is_leader"> · <span class="label accent">{{ t('team.leader') }}</span></template></li>
           </ul>
         </div>
+        <CreditsPanel :class="{ 'mt-8': Boolean(team) }" />
         <div class="panel mt-8">
           <div class="hd"><h2>{{ t('resources.kicker') }}</h2></div>
           <div class="flex flex-col gap-2">
