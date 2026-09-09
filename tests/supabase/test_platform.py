@@ -238,3 +238,12 @@ def test_stale_running_rows_are_requeued(hs, service):
     st, n = service.rpc("requeue_stale", {"p_minutes": 30})
     assert st == 200 and n >= 1
     assert hs.sql("select count(*) from public.submissions where status = 'running'")[0][0] == 0
+
+
+def test_banned_user_cannot_create_or_join_team(hs, seeded):
+    dave = signup(hs, "dave@test.org", name="Dave")
+    hs.sql("update public.profiles set is_banned = true where email = 'dave@test.org'")
+    st, res = dave.rpc("create_team", {"p_name": "Banned Team", "p_max_size": 1})
+    assert st == 400 and res["message"] == "banned"
+    st, res = dave.rpc("join_team", {"p_invite_code": "ABCDEFGH"})
+    assert st == 400 and res["message"] == "banned"
