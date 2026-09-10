@@ -162,8 +162,14 @@ def test_kit_environment_matches_vendored_modules():
     for template in (ROOT / "challenge" / "templates").glob("*.html"):
         assert (KIT / "challenge" / "templates" / template.name).read_bytes() == template.read_bytes()
     for path in (ROOT / "challenge" / "participant_agent").iterdir():
-        if path.is_file():
-            assert (KIT / "agent" / path.name).read_bytes() == path.read_bytes(), f"starter_kit/agent/{path.name} differs"
+        if not path.is_file():
+            continue
+        kit_bytes = (KIT / "agent" / path.name).read_bytes()
+        if path.name == "README_ZH.md":
+            # the kit README carries a short preface about the kit layout, followed by the upstream text verbatim
+            assert path.read_bytes() in kit_bytes, "starter_kit/agent/README_ZH.md no longer embeds the upstream README"
+            continue
+        assert kit_bytes == path.read_bytes(), f"starter_kit/agent/{path.name} differs"
     assert (KIT / "agent" / "scoring_preview.py").read_bytes() == (ROOT / "challenge" / "scoring_preview.py").read_bytes()
     for rel in ("config/score_config.json", "outputs/reference/weather_events.csv", "outputs/reference/scenario_manifest.json"):
         assert (KIT / "scenarios" / "dev-reference" / rel).read_bytes() == (ROOT / "challenge" / "reference" / rel).read_bytes(), rel

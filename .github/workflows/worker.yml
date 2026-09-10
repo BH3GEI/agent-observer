@@ -30,8 +30,11 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SAC_WORKER_ID: gha-${{ github.run_id }}
           SAC_WORKER_KINDS: agent,results
-          SAC_AGENT_TIMEOUT_SECONDS: "600"
-          SAC_AGENT_STEP_TIMEOUT_SECONDS: "20"
-          SAC_AGENT_MEMORY_MB: "1024"
+          # challenge v3: the wall clock comes from each scenario (global_wallclock_seconds); these cap the rest
+          SAC_AGENT_INIT_TIMEOUT_SECONDS: "30"
+          SAC_INSTALL_TIMEOUT_SECONDS: "900"
+          SAC_AGENT_CPU_SECONDS: "7200"
+          SAC_AGENT_MEMORY_MB: "2048"
+          SAC_AGENT_NETWORK: "all"
           SAC_DATA_DIR: ${{ runner.temp }}/sac
         run: python -m worker.main once
