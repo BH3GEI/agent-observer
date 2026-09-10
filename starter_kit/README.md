@@ -1,45 +1,147 @@
-# Agent Observer — starter kit
+# Agent Observer — starter kit (challenge v3)
 
-Files in this kit are the ones the evaluation platform uses. Local results and platform results
-agree for the same scenario.
+Everything in this folder is what the evaluation platform runs: the same workflow, the same JSON-Lines
+transport, the same scorer. A local run on a public scenario reproduces the platform's `score_report.json`
+for the same `decisions.csv`.
 
-| File | Purpose |
+Python 3.10+ and the standard library are enough. Only an LLM-backed agent needs the optional packages in
+`agent/requirements.txt`.
+
+| Path | Purpose |
 |---|---|
-| `agent.py` | Baseline agent (observer-v1 protocol). Replace `decide()` with your strategy. |
-| `local_runner.py` | Runs an agent through the protocol and scores it locally. |
-| `protocol.py` | Builds the state the agent sees. Same file as on the platform. |
-| `scorer.py`, `score_config.json` | The frozen stage-one scorer and constants. |
-| `generate_example_data.py` | Seeded generator for new weather / tile scenarios. |
-| `example/` | Published development scenario (seed 11): 2 nights x 12 slots, 72 tiles. |
-| `sac_submit.py` | Command-line submission with your API token. |
-| `SKILL.md` | Step-by-step instructions an AI coding agent can follow. |
+| `agent/` | Your agent. `minimal_agent.py` is the entry script; edit `decision_graph.py`, add files, zip the folder, submit. |
+| `challenge/` | The public environment: contracts, calendar, tile geometry, weather, requests, workflow, scorer, replay renderer. Do not edit. |
+| `scenarios/dev-reference/` | Public reference scenario: 180 nights, 7,928 slots, 64 tiles, weather truth included. |
+| `local_runner.py` | Runs an agent through the platform transport on a scenario and scores it. |
+| `score_decisions.py` | Re-scores a `decisions.csv` (public scenarios only). |
+| `make_scenario.py` | Generates new public practice scenarios from a seed. |
+| `pack_agent.py` | Zips `agent/` into the submission package and validates it. |
+| `sac_submit.py` | Uploads a package or a results file to the platform and waits for the score. |
+| `SKILL.md` | Step-by-step instructions an AI coding assistant can follow. |
 
-## Quick start (Python 3.9+, no dependencies)
-
-```bash
-python3 local_runner.py --agent agent.py --weather example/weather.csv --tiles example/tiles.csv \
-    --config score_config.json --out run_output
-```
-
-The last line is a JSON summary with the score. `run_output/decisions.csv` can be uploaded as a
-results file; `run_output/score_report.json` is the same report the platform produces.
-
-Generate more scenarios so the strategy does not tune to a single weather sequence:
+## Quick start
 
 ```bash
-python3 generate_example_data.py --seed 7 --n-nights 5 --slots-per-night 20 --n-tiles 150 --output-dir scenario7
-python3 local_runner.py --agent agent.py --weather scenario7/weather.csv --tiles scenario7/tiles.csv \
-    --config score_config.json --out run7 --quiet
+unzip agent-observer-starter-kit.zip && cd agent-observer-starter-kit
+python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py --wallclock 600 --out run_output
 ```
+
+The last stdout line is a JSON summary; on the reference scenario the shipped deterministic agent completes
+the survey (`"termination_reason": "survey_complete"`) with `total` ≈ 12287.48 in about 15 s of wall clock.
+`run_output/` holds `decisions.csv`, `workflow_result.json`, `score_report.json`, `agent.log` (your agent's
+stderr) and `decision_replay.html` (open it in a browser to step through every night).
+
+More scenarios keep a strategy from tuning to one weather sequence:
+
+```bash
+python3 make_scenario.py --out scenarios/mine --seed 7 --days 30 --start-date 2026-10-05
+python3 local_runner.py --scenario scenarios/mine --agent agent/minimal_agent.py --out run_mine
+python3 score_decisions.py --scenario scenarios/mine --decisions run_mine/decisions.csv
+```
+
+## How a run works
+
+1. The platform starts your entry script once (`python -B minimal_agent.py`, cwd = your package folder, a
+   scrubbed environment plus the `KEY=VALUE` lines of your `.env`, stderr captured to `agent.log`).
+2. It writes one `initialize` line: the immutable catalogs (tiles with `tile_science_value`, targets, calendar,
+   site) and the exact `scoring_contract` (`challenge-score-v3` config, weather score interface, lunar model).
+   No reply is expected. Up to 30 s are allowed for the process to accept it.
+3. The global wall clock starts. For every decision opportunity the platform writes one `decision_request`
+   line and waits for one `decision_response` line with the same `decision_sequence`. Reading a snapshot never
+   advances simulated time; a committed action does.
+4. The run ends when the survey is complete, when the wall clock expires (the process is killed; an
+   in-flight response is ignored), or when the agent exits / answers with something unparseable
+   (`agent_error`: the remaining survey stays unobserved, so every remaining REQUIRED tile counts as missed).
+5. The platform replays `decisions.csv` with the public scorer and stores `score_report.json`.
+
+The wall clock is the only time rule: no per-decision timeout, no synthetic fallback action. The reference
+scenario's budget is 7200 s; hidden scenarios publish their own budget in `initialize.global_wallclock_seconds`
+and in the `SAC_WALLCLOCK_SECONDS` environment variable.
+
+### Envelopes (`participant-agent-protocol-v1`)
+
+```jsonc
+// platform -> agent, once
+{"protocol_version":"participant-agent-protocol-v1","message_type":"initialize",
+ "payload":{"schema_version":"initial-publication-v2","calendar":{...},"site":{...},
+            "tile_catalog":{"tile_count":64,"required_tile_ids":[...],"region_ids":[...],"tiles":[...]},
+            "target_catalog":[...],"scoring_contract":{"score_config":{...},"weather_score_interface":{...},"lunar_model":{...}},
+            "global_wallclock_seconds":7200.0}}
+// platform -> agent, per decision
+{"protocol_version":"participant-agent-protocol-v1","message_type":"decision_request","decision_sequence":17,
+ "payload":{"schema_version":"decision-snapshot-v2","decision_sequence":17,
+            "cursor":{"slot_id":"...","night_id":"...","timestamp_utc":"2026-09-07T03:15:00Z","slot_offset_seconds":0},
+            "current_site_weather":{"is_observable":true,"seeing_arcsec":1.1,"transparency":0.9,"sky_quality":1.0,"instrument_efficiency":1.0},
+            "candidate_tiles":[{"tile_id":"...","region_id":"...","scheduling_class":"REQUIRED|FLEXIBLE","nominal_exptime_seconds":900,
+                                "tile_science_value":123.4,"window_start_utc":"...","window_end_utc":"...",
+                                "geometry":{"altitude_deg":..,"azimuth_deg":..,"airmass":..,"lunar_quality_factor":..},
+                                "effective_weather":{...},"already_completed":false}],
+            "active_requests":[{"request_id":"...","deadline_utc":"...","completion_reward":..,"miss_penalty":..,
+                                "tile_requirements":[{"tile_id":"...","required_visits":1,"completed_visits":0,"remaining_visits":1}],
+                                "is_complete":false}],
+            "night_start":{"night":{...},"tile_windows":[...]} /* or null */, "weekly":{"weather_forecast":[...],"tile_windows":[...],"observation_requests":[...]} /* or null */,
+            "progress":{"completed_tile_ids":[...],"flexible_completed_by_region":{...}}}}
+// agent -> platform, one line per request
+{"protocol_version":"participant-agent-protocol-v1","message_type":"decision_response","decision_sequence":17,
+ "action":"observe","tile_id":"...","program":"DARK","request_id":"","reason":"short text"}
+```
+
+`action` is `observe` or `wait`. `program` is `DARK`, `BRIGHT` or `BACKUP`; `request_id` may be empty. Only
+stdout carries protocol lines; print diagnostics to stderr.
+
+## Scoring (`challenge-score-v3`, public)
+
+For each exposure segment: `A = instrument_efficiency * transparency * sky_quality / (seeing_arcsec * airmass)`,
+`A_used = A * lunar_quality_factor`, `S = V_tile * (segment_seconds / nominal_exptime_seconds) * A_used * (1 + program_bonus)`.
+`V_tile` is the sum of the tile's target `science_weight`s (published as `tile_science_value`). The program bonus
+applies only when the chosen program matches the quality band of `A_used` (DARK ≥ 0.65, BRIGHT ≥ 0.40, else
+BACKUP; bonuses 0.25 / 0.15 / 0.08). A tile scores once; only complete exposures score.
+
+`total = science + program_bonus + completed_request_reward - penalties`, where the penalties are:
+
+| Penalty | Amount |
+|---|---|
+| unsafe observation (starting while `is_observable` is false) | 2000 per action |
+| invalid action (unknown, completed or out-of-window tile, bad program / request) | 100 per action |
+| avoidable wait (waiting while a legal observable action existed) | 0.001 per second |
+| REQUIRED tile never completed | 1000 per tile |
+| FLEXIBLE region below its quota of 4 completed tiles | 100 per missing tile |
+| observation request expired without completion | the request's `miss_penalty` (waived when no legal opportunity existed) |
+
+`agent/scoring_preview.py` applies this formula to the current snapshot without side effects; the authoritative
+scorer integrates the real exposure segments during replay. The shipped deterministic minimal agent reaches
+about 12287 on the reference scenario (64 of 64 tiles, 17 of 18 requests, no penalties); a random feasible
+policy scores far lower, mostly through missed REQUIRED tiles and invalid actions.
+
+## Editing the agent
+
+* `agent/decision_graph.py` — the decision logic (`_prepare`, `_model_node`, `_finalize`). The deterministic
+  path ranks `preview_actions(...)` by estimated gain and observes the best; `wait` only when nothing can be
+  completed. Add your own planning, memory across decisions, or candidate filtering here.
+* `agent/model_factory.py` and `agent/.env` — optional LLM. Copy `.env.example` to `.env`, set
+  `MODEL_PROVIDER`, `MODEL_NAME` and the provider key; install `agent/requirements.txt` in your environment
+  (`python3 -m pip install -r agent/requirements.txt`). Platform runs may reach LLM APIs over the network and
+  install `requirements.txt` into a fresh virtualenv before starting your process.
+* Keep `minimal_agent.py` / `protocol.py` compatible with the envelopes above; the platform validates every
+  response.
+* Anything your agent imports must live inside `agent/`. The kit's `challenge/` package is not available on
+  the platform; `scoring_preview.py` is copied into `agent/` for that reason.
 
 ## Submit
 
-1. Register on the platform website and create or join a team.
-2. The platform URL and public key are shown on the Resources page (or set SAC_URL / SAC_KEY / SAC_EMAIL / SAC_PASSWORD in the environment).
-3. Results file (public scenario):
-   `python3 sac_submit.py --url https://<ref>.supabase.co --key <anon key> --email you@x.org --password '...' --phase practice --kind results --scenario dev-example --file run_output/decisions.csv --wait`
-4. Agent package (the platform runs it on hidden weather):
-   `python3 sac_submit.py --url ... --key ... --email ... --password ... --phase online --kind agent --file agent.py --wait`
+```bash
+python3 pack_agent.py --agent agent --out my-agent.zip
+python3 sac_submit.py --url https://<ref>.supabase.co --key <anon key> --email you@x.org --password '...' \
+    --phase online --kind agent --file my-agent.zip --wait
+python3 sac_submit.py --url ... --key ... --email ... --password ... \
+    --phase practice --kind results --scenario dev-reference --file run_output/decisions.csv --wait
+```
 
-Platform runs use Python 3.12 with the standard library only, no network, 20 s per decision and
-10 minutes per scenario. See the Docs page for the full protocol and the Rules page for scoring.
+The URL and anon key are on the platform's Resources page. `pack_agent.py` includes `.env` (your keys are only
+exposed to your own agent process); pass `--no-env` to leave it out.
+
+## 中文说明
+
+参赛 Agent 的中文说明（责任边界、启用各家 LLM 的 `.env` 配置、JSON-Lines 协议、评分参数与回退保障）见
+[`agent/README_ZH.md`](agent/README_ZH.md)。本地流程：`local_runner.py` 跑基线 → `make_scenario.py` 生成更多场景 →
+修改 `agent/decision_graph.py` → `pack_agent.py` 打包 → `sac_submit.py` 提交。

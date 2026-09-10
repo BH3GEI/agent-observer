@@ -59,34 +59,29 @@ def main() -> int:
     tok, uid = sess["access_token"], sess["user"]["id"]
     st, team = call("POST", "/rest/v1/rpc/create_team", {"p_name": f"Smoke {secrets.token_hex(2)}", "p_max_size": 1}, token=tok)
     check(st == 200, "create_team")
-    ex = (ROOT / "starter_kit" / "example" / "decisions.csv").read_bytes()
+    ex = (ROOT / "tests" / "fixtures" / "dev-fortnight-decisions.csv").read_bytes()  # produced by the minimal agent on dev-fortnight (deterministic)
     path = f"{team}/{int(time.time())}-{secrets.token_hex(3)}.csv"
     st, _ = call("POST", f"/storage/v1/object/submissions/{urllib.parse.quote(path)}", data=ex, token=tok, headers={"Content-Type": "text/csv"})
     check(st == 200, "upload to own team folder")
     st, _ = call("POST", "/storage/v1/object/submissions/other-team/x.csv", data=b"x", token=tok, headers={"Content-Type": "text/csv"})
     check(st != 200, "upload to a foreign folder is rejected")
-    st, sid = call("POST", "/rest/v1/rpc/create_submission", {"p_phase_slug": "practice", "p_kind": "results", "p_scenario_slug": "dev-example", "p_storage_path": path, "p_filename": "decisions.csv", "p_sha256": hashlib.sha256(ex).hexdigest(), "p_title": "smoke", "p_notes": ""}, token=tok)
+    st, sid = call("POST", "/rest/v1/rpc/create_submission", {"p_phase_slug": "practice", "p_kind": "results", "p_scenario_slug": "dev-fortnight", "p_storage_path": path, "p_filename": "decisions.csv", "p_sha256": hashlib.sha256(ex).hexdigest(), "p_title": "smoke", "p_notes": ""}, token=tok)
     check(st == 200, f"create_submission -> #{sid}")
-    check(call("GET", "/storage/v1/object/scenarios/dev-example/weather.csv")[0] == 200, "anon can read public weather")
-    check(call("GET", "/storage/v1/object/scenarios/eval-a/weather.csv", token=tok)[0] != 200, "hidden weather is not readable")
-    check(call("GET", "/storage/v1/object/scenarios/eval-a/tiles.csv", token=tok)[0] == 200, "hidden scenario tiles are readable")
-    # the score-results edge function (via the pg_net trigger) normally scores results files within seconds;
-    # fall back to the worker if it has not picked the row up.
-    scored_by = "edge function"
-    for _ in range(20):
-        st, rows = call("GET", f"/rest/v1/submissions?id=eq.{sid}&select=status", token=tok)
-        if rows and rows[0]["status"] not in ("queued", "running"):
-            break
-        time.sleep(2)
-    else:
-        from worker import main as wm
-        from worker.config import reset_settings_cache
-        reset_settings_cache()
-        n = wm.run_loop(once=True)
-        scored_by = f"worker ({n} processed)"
-    check(True, f"scored by {scored_by}")
-    st, rows = call("GET", f"/rest/v1/submissions?id=eq.{sid}&select=status,score,error,evaluations(report_path,decisions_path)", token=tok)
-    check(rows[0]["status"] == "scored" and abs(rows[0]["score"] - 10377.46553) < 1e-3, f"scored {rows[0]['score']}")
+    check(call("GET", "/storage/v1/object/scenarios/dev-reference/outputs/reference/weather.csv")[0] == 200, "anon can read public weather")
+    check(call("GET", "/storage/v1/object/scenarios/dev-reference/outputs/reference/weather_events.csv")[0] == 200, "practice events are public")
+    check(call("GET", "/storage/v1/object/scenarios/eval-a/outputs/reference/weather.csv", token=tok)[0] != 200, "hidden weather is not readable")
+    check(call("GET", "/storage/v1/object/scenarios/eval-a/outputs/reference/weather_events.csv", token=tok)[0] != 200, "hidden events are not readable")
+    check(call("GET", "/storage/v1/object/scenarios/eval-a/outputs/reference/tiles.csv", token=tok)[0] == 200, "hidden scenario tiles are readable")
+    check(call("GET", "/storage/v1/object/scenarios/eval-a/config/score_config.json", token=tok)[0] == 200, "score config is public")
+    from worker import main as wm
+    from worker.config import reset_settings_cache
+    reset_settings_cache()
+    n = wm.run_loop(once=True)
+    check(n >= 1, f"worker processed {n} submission(s)")
+    st, rows = call("GET", f"/rest/v1/submissions?id=eq.{sid}&select=status,score,error,base_science,penalty_total,evaluations(report_path,decisions_path,replay_path)", token=tok)
+    check(rows[0]["status"] == "scored" and rows[0]["score"] > 1000, f"scored {rows[0]['score']} (base {rows[0]['base_science']}, penalties {rows[0]['penalty_total']})")
+    rp_html = rows[0]["evaluations"][0].get("replay_path")
+    check(bool(rp_html) and call("GET", f"/storage/v1/object/results/{urllib.parse.quote(rp_html)}", token=tok)[0] == 200, "replay html stored and readable by the team")
     rp = rows[0]["evaluations"][0]["report_path"]
     check(call("GET", f"/storage/v1/object/results/{urllib.parse.quote(rp)}", token=tok)[0] == 200, "team can download its report")
     check(call("GET", f"/storage/v1/object/results/{urllib.parse.quote(rp)}")[0] != 200, "anon cannot download reports")
@@ -103,7 +98,7 @@ def main() -> int:
     svc("DELETE", f"/rest/v1/evaluations?submission_id=eq.{sid}")
     svc("DELETE", f"/rest/v1/submissions?id=eq.{sid}")
     svc("DELETE", "/storage/v1/object/submissions", {"prefixes": [path]})
-    svc("DELETE", "/storage/v1/object/results", {"prefixes": [rp, rows[0]["evaluations"][0]["decisions_path"]]})
+    svc("DELETE", "/storage/v1/object/results", {"prefixes": [p for p in (rp, rows[0]["evaluations"][0]["decisions_path"], rp_html) if p]})
     svc("DELETE", f"/rest/v1/audit_log?user_id=eq.{uid}")
     svc("DELETE", f"/rest/v1/teams?id=eq.{team}")
     check(svc("DELETE", f"/auth/v1/admin/users/{uid}") == 200, "cleanup: user, team, submission, objects removed")

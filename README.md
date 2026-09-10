@@ -1,77 +1,71 @@
-# Agent Observer · 巡天智能体 — competition platform (Supabase edition)
+# Agent Observer · 巡天智能体 — competition platform (challenge v3)
 
-Event website and evaluation backend for the GOSIM "Agent Observer" hackathon (intelligent survey
-operations). The website is a static Vue 3 site in the style of create.gosim.org/survey26; everything
-stateful lives in one Supabase project; participant agents are executed by a small Python worker.
+Event website and evaluation backend for the GOSIM "Agent Observer" hackathon. The site is a static Vue 3
+app on GitHub Pages; everything stateful lives in one Supabase project; participant agents are executed by a
+Python worker (GitHub Actions by default) against the **challenge v3** environment delivered by the science
+team (`example3`: solar observing calendar, tile geometry with lunar quality, directional weather with hidden
+events and uncertain forecasts, temporary observation requests, `challenge-score-v3`, JSON-Lines agent protocol
+with one global wall clock).
 
 ```
-web/                 Vue 3 + Vite + Tailwind 4 + supabase-js static site (GitHub Pages)
-supabase/migrations  Postgres schema, RLS policies, RPCs, storage buckets/policies
-supabase/functions   Edge functions: score-results (TypeScript port of the scorer), leaderboard (public JSON)
-worker/              Python evaluation worker: sandboxed agent runs + scoring, scenario seeding, admin CLI
-scoring/             The frozen scorer (scorer.py, unchanged from the hand-off package) + observer-v1 protocol
-starter_kit/         What participants download: baseline agent, local runner, example data, CLI, SKILL.md
-tests/               pytest: scorer/sandbox parity, and platform integration tests against a local Supabase-like harness
-legacy/fastapi/      The earlier self-hosted monolith (reference only)
+web/                 Vue 3 + Vite + Tailwind 4 + supabase-js site (GitHub Pages)
+supabase/migrations  Postgres schema, RLS, RPCs, storage policies (v3 columns in 20260910001000_challenge_v3.sql)
+supabase/functions   leaderboard (public JSON); scoring runs in the worker
+challenge/           the vendored v3 environment (unchanged modules, relative imports) + scenario_builder + replay generator + reference scenario + tests
+worker/              evaluation worker: sandboxed agent runs (challenge_runner.py), scoring, replay upload, scenario seeding/admin CLI
+starter_kit/         what participants download: agent/, challenge/ copy, dev-reference scenario, local_runner, make_scenario, pack_agent, sac_submit, SKILL.md
+tests/               pytest: runner sandbox, starter kit, platform integration on an embedded Postgres + real PostgREST harness; hosted_smoke.py for the live project
+docs/                example3-analysis-brief.md (engineering brief on the v3 package)
+legacy/fastapi/      first self-hosted version (reference only)
 ```
 
-## How the pieces fit
+## Competition mechanics (as implemented)
 
-| Concern | Where | Notes |
-|---|---|---|
-| Accounts | Supabase Auth (email + password) | `handle_new_user` trigger creates `profiles`; emails listed in `site_settings.admin_emails` become admins |
-| Teams, invites, membership | Postgres RPCs (`create_team`, `join_team`, …) | Transactional, capacity-checked, security definer; direct writes are revoked |
-| Submissions | Storage bucket `submissions/<team_id>/…` + RPC `create_submission` | Enforces phase window, allowed kinds, hidden scenarios, daily limit, team folder |
-| Scoring of `decisions.csv` | Edge function `score-results` (Deno) or the worker | Same rules as `scoring/scorer.py`; TS port verified against the reference report |
-| Agent runs on hidden weather | `worker/` (Python, sandboxed subprocess or Docker) | Claims queued rows with `claim_submission` (SKIP LOCKED), writes `results/<team>/sub-<id>/<scenario>/…` |
-| Leaderboard | SQL function `leaderboard(phase, limit)` | Best scored submission per team, ties by earlier submission, respects hidden boards and hidden teams |
-| Admin | RLS (`is_admin()`) + `admin_*` RPCs | Phases, scenarios, announcements, users, teams, rescoring, audit log |
-| Files participants may read | Storage policies | `scenarios/<slug>/weather.csv` only when `weather_public`; results only for the owning team |
+| Topic | Behaviour |
+|---|---|
+| Scenario | directory `config/*.json` + `outputs/reference/*.csv`; stored in bucket `scenarios/<slug>/...`; per-file visibility flags (`weather_public`, `forecasts_public`, `events_public`); `global_wallclock_seconds` per scenario |
+| Practice | scenarios fully public (incl. `weather_events.csv`) so local scoring reproduces the platform; results files (`decisions.csv`) and agent packages both accepted |
+| Online competition | hidden weather/forecasts/events; agent packages only; the platform runs the agent through `participant-agent-protocol-v1` with the scenario's global wall clock; score = mean over the phase's scenarios |
+| Agent package | zip with `minimal_agent.py`/`agent.py`/`main.py` at the root, optional `requirements.txt` (installed into a per-run venv), optional `.env` (model keys; loaded into the agent environment only, never logged); Python 3.12; network allowed (LLM APIs) |
+| Isolation | agent runs in its own directory with a scrubbed environment, rlimits, process-group kill at the cutoff; the scenario directory is never mounted; docker mode (`SAC_SANDBOX_MODE=docker`) adds a read-only container |
+| Scoring | `challenge/scoring_core.py` (unchanged from the science team) re-scores the committed `decisions.csv`; report v3 with breakdown, per-segment audit and input checksums |
+| Outcomes | `survey_complete`, `global_wallclock_expired`, `agent_error`, `agent_initialization_error` are all scored on what was committed plus terminal penalties (package semantics); only unreadable packages/files are `invalid` |
+| Artifacts | per evaluation: `report.json`, `decisions.csv`, `agent.log`, `workflow_result.json`, `decision_replay.html` (organizer-style replay, generated by `challenge/replay.py`) in bucket `results/<team>/sub-<id>/<scenario>/` |
+| Leaderboard | best scored submission per team; columns total, base science, program bonus, request reward, penalties, tiles, REQUIRED missing |
 
 ## Deploy (organizers)
 
-1. **Supabase project** (done once): `supabase link --project-ref <ref>` then `supabase db push`
-   (or paste `supabase/migrations/*.sql` into the SQL editor in order). Set Auth → URL configuration:
-   Site URL = the website URL, redirect URLs = site URL and `<site>/reset`. Auto-confirm email sign-ups
-   (or configure a custom SMTP; the built-in mailer is rate-limited).
-2. **Seed** scenarios and phases and promote the first admin:
-   `SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… python -m worker.main seed`
-   `python -m worker.main promote-admin you@org.example`
-3. **Edge functions**: `supabase functions deploy score-results --no-verify-jwt` and
-   `supabase functions deploy leaderboard --no-verify-jwt`; set secret `SCORER_WEBHOOK_SECRET`; create a
-   Database Webhook on `public.submissions` INSERT → `https://<ref>.functions.supabase.co/score-results`
-   with header `x-webhook-secret`. See `supabase/functions/README.md`.
-4. **Worker**. Default: `.github/workflows/worker.yml` runs `python -m worker.main once` on a GitHub-hosted
-   runner every 5 minutes (repository secrets `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`; public repos have
-   unlimited Actions minutes). Trigger it manually from the Actions tab when you want a queue drained now.
-   For lower latency or OS-level network isolation run it on your own machine instead:
-   `docker build -f worker/Dockerfile -t sac-worker . && docker run -e SUPABASE_URL -e SUPABASE_SERVICE_ROLE_KEY -e SAC_SANDBOX_MODE=subprocess sac-worker`
-   or `python -m worker.main run`. `SAC_WORKER_KINDS=agent` restricts it to agent runs when the edge function
-   scores results files. Several workers can run in parallel.
-5. **Website**: GitHub Pages via `.github/workflows/deploy-pages.yml`. Repository variables:
-   `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_SITE_URL`, `VITE_BASE_PATH` (e.g. `/agent-observer/`).
-   Any static host works (`npm run build --prefix web` → `web/dist`).
+1. Supabase: apply `supabase/migrations/*.sql` in order (SQL editor or `supabase db push`); Auth site URL and
+   redirect URLs; auto-confirm sign-ups or configure SMTP.
+2. Seed and promote the first admin (needs the service role key):
+   `SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… python -m worker.main seed`, `python -m worker.main promote-admin you@org`.
+   Default seed: `dev-reference` (180 nights, public), `dev-fortnight` (14 nights, public), `eval-a`/`eval-b`
+   (30 nights, hidden, 3600 s wall clock) and phases `practice`/`online`.
+3. More scenarios: `python -m worker.main gen-scenario --slug eval-c --seed 777 --days 30 --start-date 2026-10-05 --wallclock 3600 --hidden-weather --hidden-forecasts`
+   or `add-scenario --root <dir>` for a directory produced by the science team. Scenarios are validated by the
+   authoritative scorer and checksummed before upload.
+4. Edge function: `supabase functions deploy leaderboard --no-verify-jwt --use-api`.
+5. Worker: `.github/workflows/worker.yml` runs `python -m worker.main once` every 5 minutes on GitHub-hosted
+   runners (secrets `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`). Wall clocks of 1–2 h per scenario mean a
+   dedicated runner (or several) is advisable for the online phase: `python -m worker.main run` anywhere with
+   Python 3.12, or the Docker image (`worker/Dockerfile`).
+6. Website: GitHub Pages via `.github/workflows/deploy-pages.yml` (repo variables `VITE_SUPABASE_URL`,
+   `VITE_SUPABASE_ANON_KEY`, `VITE_SITE_URL`, `VITE_BASE_PATH`).
 
-## Local development and tests
+## Tests
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install pytest pgserver "psycopg[binary]"
-.venv/bin/pytest tests/test_worker_runner.py            # scorer parity, protocol, sandbox behaviour
-SAC_POSTGREST_BIN=/path/to/postgrest .venv/bin/pytest tests/supabase   # migrations + RLS + RPC + worker, on an embedded Postgres + real PostgREST
-cd supabase/functions && deno test -A _shared            # TypeScript scorer parity
-cd web && npm ci && npm run dev                          # website against your Supabase project (.env)
+.venv/bin/pytest challenge/tests tests/test_challenge_runner.py tests/test_starter_kit.py   # environment, sandbox, kit
+SAC_POSTGREST_BIN=/path/to/postgrest .venv/bin/pytest tests/supabase                        # RLS/RPC/worker on embedded Postgres + PostgREST
+cd web && npm ci && npm run build && cd .. && .venv/bin/pytest tests/e2e_web                # browser e2e against the harness
+SUPABASE_URL=… SUPABASE_ANON_KEY=… SUPABASE_SERVICE_ROLE_KEY=… python tests/hosted_smoke.py # live project, self-cleaning
 ```
 
-`tests/supabase/harness.py` boots an embedded Postgres, applies the migrations, runs PostgREST with the
-project's roles and JWT secret, and emulates the Auth and Storage HTTP APIs so the full participant flow can
-be exercised without Docker. Storage policies are not emulated: verify them against the hosted project
-(`tests/hosted_smoke.py`).
+## Known deviations from the science team's package
 
-## Operating the competition
-
-- Phases: rows in `phases` (windows in UTC, allowed kinds, daily limit, `leaderboard_mode` live / frozen /
-  hidden / published, `counts_for_final`). Link scenarios in `phase_scenarios`. Editable in the admin UI.
-- Scenarios: `python -m worker.main gen-scenario --slug eval-c --seed 4242 --hidden-weather` or
-  `add-scenario --weather w.csv --tiles t.csv --hidden-weather` (validated by the frozen scorer; checksum stored).
-- Rescore after a scorer fix: `admin_rescore_phase('online')` from the admin UI; workers pick the rows up.
-- Announcements: pinned rows show as a banner on every page; also served by `/api`-style `leaderboard` function.
+- `challenge/run_challenge.py`: the agent transport writes non-blocking; the original blocking `os.write` of a
+  message larger than the pipe buffer (the first decision snapshot is ~200 KB) could hang until the agent read it,
+  defeating the global wall clock. Everything else in `challenge/` is the delivered code with relative imports and a
+  root-parameterised `project_paths.py`.
+- `challenge/scenario_builder.py` clamps `time_limited_window_days` and the forecast horizon for short scenarios.
+- `challenge/replay.py` regenerates the delivered `decision_replay.html` (its generator was not in the package).

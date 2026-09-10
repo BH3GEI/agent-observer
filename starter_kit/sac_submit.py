@@ -1,12 +1,22 @@
 #!/usr/bin/env python3
-"""Submit a results file or an agent package to the Agent Observer platform (Supabase backend, standard library only).
+"""Submit an agent package (zip) or a decisions.csv results file to the Agent Observer platform (Supabase backend,
+standard library only).
 
+  # agent package built by pack_agent.py; the platform runs it on the phase's scenarios (hidden truth allowed)
   python3 sac_submit.py --url https://<ref>.supabase.co --key <anon key> --email you@x.org --password '...' \
-      --phase practice --kind results --scenario dev-example --file run_output/decisions.csv --wait
-  python3 sac_submit.py --url ... --key ... --email ... --password ... --phase online --kind agent --file agent.py --wait
+      --phase online --kind agent --file my-agent.zip --wait
+
+  # decisions.csv produced by local_runner.py, scored against a public scenario
+  python3 sac_submit.py --url ... --key ... --email ... --password ... \
+      --phase practice --kind results --scenario dev-reference --file run_output/decisions.csv --wait
+
+The agent package is a zip with minimal_agent.py (or agent.py / main.py) at its root, plus any modules it imports,
+an optional requirements.txt (installed into a fresh virtualenv before the run) and an optional .env with your LLM
+provider keys (loaded into the agent process only; never shown in logs). Build it with `python3 pack_agent.py`.
+A bare .py entry script is accepted too.
 
 The URL and anon key are printed on the platform's Resources page. Environment variables SAC_URL, SAC_KEY,
-SAC_EMAIL, SAC_PASSWORD are used when the flags are omitted.
+SAC_EMAIL, SAC_PASSWORD are used when the flags are omitted; SAC_SITE_URL adds a clickable submission link.
 """
 from __future__ import annotations
 
@@ -66,10 +76,10 @@ def main(argv=None) -> int:
     p.add_argument("--key", default=os.environ.get("SAC_KEY"), help="Supabase anon (publishable) key")
     p.add_argument("--email", default=os.environ.get("SAC_EMAIL"))
     p.add_argument("--password", default=os.environ.get("SAC_PASSWORD"))
-    p.add_argument("--phase", required=True, help="phase slug, e.g. practice or online")
-    p.add_argument("--kind", choices=["results", "agent"], required=True)
-    p.add_argument("--scenario", help="scenario slug (results only)")
-    p.add_argument("--file", type=Path, required=True)
+    p.add_argument("--phase", required=True, help="phase slug shown on the website, e.g. practice or online")
+    p.add_argument("--kind", choices=["results", "agent"], required=True, help="agent = zip package or .py entry script; results = decisions.csv")
+    p.add_argument("--scenario", help="public scenario slug the decisions.csv was produced on (results only)")
+    p.add_argument("--file", type=Path, required=True, help="my-agent.zip / entry .py (agent) or decisions.csv (results)")
     p.add_argument("--title", default="")
     p.add_argument("--notes", default="")
     p.add_argument("--wait", action="store_true", help="poll until the evaluation finishes")

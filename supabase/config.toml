@@ -417,8 +417,5 @@ enabled = true
 # ---------------------------------------------------------------------------
 # Agent Observer edge functions (deployed with `supabase functions deploy <name>`)
 # ---------------------------------------------------------------------------
-[functions.score-results]
-verify_jwt = false   # authenticated by the service role key / webhook secret inside the function
-
 [functions.leaderboard]
 verify_jwt = false   # public read-only endpoint

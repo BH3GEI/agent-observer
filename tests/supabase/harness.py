@@ -323,11 +323,25 @@ class Harness:
         if bucket == "scenarios":
             if write:
                 return role == "authenticated" and bool(self.sql("select 1 from public.profiles where id = %s and is_admin", (claims["sub"],)))
-            rows = self.sql("select weather_public, tiles_public from public.scenarios where slug = %s and is_active", (folder,))
+            parts = name.split("/")
+            rows = self.sql("select weather_public, forecasts_public, events_public from public.scenarios where slug = %s and is_active", (folder,))
             if not rows:
                 return role == "authenticated" and bool(self.sql("select 1 from public.profiles where id = %s and is_admin", (claims["sub"],)))
-            fname = name.rsplit("/", 1)[-1]
-            return fname == "score_config.json" or (fname == "weather.csv" and rows[0][0]) or (fname == "tiles.csv" and rows[0][1])
+            weather_public, forecasts_public, events_public = rows[0]
+            fname = parts[-1]
+            if len(parts) > 1 and parts[1] == "config":
+                return True
+            always = {"night_calendar.csv", "slots.csv", "tiles.csv", "targets.csv", "tile_windows.csv", "observation_requests.csv", "observation_request_tiles.csv",
+                      "scenario_manifest.json", "calendar_metadata.json", "catalog_metadata.json", "observation_request_metadata.json"}
+            if fname in always:
+                return True
+            if fname in ("weather.csv", "weather_metadata.json"):
+                return bool(weather_public)
+            if fname == "weather_forecasts.csv":
+                return bool(forecasts_public)
+            if fname == "weather_events.csv":
+                return bool(events_public)
+            return False
         if role != "authenticated":
             return False
         team = self.sql("select team_id::text, is_admin from public.profiles where id = %s", (claims["sub"],))

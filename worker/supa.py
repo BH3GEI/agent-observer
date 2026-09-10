@@ -1,7 +1,9 @@
 """Minimal Supabase client for the worker (PostgREST + Storage over HTTPS, service role). Standard library only."""
 from __future__ import annotations
 
+import http.client
 import json
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -37,18 +39,30 @@ class Supa:
         elif data is not None:
             body = data
         hdrs.update(headers or {})
-        req = urllib.request.Request(url, data=body, method=method, headers=hdrs)
-        try:
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
-                payload = resp.read()
-                if raw:
-                    return payload
-                if not payload:
-                    return None
-                ctype = resp.headers.get("Content-Type", "")
-                return json.loads(payload.decode("utf-8")) if "json" in ctype else payload.decode("utf-8")
-        except urllib.error.HTTPError as exc:
-            raise SupabaseError(exc.code, exc.read().decode("utf-8", "replace"), url) from exc
+        # GET / DELETE / PATCH are safe to retry on transport errors; POST inserts are retried only for uploads (x-upsert)
+        retryable = method in ("GET", "DELETE", "PATCH") or (method == "POST" and hdrs.get("x-upsert") == "true")
+        attempts = 4 if retryable else 1
+        last: Exception | None = None
+        for attempt in range(attempts):
+            req = urllib.request.Request(url, data=body, method=method, headers=hdrs)
+            try:
+                with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+                    payload = resp.read()
+                    if raw:
+                        return payload
+                    if not payload:
+                        return None
+                    ctype = resp.headers.get("Content-Type", "")
+                    return json.loads(payload.decode("utf-8")) if "json" in ctype else payload.decode("utf-8")
+            except urllib.error.HTTPError as exc:
+                raise SupabaseError(exc.code, exc.read().decode("utf-8", "replace"), url) from exc
+            except (urllib.error.URLError, http.client.HTTPException, ConnectionError, TimeoutError, OSError) as exc:
+                last = exc
+                if attempt + 1 < attempts:
+                    time.sleep(1.5 * (attempt + 1))
+                    continue
+                raise SupabaseError(0, f"transport error after {attempts} attempts: {exc}", url) from exc
+        raise SupabaseError(0, f"transport error: {last}", url)
 
     # ---------------------------------------------------------------- postgrest
     def rpc(self, name: str, args: Optional[dict] = None) -> Any:

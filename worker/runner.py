@@ -33,7 +33,7 @@ from scoring.protocol import (PROTOCOL, ProtocolError, apply_and_record, build_i
 from .config import get_settings
 from .scenarios import DECISION_FIELDS, write_csv
 
-ENTRY_CANDIDATES = ("agent.py", "main.py")
+ENTRY_CANDIDATES = ("minimal_agent.py", "agent.py", "main.py")
 
 
 class AgentPackageError(ValueError):
@@ -100,7 +100,8 @@ def prepare_agent_dir(upload: Path, dest: Path, *, max_files: int = 2000, max_by
         for cand in ENTRY_CANDIDATES:
             if (subdirs[0] / cand).is_file():
                 return subdirs[0] / cand
-    raise AgentPackageError("archive must contain agent.py (or main.py) at its root")
+    # no entry script found: the caller decides (challenge_runner.find_entry raises a participant-facing error)
+    return dest
 
 
 # ---------------------------------------------------------------------------

@@ -533,7 +533,7 @@ def main() -> int:
 
         # ------------------------------------------------------------------ H. resources + downloads
         try:
-            for path, want in (("/downloads/agent-observer-starter-kit.zip", 20000), ("/downloads/scorer.py", 20000), ("/skill.md", 1000)):
+            for path, want in (("/downloads/agent-observer-starter-kit.zip", 20000), ("/downloads/scoring_core.py", 20000), ("/skill.md", 1000)):
                 req = urllib.request.urlopen(base + path, timeout=30)
                 check(f"download {path}", req.status == 200 and len(req.read()) > want)
             pg.goto(base + "/resources?lang=en", wait_until="networkidle"); pg.wait_for_timeout(1000)
