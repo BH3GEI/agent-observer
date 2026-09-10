@@ -21,7 +21,7 @@ Use absolute paths when running from another directory.
 python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py --wallclock 600 --out run_output
 ```
 
-The last stdout line is JSON. Expected for the unmodified kit: `"termination_reason": "survey_complete"`,
+Standard output ends with a JSON summary (`--quiet` prints only that). Expected for the unmodified kit: `"termination_reason": "survey_complete"`,
 `"total"` ≈ 12287.48, `"completed_tiles": 64`, `"required_missing": 0`, `wall_seconds` ≈ 10-20. Anything else
 means the environment is broken; read `run_output/agent.log` first. Exit code 2 means the agent crashed
 (`agent_error`) or failed to start.

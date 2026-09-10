@@ -1155,7 +1155,7 @@
     "tab_register": "Create account",
     "tab_login": "Log in",
     "steps": [
-      "Create and confirm your account",
+      "Create your account (no e-mail confirmation needed)",
       "Create a team or join one with an invite code",
       "Upload a results file or an agent package"
     ]

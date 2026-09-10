@@ -27,7 +27,7 @@ unzip agent-observer-starter-kit.zip && cd agent-observer-starter-kit
 python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py --wallclock 600 --out run_output
 ```
 
-The last stdout line is a JSON summary; on the reference scenario the shipped deterministic agent completes
+Standard output ends with a JSON summary (with `--quiet` it is the only output); on the reference scenario the shipped deterministic agent completes
 the survey (`"termination_reason": "survey_complete"`) with `total` ≈ 12287.48 in about 15 s of wall clock.
 `run_output/` holds `decisions.csv`, `workflow_result.json`, `score_report.json`, `agent.log` (your agent's
 stderr) and `decision_replay.html` (open it in a browser to step through every night).

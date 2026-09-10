@@ -85,7 +85,7 @@ def main() -> int:
     skill = (kit / "SKILL.md").read_text()
     ok("{{" not in skill and URL in skill, "SKILL.md has the real platform URL and key filled in")
     sub_src = (kit / "sac_submit.py").read_text()
-    ok("{{" not in sub_src, "sac_submit.py defaults filled in")
+    ok('DEFAULT_URL = "https://' in sub_src and 'DEFAULT_SITE_URL = "https://' in sub_src, "sac_submit.py defaults filled in")
 
     # account + team through the API (a participant does this on the website)
     email = f"cli-smoke-{secrets.token_hex(3)}@example.com"
@@ -106,7 +106,7 @@ def main() -> int:
         r = run([PY, "fetch_scenario.py", "eval-a", "--out", str(work / "eval-a")], kit)
         ok(r.returncode == 0 and not (work / "eval-a/outputs/reference/weather.csv").exists() and "not published" in r.stdout, "fetch_scenario eval-a skips hidden files and says so")
         r = run([PY, "local_runner.py", "--scenario", "scenarios/dev-fortnight", "--agent", "agent/minimal_agent.py", "--out", "run_fortnight", "--quiet"], kit)
-        summary = json.loads(r.stdout.strip().splitlines()[-1]) if r.stdout.strip() else {}
+        summary = json.loads(r.stdout) if r.stdout.strip().startswith("{") else {}
         ok(r.returncode == 0 and summary.get("termination_reason") == "survey_complete", f"local_runner dev-fortnight total={summary.get('total')}")
         r = run([PY, "score_decisions.py", "--scenario", "scenarios/dev-fortnight", "--decisions", "run_fortnight/decisions.csv"], kit)
         local_total = json.loads(r.stdout)["score"]["total"] if r.returncode == 0 else None

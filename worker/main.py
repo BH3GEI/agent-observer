@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import logging
 import shutil
 import sys
@@ -224,7 +225,9 @@ def evaluate(sb: Supa, sub: dict) -> None:
             ev["decisions_path"] = f"{prefix}/decisions.csv"
             _finish_eval(sb, ev, out, prefix, report, extra, int(scn.get('n_tiles') or 0))
             if termination in ("agent_error", "agent_initialization_error"):
-                ev["error"] = (ev["summary"].get("agent_error") or termination)[:2000]
+                detail = re.sub(r"^\w+Error: ", "", ev["summary"].get("agent_error") or "")
+                phase = "during initialization" if termination == "agent_initialization_error" else f"after {result.get('committed_action_count', 0)} committed actions"
+                ev["error"] = f"agent failed {phase}: {detail or termination}; the committed actions were scored, see agent.log"[:2000]
         except ValueError:
             pass
         except cr.AgentRunError as exc:

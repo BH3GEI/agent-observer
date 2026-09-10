@@ -14,9 +14,11 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import http.client
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -42,9 +44,10 @@ def get(url: str, key: str, path: str) -> bytes:
                 return r.read()
         except urllib.error.HTTPError as e:
             raise SystemExit(f"{path}: HTTP {e.code} {e.read().decode('utf-8', 'replace')[:200]}")
-        except (urllib.error.URLError, ConnectionError, TimeoutError, OSError) as e:  # transient
+        except (http.client.HTTPException, urllib.error.URLError, ConnectionError, TimeoutError, OSError) as e:  # transient (IncompleteRead, resets)
             if attempt == 3:
                 raise SystemExit(f"{path}: {e}")
+            time.sleep(1.5 * (attempt + 1))
     raise SystemExit("unreachable")
 
 

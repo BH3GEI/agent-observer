@@ -89,6 +89,7 @@ def test_participant_journey(page: Page, site, tmp_path):
     page.click("[data-testid=submit-button]")
     expect(page).to_have_url(re.compile(r"/submissions/\d+"), timeout=20000)
     expect(page.locator("[data-testid=sub-status]")).to_contain_text(re.compile("queued|Queued|排队"), timeout=15000)
+    expect(page.locator("[data-testid=worker-status]")).to_be_visible(timeout=10000)  # evaluator liveness + queue position
     assert run_worker_once() == 1
     expect(page.locator("[data-testid=sub-status]")).to_contain_text(re.compile("scored|Scored|已评分"), timeout=30000)
     expect(page.locator("[data-testid=sub-score]")).to_have_text(SCORE_RE, timeout=15000)
