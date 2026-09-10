@@ -45,10 +45,12 @@ legacy/fastapi/      first self-hosted version (reference only)
    or `add-scenario --root <dir>` for a directory produced by the science team. Scenarios are validated by the
    authoritative scorer and checksummed before upload.
 4. Edge function: `supabase functions deploy leaderboard --no-verify-jwt --use-api`.
-5. Worker: `.github/workflows/worker.yml` runs `python -m worker.main once` every 5 minutes on GitHub-hosted
-   runners (secrets `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`). Wall clocks of 1–2 h per scenario mean a
-   dedicated runner (or several) is advisable for the online phase: `python -m worker.main run` anywhere with
-   Python 3.12, or the Docker image (`worker/Dockerfile`).
+5. Worker: `.github/workflows/worker.yml` keeps one evaluator alive on a GitHub-hosted runner
+   (`python -m worker.main run --max-seconds 19800`, polling every 5 s, secrets `SUPABASE_URL` and
+   `SUPABASE_SERVICE_ROLE_KEY`) and re-dispatches itself with the workflow token before it ends; the cron is only
+   a backstop. It publishes a heartbeat (`site_settings.worker_heartbeat`) that the submission page shows with the
+   queue position. Wall clocks of 1–2 h per scenario mean extra runners are advisable for the online phase:
+   `python -m worker.main run` anywhere with Python 3.12, or the Docker image (`worker/Dockerfile`).
 6. Website: GitHub Pages via `.github/workflows/deploy-pages.yml` (repo variables `VITE_SUPABASE_URL`,
    `VITE_SUPABASE_ANON_KEY`, `VITE_SITE_URL`, `VITE_BASE_PATH`).
 
@@ -60,6 +62,8 @@ SAC_POSTGREST_BIN=/path/to/postgrest .venv/bin/pytest tests/supabase            
 cd web && npm ci && npm run build && cd .. && .venv/bin/pytest tests/e2e_web                # browser e2e against the harness
 SUPABASE_URL=… SUPABASE_ANON_KEY=… SUPABASE_SERVICE_ROLE_KEY=… python tests/hosted_smoke.py # live project, self-cleaning
 python tests/hosted_agent_smoke.py --dispatch                                                # queue a minimal-agent zip on the hosted project and run it through the GitHub Actions worker
+python tests/live_e2e.py                                                                     # browser walk-through of the production site (public pages, storage policy, submit, replay, admin)
+python tests/live_cli_participant.py                                                         # command-line participant journey with the downloaded kit (fetch, run, score, pack, submit, mistakes)
 ```
 
 ## Known deviations from the science team's package
