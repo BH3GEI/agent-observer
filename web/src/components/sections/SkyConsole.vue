@@ -122,7 +122,7 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
 .sky-hud dd { margin: .15rem 0 0; font-size: .76rem; color: #f5f5f5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sky-hud-weather { grid-column: span 2; }
 @media (min-width: 640px) {
-  .sky-hud { grid-template-columns: 1.35fr 1.45fr 1.75fr .75fr .8fr; }
+  .sky-hud { grid-template-columns: 1.2fr 1.35fr 2.15fr .65fr .75fr; }
   .sky-hud-slot, .sky-hud-weather { grid-column: auto; }
   .sky-hud > div { border-bottom: 0; }
   .sky-hud > div:last-child { border-right: 0; }
