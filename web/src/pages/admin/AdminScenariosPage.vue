@@ -54,7 +54,7 @@ onMounted(load)
                 <button type="button" class="copy-btn self-start" :disabled="busy" :data-testid="`save-${s.slug}`" @click="save(s)">{{ t('common.save') }}</button>
               </div>
             </td>
-            <td class="xs whitespace-nowrap">
+            <td class="xs" style="min-width: 9rem">
               <button type="button" class="accent-l" @click="download(s, 'outputs/reference/scenario_manifest.json')">manifest</button> ·
               <button type="button" class="accent-l" @click="download(s, 'outputs/reference/tiles.csv')">tiles</button> ·
               <button type="button" class="accent-l" @click="download(s, 'outputs/reference/weather.csv')">weather</button> ·
