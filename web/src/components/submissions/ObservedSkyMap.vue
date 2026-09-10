@@ -3,11 +3,11 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { readObjectText } from '../../lib/storage'
 import { drawSkyMap, parseTilesCsv, prefersReducedMotion, type ObservedMark, type SkySite, type SkyTile } from '../../lib/skymap'
+import { actionNet, nightOf, outcomeClass, type ReportAction } from '../../lib/report'
 import { replaySite } from '../../composables/useReplayClock'
 import { fmtUtc, num } from '../../lib/format'
 
-export interface MapAction { decision_id: number; slot_id: string | number; action: string; tile_id: string | number | null; valid: boolean; start_timestamp_utc?: string | null; elapsed_seconds: number; science_score: number }
-const props = defineProps<{ slug: string; actions: MapAction[]; tilesPublic: boolean }>()
+const props = defineProps<{ slug: string; actions: ReportAction[]; tilesPublic: boolean }>()
 const { t } = useI18n()
 const canvas = ref<HTMLCanvasElement | null>(null)
 const tiles = ref<SkyTile[]>([])
@@ -23,9 +23,10 @@ const cursor = computed(() => (index.value > 0 ? props.actions[index.value - 1] 
 const nights = computed(() => {
   const map = new Map<string, { night: string; tiles: number; score: number }>()
   for (const a of props.actions) {
-    const night = String(a.slot_id).split('-S')[0]!
+    const night = nightOf(a.slot_id)
     const row = map.get(night) ?? { night, tiles: 0, score: 0 }
-    if (a.valid && a.action === 'observe') { row.tiles++; row.score += Number(a.science_score) || 0 }
+    if (a.outcome === 'completed') row.tiles++
+    row.score += actionNet(a)
     map.set(night, row)
   }
   return [...map.values()]
@@ -36,14 +37,16 @@ function render() {
   const observed = new Map<string, ObservedMark>()
   let nowSec: number | null = null
   for (const a of props.actions.slice(0, index.value)) {
-    const start = a.start_timestamp_utc ? Date.parse(a.start_timestamp_utc) / 1000 : NaN
+    const start = a.start_utc ? Date.parse(a.start_utc) / 1000 : NaN
     const done = Number.isFinite(start) ? start + Number(a.elapsed_seconds || 0) : NaN
     if (Number.isFinite(done)) nowSec = done
-    if (a.action !== 'observe' || a.tile_id == null || a.tile_id === '') continue
+    if (a.action !== 'observe' || !a.tile_id) continue
     const id = String(a.tile_id)
-    if (!observed.has(id) || a.valid) observed.set(id, { valid: a.valid, doneSec: Number.isFinite(done) ? done : 0 })
+    const cls = outcomeClass(a.outcome, a.action)
+    const prev = observed.get(id)
+    if (!prev || cls === 'completed') observed.set(id, { state: cls, doneSec: Number.isFinite(done) ? done : 0 })
   }
-  if (nowSec == null && props.actions[0]?.start_timestamp_utc) nowSec = Date.parse(props.actions[0].start_timestamp_utc) / 1000
+  if (nowSec == null && props.actions[0]?.start_utc) nowSec = Date.parse(props.actions[0].start_utc) / 1000
   drawSkyMap(canvas.value, tiles.value, site.value, { nowSec, observed, pulseSeconds: 0 })
 }
 function stop() { playing.value = false; if (timer) { window.clearInterval(timer); timer = undefined } }
@@ -51,22 +54,24 @@ function toggle() {
   if (playing.value) { stop(); return }
   if (index.value >= total.value) index.value = 0
   playing.value = true
-  timer = window.setInterval(() => { if (index.value >= total.value) stop(); else index.value++ }, prefersReducedMotion() ? 700 : 320)
+  // long runs (hundreds of waits) advance several actions per tick so a full replay stays under a minute
+  const step = Math.max(1, Math.ceil(total.value / 160))
+  timer = window.setInterval(() => { if (index.value >= total.value) stop(); else index.value = Math.min(total.value, index.value + step) }, prefersReducedMotion() ? 700 : 250)
 }
 
 onMounted(async () => {
   if (!props.tilesPublic) { loading.value = false; return }
   try {
     const [csv, cfg] = await Promise.all([
-      readObjectText('scenarios', `${props.slug}/tiles.csv`),
-      readObjectText('scenarios', `${props.slug}/score_config.json`).catch(() => null),
+      readObjectText('scenarios', `${props.slug}/outputs/reference/tiles.csv`),
+      readObjectText('scenarios', `${props.slug}/config/calendar_config.json`).catch(() => null),
     ])
     tiles.value = parseTilesCsv(csv)
     if (!tiles.value.length) failed.value = true
     if (cfg) {
       try {
         const s = JSON.parse(cfg)?.site
-        if (s && Number.isFinite(s.latitude_deg)) site.value = { lat: s.latitude_deg, lon: s.longitude_deg, min_alt: s.minimum_altitude_deg ?? 30 }
+        if (s && Number.isFinite(s.latitude_deg)) site.value = { lat: s.latitude_deg, lon: s.longitude_deg, min_alt: 30 }
       } catch { /* keep the default site */ }
     }
   } catch { failed.value = true }
@@ -85,23 +90,25 @@ watch(index, render)
     <h3 class="label">{{ t('subs.skymap.title') }}</h3>
     <p v-if="!tilesPublic" class="text3 mt-2 font-mono text-xs uppercase tracking-[.08em]">{{ t('subs.skymap.hidden') }}</p>
     <p v-else-if="loading" class="text3 mt-2 text-sm">{{ t('common.loading') }}</p>
-    <template v-else-if="!failed && tiles.length">
+    <p v-else-if="failed || !tiles.length" class="text3 mt-2 text-sm">{{ t('subs.skymap.unavailable') }}</p>
+    <template v-else>
       <div class="observed-frame mt-3">
         <canvas ref="canvas" class="observed-canvas" role="img" :aria-label="t('subs.skymap.title')"></canvas>
       </div>
+      <div class="legend mt-2"><span><i class="diamond"></i>REQUIRED</span><span><i style="border:1px solid #78a6ff"></i>FLEXIBLE</span><span><i style="background:#315efb"></i>{{ t('subs.outcome_class.completed') }}</span><span><i style="border:1px solid #b8860b"></i>{{ t('subs.outcome_class.interrupted') }}</span><span><i style="border:1px solid #ff3b3b"></i>{{ t('subs.outcome_class.unsafe') }}</span><span><i style="border:1px solid #7a2a2a"></i>{{ t('subs.outcome_class.invalid') }}</span></div>
       <div class="observed-controls mt-3">
         <button type="button" class="copy-btn" :aria-label="playing ? t('subs.skymap.pause') : t('subs.skymap.play')" data-testid="observed-play" @click="toggle">{{ playing ? '❚❚ ' + t('subs.skymap.pause') : '▶ ' + t('subs.skymap.play') }}</button>
         <input v-model.number="index" type="range" min="0" :max="total" step="1" class="observed-range" :aria-label="t('subs.skymap.decision')" data-testid="observed-range" @input="stop">
         <span class="observed-cursor m">
-          <template v-if="cursor">{{ t('subs.skymap.decision') }} #{{ cursor.decision_id }} · {{ cursor.slot_id }} · {{ cursor.start_timestamp_utc ? fmtUtc(cursor.start_timestamp_utc, { seconds: true }) : '—' }} UTC</template>
+          <template v-if="cursor">{{ t('subs.skymap.decision') }} {{ cursor.decision_id }} · {{ cursor.slot_id }} · {{ cursor.start_utc ? fmtUtc(cursor.start_utc, { seconds: true }) : '—' }} UTC · {{ cursor.action }} {{ cursor.tile_id }} · {{ cursor.outcome }}</template>
           <template v-else>{{ t('subs.skymap.start') }}</template>
         </span>
       </div>
       <div class="observed-nights mt-3">
         <div v-for="n in nights" :key="n.night" class="observed-night">
-          <span class="text3">{{ t('subs.skymap.night') }} {{ n.night }}</span>
+          <span class="text3">{{ n.night }}</span>
           <span>{{ n.tiles }} {{ t('subs.skymap.tiles') }}</span>
-          <span class="text-[#78a6ff]">+{{ num(n.score, 1) }}</span>
+          <span :class="n.score >= 0 ? 'text-[#78a6ff]' : 'text-[#ff6b6b]'">{{ n.score >= 0 ? '+' : '' }}{{ num(n.score, 1) }}</span>
         </div>
       </div>
     </template>
@@ -115,7 +122,8 @@ watch(index, render)
 .observed-range { flex: 1 1 12rem; height: 2px; min-width: 8rem; accent-color: #315efb; background: rgba(255,255,255,.2); appearance: none; }
 .observed-range::-webkit-slider-thumb { appearance: none; width: 12px; height: 12px; background: #315efb; border: 0; cursor: pointer; }
 .observed-range::-moz-range-thumb { width: 12px; height: 12px; background: #315efb; border: 0; border-radius: 0; cursor: pointer; }
-.observed-cursor { font-size: .72rem; color: #bdbdbd; white-space: nowrap; }
-.observed-nights { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .72rem; font-variant-numeric: tabular-nums; }
+.observed-cursor { font-size: .72rem; color: #bdbdbd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.observed-nights { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; max-height: 11rem; overflow-y: auto; padding-right: .5rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .72rem; font-variant-numeric: tabular-nums; }
 .observed-night { display: flex; gap: .75rem; border-left: 2px solid #315efb; padding-left: .6rem; color: #f5f5f5; }
+.legend i.diamond { border: 1px solid #f5f5f5; transform: rotate(45deg) scale(.8); }
 </style>

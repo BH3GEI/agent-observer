@@ -4,7 +4,7 @@ import { useI18n } from '../../composables/useI18n'
 import { isSupabaseConfigured, supabase } from '../../lib/supabase'
 import { loadLeaderboard, loadPhases, mainPhase, type LeaderboardEntry, type Phase } from '../../lib/data'
 import { useAuth } from '../../stores/auth'
-import { fmtUtc, num, pct } from '../../lib/format'
+import { fmtUtc, num } from '../../lib/format'
 import ScoreBars from '../leaderboard/ScoreBars.vue'
 import SkeletonRows from '../layout/SkeletonRows.vue'
 
@@ -90,16 +90,19 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
           <template v-else>
             <div class="py-6"><ScoreBars :entries="entries" :team-id="team?.id ?? null" :updated-at="updatedAt" /></div>
             <div class="table-wrap">
-              <table class="data-table min-w-[720px]">
-                <thead><tr><th>#</th><th>{{ t('leaderboard.team') }}</th><th class="r">{{ t('leaderboard.score') }}</th><th class="r">{{ t('leaderboard.science') }}</th><th class="r">{{ t('leaderboard.completion') }}</th><th class="r">{{ t('leaderboard.uniformity') }}</th><th class="r">{{ t('leaderboard.submissions') }}</th></tr></thead>
+              <table class="data-table min-w-[900px]">
+                <thead><tr><th>#</th><th>{{ t('leaderboard.team') }}</th><th class="r">{{ t('leaderboard.score') }}</th><th class="r">{{ t('leaderboard.base_science') }}</th><th class="r">{{ t('leaderboard.bonus') }}</th><th class="r">{{ t('leaderboard.requests') }}</th><th class="r">{{ t('leaderboard.penalties') }}</th><th class="r">{{ t('leaderboard.tiles') }}</th><th class="r">{{ t('leaderboard.required_missing') }}</th><th class="r">{{ t('leaderboard.submissions') }}</th></tr></thead>
                 <tbody>
                   <tr v-for="row in top" :key="row.team_id" data-testid="lb-row" :class="{ me: team && team.id === row.team_id }">
                     <td class="m text-[#315efb]">{{ row.rank }}</td>
                     <td class="font-medium text-text-primary">{{ row.team_name }}</td>
-                    <td class="r m">{{ num(row.total_score) }}</td>
-                    <td class="r m">{{ num(row.science_score) }}</td>
-                    <td class="r m">{{ pct(row.completion_rate) }}</td>
-                    <td class="r m">{{ num(row.uniformity_score, 3) }}</td>
+                    <td class="r m" :class="{ 'text-[#ff6b6b]': row.total_score < 0 }">{{ num(row.total_score) }}</td>
+                    <td class="r m">{{ num(row.base_science) }}</td>
+                    <td class="r m">{{ num(row.program_bonus) }}</td>
+                    <td class="r m">{{ num(row.request_reward) }}</td>
+                    <td class="r m" :class="{ 'text-[#ff6b6b]': row.penalty_total > 0 }">−{{ num(row.penalty_total) }}</td>
+                    <td class="r m">{{ row.completed_tiles ?? '—' }}</td>
+                    <td class="r m" :class="{ 'text-[#ff6b6b]': Number(row.required_missing) > 0 }">{{ row.required_missing ?? '—' }}</td>
                     <td class="r m">{{ row.submission_count }}</td>
                   </tr>
                 </tbody>

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import io
 import re
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -9,7 +11,28 @@ from playwright.sync_api import Page, expect
 from conftest import SHOTS, run_worker_once
 
 ROOT = Path(__file__).resolve().parents[2]
-KIT = ROOT / "starter_kit"
+FIXTURES = ROOT / "tests" / "fixtures"
+RESULTS_FIXTURE = FIXTURES / "dev-fortnight-decisions.csv"
+SCORE_RE = re.compile(r"^-?\d+\.\d{2}$")
+
+
+def results_fixture() -> Path:
+    """decisions.csv of the minimal agent on the harness scenario dev-fortnight (created by the harness task)."""
+    if RESULTS_FIXTURE.exists():
+        return RESULTS_FIXTURE
+    pytest.skip(f"missing fixture {RESULTS_FIXTURE}")
+
+
+def agent_package(tmp_path: Path) -> Path:
+    """Zip of the minimal participant agent (entry minimal_agent.py + its modules + scoring_preview.py), deterministic mode."""
+    src = ROOT / "challenge" / "participant_agent"
+    out = tmp_path / "minimal-agent.zip"
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zf:
+        for f in sorted(src.glob("*.py")):
+            zf.write(f, f.name)
+        zf.write(ROOT / "challenge" / "scoring_preview.py", "scoring_preview.py")
+        zf.writestr(".env", "MODEL_PROVIDER=deterministic\n")
+    return out
 
 
 def shot(page: Page, name: str, full: bool = True):
@@ -39,10 +62,12 @@ def test_public_pages_and_language(page: Page, site):
         expect(page.locator("h1").first).to_be_visible()
         shot(page, "02-page" + path.replace("/", "-"))
     page.goto(base + "/resources")
-    expect(page.locator("text=dev-example")).to_be_visible()
+    expect(page.locator("[data-testid=resources-scenario-dev-reference]")).to_be_visible(timeout=15000)
+    expect(page.locator("[data-testid=resources-scenario-dev-fortnight]")).to_contain_text("dev-fortnight")
+    expect(page.locator("[data-testid='dl-dev-fortnight-tiles.csv']")).to_be_visible()
 
 
-def test_participant_journey(page: Page, site):
+def test_participant_journey(page: Page, site, tmp_path):
     base = site["base"]
     _register(page, base, "Ada Lovelace", "ada@e2e.org")
     shot(page, "10-dashboard")
@@ -57,26 +82,34 @@ def test_participant_journey(page: Page, site):
     page.goto(base + "/submit")
     page.select_option("[data-testid=submit-phase]", "practice")
     page.check("[data-testid=submit-kind-results]")
-    page.select_option("[data-testid=submit-scenario]", "dev-example")
-    page.set_input_files("[data-testid=submit-file]", str(KIT / "example" / "decisions.csv"))
-    page.fill("[data-testid=submit-title]", "reference trace")
+    page.select_option("[data-testid=submit-scenario]", "dev-fortnight")
+    expect(page.locator("[data-testid=submit-wallclock]")).to_contain_text("dev-fortnight")
+    page.set_input_files("[data-testid=submit-file]", str(results_fixture()))
+    page.fill("[data-testid=submit-title]", "minimal agent trace")
     page.click("[data-testid=submit-button]")
     expect(page).to_have_url(re.compile(r"/submissions/\d+"), timeout=20000)
     expect(page.locator("[data-testid=sub-status]")).to_contain_text(re.compile("queued|Queued|排队"), timeout=15000)
     assert run_worker_once() == 1
     expect(page.locator("[data-testid=sub-status]")).to_contain_text(re.compile("scored|Scored|已评分"), timeout=30000)
-    expect(page.locator("[data-testid=sub-score]")).to_contain_text("10377.47")
+    expect(page.locator("[data-testid=sub-score]")).to_have_text(SCORE_RE, timeout=15000)
+    expect(page.locator("[data-testid=evaluation-dev-fortnight] [data-testid=termination-pill]")).to_contain_text(re.compile("trace complete|轨迹回放完成"))
+    expect(page.locator("[data-testid=penalty-table]")).to_be_visible()
     shot(page, "12-submission-scored")
 
     page.goto(base + "/submit")
     page.select_option("[data-testid=submit-phase]", "practice")
     page.check("[data-testid=submit-kind-agent]")
-    page.set_input_files("[data-testid=submit-file]", str(KIT / "agent.py"))
+    expect(page.locator("[data-testid=agent-hints]")).to_contain_text("requirements.txt")
+    expect(page.locator("[data-testid=submit-wallclock]")).to_contain_text("dev-reference")
+    page.set_input_files("[data-testid=submit-file]", str(agent_package(tmp_path)))
     page.click("[data-testid=submit-button]")
     expect(page).to_have_url(re.compile(r"/submissions/\d+"), timeout=20000)
     assert run_worker_once() == 1
-    expect(page.locator("[data-testid=sub-status]")).to_contain_text(re.compile("scored|Scored|已评分"), timeout=60000)
-    expect(page.locator("text=dev-week")).to_be_visible()
+    expect(page.locator("[data-testid=sub-status]")).to_contain_text(re.compile("scored|Scored|已评分"), timeout=90000)
+    expect(page.locator("[data-testid=evaluation-dev-fortnight]")).to_be_visible()
+    expect(page.locator("[data-testid=evaluation-dev-reference]")).to_be_visible()
+    expect(page.locator("[data-testid=evaluation-dev-fortnight] [data-testid=termination-pill]")).to_contain_text(re.compile("survey complete|巡天完成"))
+    expect(page.locator("[data-testid=evaluation-dev-fortnight] [data-testid=agent-panel]")).to_contain_text("/ 1800 s")
     shot(page, "13-agent-submission")
 
     page.goto(base + "/leaderboard/practice")

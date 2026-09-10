@@ -1,176 +1,225 @@
 ## 1. Overview
 
-The platform evaluates observing agents for a DESI-style survey. A scenario is three files: `weather.csv` (900-second slots with seeing, transparency, sky brightness and an open/closed flag), `tiles.csv` (the pointing catalogue with programs, priorities, exposure times and target counts) and `score_config.json` (frozen constants). An agent turns a scenario into `decisions.csv`, and `scorer.py` turns `decisions.csv` into a score report.
+The platform evaluates observing agents for a DESI-style survey under the **challenge v3** contract (`challenge-score-v3`, `participant-agent-protocol-v1`). A scenario is a directory: six configuration files under `config/` and the reference data under `outputs/reference/` (a 900-second slot calendar over a real solar calendar, a tile and target catalogue with REQUIRED and FLEXIBLE tiles that are only available inside a time window, directional weather with hidden disruption events, uncertain daily-revised forecasts, and temporary observation requests). An agent turns a scenario into `decisions.csv`; the frozen scorer turns `decisions.csv` into a `score_report.json`.
 
 There are two ways to get a score:
 
-1. Run your agent yourself on a public scenario and upload `decisions.csv`.
-2. Upload your agent; the platform runs it on hidden scenarios through the observer-v1 step protocol and scores what it produced.
+1. **Results file.** Run your agent yourself on a scenario whose weather is public and upload `decisions.csv`. Only practice scenarios with public weather accept results files; the scorer needs the full weather truth.
+2. **Agent package.** Upload your agent as a `.zip`. The platform starts it once per scenario, streams the published snapshots to it through the JSON-Lines protocol, commits its actions against the hidden weather, and scores the committed trace. One global wall clock per scenario; no per-decision timeout.
 
-Both paths use the same `scorer.py`. The starter kit contains every file the platform uses.
+Both paths use the same `scoring_core.py`. The starter kit contains the workflow, the scorer, the minimal agent and the public scenario files.
 
-Sponsor API credits for local development are handed out as redeem codes: once your team is registered, open the dashboard and claim one code per provider from the API credits panel. Platform runs are offline, so the credits only matter while you develop locally.
+Sponsor API credits are handed out as redeem codes: once your team is registered, open the dashboard and claim one code per provider. Platform runs have network access, so an agent may call a model API at decision time; put the key into the `.env` file of your package.
 
 ## 2. Starter kit
 
-Download `agent-observer-starter-kit.zip` from the Resources page. Contents:
-
-| File | Purpose |
-|---|---|
-| `agent.py` | Baseline agent implementing the observer-v1 protocol. Replace `decide()`. |
-| `local_runner.py` | Runs an agent through the protocol and scores it locally. |
-| `protocol.py` | Builds the state the agent sees. Identical to the platform copy. |
-| `scorer.py`, `score_config.json` | The frozen scorer and constants. |
-| `generate_example_data.py` | Seeded generator for new weather/tile scenarios. |
-| `example/` | The published development scenario (seed 11): 2 nights × 12 slots, 72 tiles. |
-| `sac_submit.py` | Command-line submission using your API token. |
-| `SKILL.md` | Instructions an AI coding agent can follow end to end. |
-
-Run the baseline:
+Download `agent-observer-starter-kit.zip` from the Resources page. It contains the challenge modules (`contracts.py`, `observing_calendar.py`, `tile_geometry_simulator.py`, `weather_simulator.py`, `observation_request_simulator.py`, `challenge_workflow.py`, `scoring_core.py`, `scoring_preview.py`, `run_challenge.py`, `score_decisions.py`), the `participant_agent/` package (`minimal_agent.py`, `decision_graph.py`, `model_factory.py`, `protocol.py`, `state.py`, `requirements.txt`, `.env.example`), `sac_submit.py`, `SKILL.md` and `README.md`. Exact commands are printed in `SKILL.md`; the outline is:
 
 ```
-python3 local_runner.py --agent agent.py --weather example/weather.csv --tiles example/tiles.csv --config score_config.json --out run_output
+python3 -B run_challenge.py --root scenarios/dev-fortnight \
+    --agent-command python3 -B participant_agent/minimal_agent.py --output-dir run_output
+python3 -B score_decisions.py --root scenarios/dev-fortnight run_output/decisions.csv \
+    --output run_output/score_report.json
 ```
 
-The last line prints the score. `run_output/decisions.csv` is what you would upload as a results file; `run_output/score_report.json` is the same report the platform produces.
-
-Generate a different scenario to avoid tuning to one weather sequence:
-
-```
-python3 generate_example_data.py --seed 7 --n-nights 5 --slots-per-night 20 --n-tiles 150 --output-dir scenario7
-```
+`run_output/decisions.csv` is what you upload as a results file; `run_output/score_report.json` is the report the platform produces (identical when the scenario's weather and events are public). The minimal agent runs without any package or key (`MODEL_PROVIDER=deterministic`) and completes a 180-night scenario in a few seconds of wall time.
 
 ## 3. Data formats
 
-Conventions: UTF-8, comma-separated, header required, unknown extra columns allowed. Timestamps are RFC 3339 in UTC (`2026-10-02T02:00:00Z`). Booleans accept `true/false` or `1/0`. IDs are strings and must be unique within their table. The spellings `transparency` and `program` are canonical.
+Conventions: UTF-8 (a BOM is tolerated), comma-separated, the header must contain exactly the listed columns in this order. Timestamps are `YYYY-MM-DDTHH:MM:SSZ` (UTC). Intervals are half-open `[start, end)`. Booleans are lowercase `true` / `false`. Identifiers: nights `N20260907`, slots `N20260907-S001`, tiles `T00001`, regions `R00`–`R07`, requests `RQ0001`, targets `TG00000001`.
 
-### weather.csv
+### Scenario directory
 
-```
-slot_id,night_id,timestamp_utc,duration_seconds,seeing_arcsec,transparency,sky_brightness,is_observable
-```
-
-Rows are chronological. Slots within one night are contiguous and last `slot_seconds` (900). A gap is allowed only between different `night_id` values. `is_observable=false` means the dome is closed: exposures taken then score zero and count as waste.
+| Path | Contents | Visibility |
+|---|---|---|
+| `config/scenario_config.json` | scenario id, seed, `competition.global_wallclock_seconds` | public |
+| `config/calendar_config.json` | site (latitude 31.9634°, longitude −111.599°, UTC−7, sun altitude limit −12°), survey start, days, `slot_seconds` 900 | public |
+| `config/tile_config.json` | catalogue layout (8 regions × 8 tiles, 2 REQUIRED per region, one of them available for 14 days only), altitude limit 30°, lunar model, target classes | public |
+| `config/weather_config.json` | quality processes, closure model, forecast horizon and error model, event catalogue, `score_interface` | public |
+| `config/request_config.json` | request cadence, deadline classes, reward 140 and miss penalty 190 per required tile | public |
+| `config/workflow_config.json` | `global_wallclock_seconds`, weekly horizon 7 days, no per-decision timeout | public |
+| `config/score_config.json` | thresholds, program bonus, penalties, FLEXIBLE quota | public |
+| `outputs/reference/night_calendar.csv`, `slots.csv` | the shared time axis (37–47 slots per night) | public |
+| `outputs/reference/tiles.csv`, `targets.csv`, `tile_windows.csv` | catalogue, per-target science weights, sample visibility windows | public |
+| `outputs/reference/observation_requests.csv`, `observation_request_tiles.csv` | pre-generated requests and their tiles | public |
+| `outputs/reference/weather.csv` | site baseline weather per slot | public on practice scenarios only |
+| `outputs/reference/weather_forecasts.csv` | uncertain, daily-revised forecasts | per scenario flag |
+| `outputs/reference/weather_events.csv` | directional disruption events (the truth behind `active_event_ids`) | hidden on competition scenarios |
+| `outputs/reference/scenario_manifest.json`, `*_metadata.json` | row counts and SHA-256 of every file | public |
 
 ### tiles.csv
 
 ```
-tile_id,ra_deg,dec_deg,program,region,priority,nominal_exptime_seconds,n_lrg,n_elg,n_qso,n_bgs
+tile_id,ra_deg,dec_deg,nominal_exptime_seconds,region_id,scheduling_class,available_from_utc,available_until_utc,n_lrg,n_elg,n_qso,n_bgs
 ```
 
-`program` is `DARK`, `BRIGHT` or `BACKUP`. `region = floor(ra_deg / 45)` (0–7) is a bookkeeping bin used for the completion and uniformity reports. `priority` is in [0, 10]. `nominal_exptime_seconds` is the uninterrupted time needed to complete the tile once.
+`scheduling_class` is `REQUIRED` or `FLEXIBLE`. A tile can only be observed inside `[available_from_utc, available_until_utc)`. There is no fixed program per tile: the agent chooses `DARK`, `BRIGHT` or `BACKUP` at decision time and is rewarded when the choice matches the quality band of the exposure. Exposure times are 450, 600, 900, 1200 or 1350 seconds.
+
+### targets.csv
+
+```
+target_id,tile_id,target_class,feature_flux,redshift,science_weight
+```
+
+The value of a tile is `V_tile = Σ science_weight` over its targets (LRG 1.0, ELG 1.0, QSO 1.7, BGS 0.45 by default). The platform publishes it as `tile_science_value` in the initial message.
+
+### weather.csv
+
+```
+slot_id,night_id,timestamp_utc,duration_seconds,is_observable,seeing_arcsec,transparency,sky_quality,instrument_efficiency
+```
+
+When `is_observable=false` the four quality fields are empty: the dome is closed, the slot still exists and consumes time. `sky_quality` is a linear quality (higher is better). This file is the site baseline; the conditions a tile actually sees also depend on directional events (`weather_events.csv`), which the platform applies for you and reports as `effective_weather` per candidate tile.
+
+### weather_forecasts.csv and weather_events.csv
+
+Forecasts carry an issue time, a predicted event window, a probability and a spatial scope; they are revised daily and can miss or invent events (12 % miss rate, 6 false positives per scenario by default). The platform only ever shows the revisions that were issued at or before the current cursor. Events have a scope (`ALL`, `REGION_SET`, `SKY_CAP_ICRS`, `HORIZON_SECTOR`, `TILE_SET`), a condition (`rainy`, `cloudy`, `smoggy`, `rocket_launch`, `cold_wave`, `tornado`) and multipliers; some force a closure for the tiles they cover.
+
+### observation_requests.csv and observation_request_tiles.csv
+
+```
+request_id,issued_at_utc,available_from_utc,deadline_utc,deadline_class,completion_mode,required_tile_count,reward,miss_penalty,reason
+request_id,tile_id,required_visits
+```
+
+A request appears in the snapshots once issued and disappears at its deadline. Tag an observation with the `request_id` to count it towards the request; a request-tagged revisit of a tile you already completed counts for the request but earns no ordinary science credit. `ALL` requests need every listed tile, `AT_LEAST_N` requests need `required_tile_count` of them.
 
 ### decisions.csv
 
 ```
-decision_id,slot_id,action,tile_id,program,reason
+decision_id,slot_id,action,tile_id,program,request_id,reason
 ```
 
-1. Rows are evaluated in file order. `decision_id` must be unique and strictly increasing.
-2. `slot_id` is the slot in which the action starts. Several rows may use the same slot; `decision_id` orders them. Slot order must be non-decreasing.
-3. `observe` uses the tile's whole `nominal_exptime_seconds` and may run into following slots of the same night. When it finishes inside a slot, another decision with that same `slot_id` may use the remaining time. Time not used by any decision is idle.
-4. `wait` consumes the remainder of the current slot. For `wait`, `tile_id` and `program` are empty. For `observe`, both are required and `program` must equal the tile's program.
-5. An exposure that cannot finish before its night ends is invalid: zero score, the time until the night ends is waste. A completed tile cannot be observed again.
-6. A malformed table is rejected as an invalid submission. Operationally invalid actions are listed in the report and consume time without scoring.
+1. `decision_id` is any non-empty unique string (the platform generates `D000001`, `D000002`, …).
+2. `action` is `observe` or `wait`. `wait` rows leave `tile_id`, `program` and `request_id` empty and consume the rest of the current slot. `observe` rows need a `tile_id` and a `program` in `DARK`, `BRIGHT`, `BACKUP`; `request_id` is optional.
+3. `slot_id` is the slot in which the action starts. An exposure runs from the cursor for the tile's `nominal_exptime_seconds`, may cross slot boundaries and is scored per segment. A short exposure can be followed by another action in the same `slot_id`.
+4. A slot later than the cursor inserts implicit waits; a slot earlier than the cursor is a `stale_decision` (penalised, no time consumed); an unknown slot is `unknown_slot`.
+5. A malformed table (wrong header, unknown action, `wait` with a tile, `observe` without tile or program, duplicate `decision_id`) is rejected as an invalid submission. Everything else is scored, never rejected.
 
-### score_report.json
+### score_report.json (`score-report-v3`)
 
-Top-level fields: `score`, `science_score`, `waste_penalty`, `total_waste_seconds`, `waste_breakdown_seconds` (idle, invalid_actions, unproductive_exposure), `unavailable_unpenalized_seconds`, `completed_tiles`, `invalid_actions`, `region_completion` and one `actions` entry per decision with `valid`, `message`, `start_timestamp_utc`, `elapsed_seconds`, `segments`, `unproductive_seconds`, `science_score`.
+`score{total, base_science, program_bonus, request_reward, penalties{unsafe_observation, invalid_action, avoidable_wait, required_miss, flexible_shortfall, request_miss}}`, `completion{completed_tiles[], required_missing[], flexible_by_region{}, flexible_shortfall{}}`, `requests[{request_id, status, satisfied_tile_count, required_tile_count, feasible_tile_count, reward, penalty}]`, `wait_seconds{explicit, implicit, invalid, avoidable, unavailable}`, `actions[]` with one entry per decision (`outcome`, `start_utc`, `elapsed_seconds`, `base_science_score`, `program_bonus_score`, `penalty`, `segments[]` with airmass, active events, atmospheric and lunar quality, quality band and program match), `termination_reason`, `final_cursor`, `parameters` and `input_sha256`.
 
-## 4. Observer protocol (observer-v1)
+Action outcomes: `completed`, `wait`, `weather_interrupted`, `geometry_or_night_interrupted`, `unsafe_observation`, `invalid_observe`, `invalid_request_tag`, `duplicate_tile`, `outside_tile_window`, `unknown_slot`, `stale_decision`.
 
-The platform starts your entry script as `python3 -I -B agent.py` and communicates over standard input/output with one JSON object per line. Standard error is captured into a log you can download from the submission page. Print nothing else to standard output.
+## 4. Participant protocol (participant-agent-protocol-v1)
 
-### Messages you receive
+The platform starts your entry script once per scenario (`minimal_agent.py`, `agent.py` or `main.py`, whichever exists first, at the root of the package or in its single top-level folder) and keeps the process alive for the whole run. Messages are one JSON object per line on standard input and output; print nothing else to standard output. Standard error is captured into `agent.log`, which you can download from the submission page. Every message carries `protocol_version`, `message_type` and (except `initialize`) `decision_sequence`.
 
-1. `{"type": "init", "protocol": "observer-v1", "config": {...}, "site": {...}, "slot_seconds": 900, "n_tiles": N, "tiles": [...], "scenario": {...}, "limits": {...}}` once. `tiles` is the full catalogue (`tile_id, ra_deg, dec_deg, program, region, priority, nominal_exptime_seconds, n_lrg, n_elg, n_qso, n_bgs`).
-2. `{"type": "step", ...}` once per decision point, with:
-   - `now`: `slot_id`, `night_id`, `slot_index`, `timestamp_utc`, `slot_elapsed_seconds`, `slot_remaining_seconds`, `night_remaining_seconds`, `slots_remaining_in_night`, `slots_remaining_total`.
-   - `weather`: `seeing_arcsec`, `transparency`, `sky_brightness`, `is_observable`, `zenith_quality` (A at airmass 1), `zenith_program`.
-   - `forecast`: the next four slots (`slot_id`, `night_id`, `timestamp_utc`, `seeing_arcsec`, `transparency`, `sky_brightness`, `is_observable`).
-   - `progress`: `completed_tiles`, `total_tiles`, `science_score`, `waste_seconds`, `idle_seconds`, `invalid_seconds`, `unproductive_exposure_seconds`, `invalid_actions`, `region_completion`, `completed_tile_ids`.
-   - `available_tiles`: tiles that are not completed, fit in the remaining night, and are above 30° altitude at the midpoint of the first exposure segment. Each carries the catalogue fields plus `altitude_deg`, `airmass`, `quality` (A for this tile now), `condition_program`, `program_match`, `target_value`, `expected_gain` (score if the whole exposure were taken under the current slot's weather at the current airmass) and `expected_gain_per_second`. Sorted by `expected_gain`, descending.
-   - `last_action`: the outcome of your previous answer (`valid`, `message`, `science_score`, `elapsed_seconds`), or `null`.
-3. `{"type": "end", "summary": {...}}` once after the last slot. You may exit.
+### `initialize` (platform → agent, once, no reply)
 
-### Messages you send
+Payload `initial-publication-v2`: `calendar` (first and last night, night and slot counts, slot duration), `site`, `tile_catalog` (every tile with its public columns plus `tile_science_value`, `required_tile_ids`, `region_ids`), `target_catalog` (all targets), `scoring_contract` (the full `score_config.json`, the weather score interface and the lunar model) and `global_wallclock_seconds`. About 2 MB for the reference catalogue. You have 30 seconds to start and read it; the global wall clock starts after it has been sent.
 
-Exactly one line per `step`:
+### `decision_request` (platform → agent, once per decision)
+
+Payload `decision-snapshot-v2`:
+
+- `cursor`: `slot_id`, `night_id`, `timestamp_utc`, `slot_offset_seconds`.
+- `current_site_weather`: the current slot's baseline conditions (`is_observable`, `seeing_arcsec`, `transparency`, `sky_quality`, `instrument_efficiency`, `active_event_ids`).
+- `candidate_tiles`: tiles that are not completed, inside their availability window, above 30° now and whose tonight window contains the cursor. Each carries `scheduling_class`, `nominal_exptime_seconds`, `tile_science_value`, `window_start_utc` / `window_end_utc`, `geometry` (altitude, azimuth, hour angle, airmass, moon separation, `lunar_quality_factor`) and `effective_weather` (site weather after directional events for this tile). A candidate may still be unable to finish before its window ends; `scoring_preview.py` filters those.
+- `active_requests`: issued, unexpired requests with their tile requirements and completed visits.
+- `night_start`: on the first slot of each night, the night row and tonight's tile windows; otherwise `null`.
+- `weekly`: on the first slot of every seventh night, the forecasts as issued so far, the tile windows for the next seven days and the requests; otherwise `null`.
+- `progress`: `completed_tile_ids`, `flexible_completed_by_region`.
+
+There is no future weather in any message. Reading a snapshot never advances time; only a committed action does.
+
+### `decision_response` (agent → platform)
 
 ```
-{"action": "observe", "tile_id": "200069", "program": "DARK", "reason": "highest expected gain"}
-{"action": "wait", "reason": "dome closed"}
+{"protocol_version": "participant-agent-protocol-v1", "message_type": "decision_response", "decision_sequence": 12,
+ "action": "observe", "tile_id": "T00037", "program": "DARK", "request_id": "", "reason": "highest preview estimate", "decision_source": "deterministic"}
+{"protocol_version": "participant-agent-protocol-v1", "message_type": "decision_response", "decision_sequence": 13,
+ "action": "wait", "tile_id": "", "program": "", "request_id": "", "reason": "no completable candidate", "decision_source": "deterministic"}
 ```
 
-`plan` is accepted as an alias of `program`. If `program` is omitted for `observe`, the tile's own program is used. `reason` is free text up to 500 characters and is stored in `decisions.csv`.
+`decision_sequence` must match the request. `action` must be `observe` or `wait`; anything else, a malformed line or an exited process ends the run with `termination_reason = agent_error` and the actions committed so far are scored. Unknown tiles, wrong programs or bad request tags are not rejected: the scorer commits them as penalised invalid actions and time moves on.
 
-You may choose a tile that is not in `available_tiles`; the scorer then applies its normal rules (below-altitude segments are unproductive, night overrun is invalid). `available_tiles` is a convenience, not a restriction.
+### Time accounting
 
-### Time and step accounting
+One global wall clock per scenario (`global_wallclock_seconds`, shown on the Resources and Submit pages: 7200 s for the reference scenario, less for short ones). It runs from the end of the initial publication until the survey is complete or the clock expires, and it includes snapshot serialisation, your think time and parsing. There is no per-decision limit. A response that arrives at or after the cutoff is discarded (`ignored_in_flight_response`), the process is terminated and the committed actions are scored with the terminal penalties applied; the report says `global_wallclock_expired`. Unprocessed future time is not turned into avoidable waits.
 
-Every answer consumes time: an `observe` consumes the tile's exposure time (or the rest of the night if it cannot finish); a `wait` consumes the rest of the current slot. The run ends when the weather horizon is reached. A scenario of 168 slots therefore needs at most a few hundred steps.
+## 5. Scoring (challenge-score-v3)
 
-## 5. Platform run limits
+For every completed exposure, each segment (split at slot boundaries, evaluated at its midpoint) contributes
 
-| Limit | Value |
+```
+A_atm      = min(instrument_efficiency · transparency · sky_quality / (seeing_arcsec · airmass), 3.0)
+combined   = A_atm · lunar_quality_factor
+band       = DARK if combined ≥ 0.65, BRIGHT if combined ≥ 0.40, else BACKUP
+base       = V_tile · (segment_seconds / nominal_exptime_seconds) · combined
+bonus      = base · {DARK: 0.25, BRIGHT: 0.15, BACKUP: 0.08}[program]   if program == band, else 0
+```
+
+`total = base_science + program_bonus + request_reward − unsafe_observation − invalid_action − avoidable_wait − required_miss − flexible_shortfall − request_miss`, with the constants of `config/score_config.json`:
+
+| Term | Rule | Amount |
+|---|---|---|
+| `unsafe_observation` | `observe` while `is_observable=false` at the start; the rest of the slot is consumed | 2000 per action |
+| `invalid_action` | unknown tile, program or slot, duplicate tile, outside the availability window, bad request tag, exposure that cannot finish before the tile sets or the night ends, stale decision | 100 per action |
+| `avoidable_wait` | seconds spent waiting while some uncompleted tile could have been completed | 0.001 per second (≈ 0.9 per empty slot) |
+| `required_miss` | REQUIRED tile not completed at the end of the run | 1000 per tile |
+| `flexible_shortfall` | fewer than 4 FLEXIBLE tiles completed in a region | 100 per missing tile |
+| `request_miss` | request expired with fewer visits than required, unless no feasible opportunity existed (`excused_unobservable`) | `miss_penalty` per required tile (190) |
+| `request_reward` | request completed before its deadline | `reward` per required tile (140) |
+
+Only completed exposures score. An exposure whose later segment meets closed weather is `weather_interrupted` (no science, no penalty); one that runs into the tile setting below 30° or the end of the night is `geometry_or_night_interrupted` (no science, invalid-action penalty). A tile scores once; the lunar factor lowers `combined` continuously when the moon is up and can change the matching program. Terminal penalties (`required_miss`, `flexible_shortfall`, `request_miss`) are applied even to runs cut short by the wall clock or an agent error.
+
+`scoring_preview.py` estimates the marginal value of each candidate from the current snapshot only (no future weather); it is the same code the minimal agent uses and never replaces the official replay.
+
+## 6. Platform runs and limits
+
+| Item | Value |
 |---|---|
-| Interpreter | Python 3.12, `-I -B`, standard library only |
-| Network | none |
-| Per decision | 20 s |
-| Per scenario | 600 s wall time |
-| Memory | 1 GB |
-| Files written | 64 MB total, inside the run directory (`$OBSERVER_SCRATCH`) |
-| Processes | 64 |
-| Package | `.py` or `.zip` ≤ 20 MB, ≤ 2,000 files, ≤ 50 MB uncompressed |
+| Interpreter | Python 3.12, `python -B <entry>`, `cwd` = your package directory |
+| Entry script | `minimal_agent.py`, `agent.py` or `main.py` at the package root (or in its single top-level folder) |
+| Dependencies | optional `requirements.txt`, installed with pip into a per-run virtual environment before the clock starts (15 minutes maximum) |
+| Secrets | optional `.env` (`KEY=VALUE` lines) loaded into the agent's environment only; never logged or uploaded |
+| Network | allowed (model APIs); an egress proxy may be configured by the organizers |
+| Initialization | 30 s to start and read `initialize`; failure is `agent_initialization_error` |
+| Wall clock | the scenario's `global_wallclock_seconds`; no per-decision limit |
+| Memory / CPU | 1 GB, one CPU, 128 processes, 256 MB of written files under the package's `scratch/` directory |
+| Package | `.zip` (a bare `.py` is accepted when it needs nothing else) ≤ 20 MB, ≤ 2,000 files, ≤ 50 MB uncompressed, no symlinks |
 
-Environment variables available to the agent: `OBSERVER_PROTOCOL=observer-v1`, `OBSERVER_SCRATCH` (writable directory), `HOME` and `TMPDIR` (same directory).
+Environment variables available to the agent: `PARTICIPANT_PROTOCOL=participant-agent-protocol-v1`, `SAC_SCENARIO` (slug), `SAC_WALLCLOCK_SECONDS`, `HOME` and `TMPDIR` (the scratch directory), plus everything from your `.env`. The scenario directory is never mounted into the agent's sandbox; the only weather you see is what the snapshots publish.
 
-## 6. Submitting
+## 7. Submitting
 
 ### From the website
 
-Dashboard → Submit. Choose the phase, the submission type, the scenario (results files only), and the file. The page shows how many submissions your team has left today. Each submission gets a page with the score, the per-scenario report, the action timeline, region completion, the generated `decisions.csv` and the agent log.
+Dashboard → Submit. Choose the phase, the submission type, the scenario (results files only, public-weather scenarios only) and the file. The page shows the scenario's global wall clock and how many submissions your team has left today. Each submission gets a page with the score breakdown, completion, requests, wait seconds, the termination reason, the agent-run panel (committed actions, wall clock used, `agent.log`, `workflow_result.json`), the interactive decision replay, the observed-sky map, the action timeline and the downloadable `score_report.json` / `decisions.csv`.
 
 ### From the command line
 
-Your API token is on the Profile page.
-
 ```
-python3 sac_submit.py --base https://<host> --token <token> --phase practice --kind results --scenario dev-example --file run_output/decisions.csv
-python3 sac_submit.py --base https://<host> --token <token> --phase online --kind agent --file agent.py --wait
+python3 sac_submit.py --phase practice --kind results --scenario dev-fortnight --file run_output/decisions.csv --wait
+python3 sac_submit.py --phase online --kind agent --file my_agent.zip --wait
 ```
 
-`--wait` polls until the evaluation finishes and prints the score.
+`sac_submit.py` reads `SAC_URL`, `SAC_KEY`, `SAC_EMAIL` and `SAC_PASSWORD` (see the Resources page) and `--wait` polls until the evaluation finishes.
 
-### JSON API
+## 8. Practice versus online
 
-All endpoints return JSON. Authenticate with `Authorization: Bearer <token>`.
-
-| Method | Path | Purpose |
+| | Practice | Online competition |
 |---|---|---|
-| GET | `/api/health` | liveness |
-| GET | `/api/phases` | phases, windows, scenarios |
-| GET | `/api/leaderboard?phase=<slug>&limit=<n>` | standings (`entries`: rank, team_name, total_score, science_score, completion_rate, uniformity_score, submission_count) |
-| GET | `/api/announcements` | published announcements |
-| GET | `/api/me` | your account and team |
-| GET | `/api/submissions` | your team's submissions |
-| POST | `/api/submissions` | multipart form: `phase`, `kind`, `scenario` (results only), `file`, optional `title`, `notes` |
-| GET | `/api/submissions/<id>` | status, score, per-scenario evaluations |
-| GET | `/api/submissions/<id>/evaluations/<eid>/{report,decisions,log}` | artifacts |
+| Scenarios | `dev-reference` (180 nights, the published example) and `dev-fortnight` (14 nights); weather, forecasts and events public | `eval-a`, `eval-b` (30 nights each); weather, forecasts and events hidden |
+| Submissions | results files or agent packages, 50 per team per day | agent packages only, 10 per team per day |
+| Score | informational board | mean over the two scenarios; decides the awards |
 
-Interactive documentation: `/api/docs`.
+Because the practice scenarios publish `weather_events.csv`, a local `score_decisions.py` run reproduces the platform report exactly. On the competition scenarios only the platform can score, and only through the protocol.
 
-## 7. Strategy notes
+## 9. Strategy notes
 
-1. `expected_gain` assumes the current slot's weather for the whole exposure. Long exposures late in a night may cross into worse sky brightness; check `forecast`.
-2. `program_match` matters: the bonus is 25% for DARK, 15% for BRIGHT, 5% for BACKUP, and a mismatch pays nothing extra. A DARK tile observed under BRIGHT conditions still scores by A, only without the bonus.
-3. Waiting costs 0.02 per idle second (18 points per empty slot). Observing a low-value tile is often better than waiting, unless a much better tile becomes visible within the forecast.
-4. Exposures that would overrun the night are invalid and waste the remaining night. `available_tiles` already excludes them.
-5. Altitude changes during long exposures. A tile rising at 31° is safer than one setting at 31°.
+1. REQUIRED tiles cost 1000 each when missed and half of them are available for only 14 days: schedule them first.
+2. Four FLEXIBLE tiles per region avoid the 100-per-tile shortfall; spreading exposures across regions matters more than squeezing one region.
+3. The program bonus is worth 25 % / 15 % / 8 % of the base; use `combined_quality` from the preview to pick the band, remembering that a long exposure can drift into a different band as the moon rises or the airmass grows.
+4. Waiting is cheap (0.9 per slot) compared with a 2000-point unsafe exposure: never observe into `is_observable=false`, and prefer tiles whose `effective_weather` is open when directional events are active.
+5. Requests pay 140 per required tile and cost 190 when missed: check `active_requests` on every snapshot and tag the observation with the `request_id`.
+6. The wall clock is global. A model call per decision is affordable for a few hundred decisions, not for the ~8,000 decisions of a 180-night scenario; let deterministic code answer the obvious waits.
 
-## 8. Local verification checklist
+## 10. Local verification checklist
 
-1. `python3 local_runner.py ...` finishes without warnings and prints a score.
-2. `run_output/decisions.csv` re-scores to the same number with `python3 scorer.py --weather ... --tiles ... --decisions run_output/decisions.csv --config score_config.json`.
-3. The agent uses no third-party imports and does not read files outside its directory.
-4. A decision never takes longer than a few seconds.
+1. `run_challenge.py` finishes with `termination_reason = survey_complete` on `dev-fortnight`.
+2. `score_decisions.py` on the produced `decisions.csv` prints the same `score.total` as the run.
+3. The package unzips to an entry script at its root, `requirements.txt` installs into a fresh virtual environment, `.env` holds only the keys the agent needs.
+4. The agent writes only to `scratch/` and prints only protocol lines to standard output.

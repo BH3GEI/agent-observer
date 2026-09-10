@@ -25,7 +25,7 @@ const cards = computed(() => t('home.mission.cards') as Card[])
             <div class="text-[clamp(3rem,6.5vw,6.75rem)] font-semibold leading-[1.02] tracking-[-.055em] text-[#f5f5f5]">900</div>
             <div class="mt-7 flex justify-between font-mono text-xs uppercase tracking-[.1em] text-[#315efb]">
               <span>{{ pick('seconds', '秒') }}</span>
-              <span>{{ pick('one decision', '一次决策') }}</span>
+              <span>{{ pick('per slot · one global clock', '每时隙 · 一个全局时钟') }}</span>
             </div>
           </div>
         </div>

@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '../composables/useI18n'
 import { supabase } from '../lib/supabase'
 import { describeError } from '../lib/errors'
-import { loadPhases, type Phase } from '../lib/data'
+import { loadPhases, type Phase, type Scenario } from '../lib/data'
 import { sha256Hex, randomToken } from '../lib/storage'
 import { fmtUtc } from '../lib/format'
 import { useAuth } from '../stores/auth'
@@ -30,17 +30,22 @@ const file = ref<File | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 type Item = { title: string; desc: string }
 const help = computed(() => t('home.submission.items') as Item[])
+const agentHints = computed(() => t('submit.agent_hints') as string[])
 
 const selectable = computed(() => phases.value.filter(p => isAdmin.value || p.status === 'open'))
 const phase = computed(() => phases.value.find(p => p.slug === form.value.phase) ?? null)
-const scenarios = computed(() => (phase.value?.scenarios ?? []).filter(s => s.is_active && (s.weather_public || isAdmin.value)))
-const accept = computed(() => form.value.kind === 'results' ? '.csv' : '.py,.zip')
+/** Results files can only be scored against scenarios whose weather is public (the scorer needs the full weather truth). */
+const resultScenarios = computed(() => (phase.value?.scenarios ?? []).filter(s => s.is_active && (s.weather_public || isAdmin.value)))
+const agentScenarios = computed(() => (phase.value?.scenarios ?? []).filter(s => s.is_active))
+const selectedScenario = computed<Scenario | null>(() => resultScenarios.value.find(s => s.slug === form.value.scenario) ?? null)
+const accept = computed(() => form.value.kind === 'results' ? '.csv' : '.zip,.py')
+const fmtClock = (s: number | null | undefined) => s == null ? '—' : s >= 3600 ? `${(s / 3600).toFixed(s % 3600 ? 1 : 0)} h` : `${Math.round(s / 60)} min`
 
 watch(phase, p => {
   if (!p) return
   if (!p.allow_results && p.allow_agents) form.value.kind = 'agent'
   if (!p.allow_agents && p.allow_results) form.value.kind = 'results'
-  if (!scenarios.value.some(s => s.slug === form.value.scenario)) form.value.scenario = scenarios.value[0]?.slug ?? ''
+  if (!resultScenarios.value.some(s => s.slug === form.value.scenario)) form.value.scenario = resultScenarios.value[0]?.slug ?? ''
 }, { immediate: true })
 watch(() => form.value.kind, () => { file.value = null; if (fileInput.value) fileInput.value.value = '' })
 
@@ -135,13 +140,33 @@ onMounted(async () => {
           <label class="field"><span>{{ t('submit.scenario') }}</span>
             <select data-testid="submit-scenario" v-model="form.scenario" :disabled="form.kind !== 'results'">
               <option v-if="form.kind !== 'results'" value="">{{ t('submit.all_scenarios') }}</option>
-              <option v-for="s in scenarios" :key="s.id" :value="s.slug">{{ s.slug }} · {{ s.name }}</option>
+              <option v-for="s in resultScenarios" :key="s.id" :value="s.slug">{{ s.slug }} · {{ s.name }} · {{ s.n_nights }} {{ t('resources.nights') }}</option>
             </select>
-            <div v-if="form.kind === 'results' && !scenarios.length" class="help">{{ t('submit.no_scenario') }}</div>
+            <div v-if="form.kind === 'results' && !resultScenarios.length" class="help">{{ t('submit.no_scenario') }}</div>
+            <div v-else-if="form.kind === 'results'" class="help">{{ t('submit.results_public_only') }}</div>
           </label>
-          <label class="field"><span>{{ t('submit.file') }}</span>
+          <!-- scenario facts: global wall clock, visibility -->
+          <div class="scenario-facts" data-testid="submit-wallclock">
+            <template v-if="form.kind === 'results' && selectedScenario">
+              <span class="pill">{{ selectedScenario.slug }}</span>
+              <span class="pill">{{ selectedScenario.n_nights ?? '?' }} {{ t('resources.nights') }} · {{ selectedScenario.n_slots ?? '?' }} {{ t('resources.slots') }} · {{ selectedScenario.n_tiles ?? '?' }} {{ t('resources.tiles_n') }}</span>
+              <span class="pill accent">{{ t('submit.wallclock') }} {{ fmtClock(selectedScenario.global_wallclock_seconds) }}</span>
+              <span class="help w-full">{{ t('submit.wallclock_results_note') }}</span>
+            </template>
+            <template v-else-if="form.kind === 'agent' && agentScenarios.length">
+              <div v-for="s in agentScenarios" :key="s.id" class="flex flex-wrap items-center gap-2">
+                <span class="pill">{{ s.slug }}</span>
+                <span class="pill">{{ s.n_nights ?? '?' }} {{ t('resources.nights') }} · {{ s.n_slots ?? '?' }} {{ t('resources.slots') }}</span>
+                <span class="pill accent">{{ t('submit.wallclock') }} {{ fmtClock(s.global_wallclock_seconds) }}</span>
+                <span class="pill" :class="s.weather_public ? 'ok' : 'closed'">{{ s.weather_public ? t('submit.weather_public') : t('submit.weather_hidden') }}</span>
+              </div>
+              <span class="help w-full">{{ t('submit.wallclock_note') }}</span>
+            </template>
+          </div>
+          <label class="field mt-5"><span>{{ t('submit.file') }}</span>
             <input ref="fileInput" data-testid="submit-file" type="file" :accept="accept" @change="onFile">
             <div class="help">{{ form.kind === 'results' ? t('submit.file_results') : t('submit.file_agent') }}</div>
+            <ul v-if="form.kind === 'agent'" class="help list-disc pl-5" data-testid="agent-hints"><li v-for="h in agentHints" :key="h">{{ h }}</li></ul>
           </label>
           <label class="field"><span>{{ t('submit.title_field') }}</span><input data-testid="submit-title" v-model="form.title" type="text" maxlength="160"></label>
           <label class="field"><span>{{ t('submit.notes') }}</span><textarea v-model="form.notes" maxlength="2000"></textarea></label>
@@ -158,3 +183,8 @@ onMounted(async () => {
     </div>
   </DashShell>
 </template>
+
+<style scoped>
+.scenario-facts { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: -.5rem; }
+.scenario-facts .help { margin-top: 0; }
+</style>

@@ -7,7 +7,7 @@ from pathlib import Path
 from playwright.sync_api import Page, expect
 
 from conftest import run_worker_once
-from test_site import _register, KIT
+from test_site import _register, results_fixture
 
 ROOT = Path(__file__).resolve().parents[2]
 SHOTS_V2 = ROOT / "artifacts" / "screenshots-web-v2"
@@ -23,10 +23,10 @@ def test_hero_console_and_meta(page: Page, site):
     page.goto(base + "/")
     expect(page.locator("h1").first).to_contain_text(re.compile("巡天智能体|Agent Observer"))
     expect(page.locator("[data-testid=sky-console] canvas")).to_be_visible()
-    expect(page.locator("[data-testid=sky-slot]")).to_contain_text(re.compile(r"N0\d-S\d{3}"), timeout=5000)
+    expect(page.locator("[data-testid=sky-slot]")).to_contain_text(re.compile(r"N\d{8}-S\d{3}"), timeout=5000)
     expect(page.locator("[data-testid=phase-strip]")).to_be_visible()
     expect(page.locator("[data-testid=phase-pill]")).to_be_visible()
-    expect(page.locator("[data-testid=slot-ticker]")).to_contain_text(re.compile(r"N0\d-S\d{3}"))
+    expect(page.locator("[data-testid=slot-ticker]")).to_contain_text(re.compile(r"N\d{8}-S\d{3}"))
     assert page.locator("video").count() == 0
     assert page.evaluate("Array.from(document.querySelectorAll('canvas')).some(c => c.width > 0)")
     # the canvas is actually being drawn on (not blank)
@@ -40,12 +40,14 @@ def test_hero_console_and_meta(page: Page, site):
     assert page.title().endswith("GOSIM Hackathon") or page.title().endswith("GOSIM 黑客松")
     page.goto(base + "/docs")
     expect(page.locator("[data-testid=protocol-explorer]")).to_be_visible()
-    page.click("[data-testid=protocol-tab-step]")
-    expect(page.locator("[data-testid=protocol-explorer] pre")).to_contain_text('"type": "step"')
-    assert re.search(r"(Docs\W+Agent Observer|文档\W+巡天智能体)", page.title()), page.title()
+    page.click("[data-testid=protocol-tab-decision_request]")
+    expect(page.locator("[data-testid=protocol-explorer] pre")).to_contain_text('"message_type": "decision_request"')
+    page.click("[data-testid=protocol-tab-decision_response]")
+    expect(page.locator("[data-testid=protocol-explorer] pre")).to_contain_text('"action": "wait"')
+    expect(page).to_have_title(re.compile(r"(Docs\W+Agent Observer|文档\W+巡天智能体)"), timeout=10000)
     shot(page, "04-docs-protocol")
     page.goto(base + "/leaderboard")
-    assert re.search(r"(Leaderboard\W+Agent Observer|排行榜\W+巡天智能体)", page.title()), page.title()
+    expect(page).to_have_title(re.compile(r"(Leaderboard\W+Agent Observer|排行榜\W+巡天智能体)"), timeout=10000)
 
 
 def test_mobile_hero_canvas(page: Page, site):
@@ -71,16 +73,16 @@ def test_observed_map_and_score_bars(page: Page, site):
     page.goto(base + "/submit")
     page.select_option("[data-testid=submit-phase]", "practice")
     page.check("[data-testid=submit-kind-results]")
-    page.select_option("[data-testid=submit-scenario]", "dev-example")
-    page.set_input_files("[data-testid=submit-file]", str(KIT / "example" / "decisions.csv"))
+    page.select_option("[data-testid=submit-scenario]", "dev-fortnight")
+    page.set_input_files("[data-testid=submit-file]", str(results_fixture()))
     page.click("[data-testid=submit-button]")
     expect(page).to_have_url(re.compile(r"/submissions/\d+"), timeout=20000)
     assert run_worker_once() == 1
     expect(page.locator("[data-testid=sub-status]")).to_contain_text(re.compile("scored|Scored|已评分"), timeout=30000)
     expect(page.locator("[data-testid=observed-sky] canvas")).to_be_visible(timeout=15000)
-    expect(page.locator("[data-testid=observed-sky]")).to_contain_text("N01")
+    expect(page.locator("[data-testid=observed-sky]")).to_contain_text("N2026")
     page.locator("[data-testid=observed-range]").fill("12")
-    expect(page.locator("[data-testid=observed-sky]")).to_contain_text("#")
+    expect(page.locator("[data-testid=observed-sky]")).to_contain_text("D000012")
     page.locator("[data-testid=observed-sky]").scroll_into_view_if_needed()
     page.wait_for_timeout(300)
     shot(page, "02-submission-sky-map")

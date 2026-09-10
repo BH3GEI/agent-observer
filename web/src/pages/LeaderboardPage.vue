@@ -5,7 +5,7 @@ import { useI18n } from '../composables/useI18n'
 import { usePhases } from '../composables/usePhases'
 import { loadLeaderboard, type LeaderboardEntry, type Phase } from '../lib/data'
 import { useAuth } from '../stores/auth'
-import { fmtUtc, num, pct } from '../lib/format'
+import { fmtUtc, num } from '../lib/format'
 import PageHead from '../components/layout/PageHead.vue'
 import StatusPill from '../components/layout/StatusPill.vue'
 import ScoreBars from '../components/leaderboard/ScoreBars.vue'
@@ -63,7 +63,7 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
             <dd class="flex flex-wrap gap-2"><StatusPill :status="phase.status" ns="leaderboard.status" /><span class="pill" :class="phase.leaderboard_mode">{{ phase.leaderboard_mode }}</span></dd>
             <dt>{{ t('common.utc') }}</dt><dd class="m text-sm">{{ fmtUtc(phase.starts_at) }} → {{ fmtUtc(phase.ends_at) }}</dd>
             <dt>{{ t('leaderboard.scenarios') }}</dt>
-            <dd class="flex flex-wrap gap-2"><span v-for="s in phase.scenarios" :key="s.id" class="pill" :title="s.name">{{ s.slug }}<template v-if="!s.weather_public"> · {{ t('common.hidden') }}</template></span><span v-if="!phase.scenarios.length" class="text3">—</span></dd>
+            <dd class="flex flex-wrap gap-2"><span v-for="s in phase.scenarios" :key="s.id" class="pill" :title="s.name">{{ s.slug }} · {{ s.n_nights ?? '?' }}n · {{ s.global_wallclock_seconds ?? '?' }}s<template v-if="!s.weather_public"> · {{ t('common.hidden') }}</template></span><span v-if="!phase.scenarios.length" class="text3">—</span></dd>
             <dt>{{ t('common.updated') }}</dt><dd class="m text-sm">{{ updatedAt ? fmtUtc(updatedAt.toISOString(), { seconds: true }) : '—' }} UTC</dd>
           </dl>
           <p class="text3 mt-8 text-sm">{{ t('leaderboard.tie') }} <template v-if="phase.scenarios.length > 1">{{ t('leaderboard.mean_note') }}</template></p>
@@ -83,15 +83,18 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
             <ScoreBars class="mb-8" :entries="entries" :team-id="team?.id ?? null" :updated-at="updatedAt" />
             <div class="table-wrap">
               <table class="data-table">
-                <thead><tr><th>{{ t('leaderboard.rank') }}</th><th>{{ t('leaderboard.team') }}</th><th class="r">{{ t('leaderboard.score') }}</th><th class="r">{{ t('leaderboard.science') }}</th><th class="r">{{ t('leaderboard.completion') }}</th><th class="r">{{ t('leaderboard.uniformity') }}</th><th class="r">{{ t('leaderboard.submissions') }}</th><th>{{ t('leaderboard.kind') }}</th></tr></thead>
+                <thead><tr><th>{{ t('leaderboard.rank') }}</th><th>{{ t('leaderboard.team') }}</th><th class="r">{{ t('leaderboard.score') }}</th><th class="r">{{ t('leaderboard.base_science') }}</th><th class="r">{{ t('leaderboard.bonus') }}</th><th class="r">{{ t('leaderboard.requests') }}</th><th class="r">{{ t('leaderboard.penalties') }}</th><th class="r">{{ t('leaderboard.tiles') }}</th><th class="r">{{ t('leaderboard.required_missing') }}</th><th class="r">{{ t('leaderboard.submissions') }}</th><th>{{ t('leaderboard.kind') }}</th></tr></thead>
                 <tbody>
                   <tr v-for="row in entries" :key="row.team_id" data-testid="lb-row" :class="{ me: team && team.id === row.team_id }">
                     <td class="m text-[#315efb]">{{ row.rank }}</td>
                     <td>{{ row.team_name }}<span v-if="team && team.id === row.team_id" class="label accent ml-2">{{ t('leaderboard.me') }}</span></td>
-                    <td class="r m">{{ num(row.total_score) }}</td>
-                    <td class="r m">{{ num(row.science_score) }}</td>
-                    <td class="r m">{{ pct(row.completion_rate) }}</td>
-                    <td class="r m">{{ num(row.uniformity_score, 3) }}</td>
+                    <td class="r m" :class="{ 'text-[#ff6b6b]': row.total_score < 0 }">{{ num(row.total_score) }}</td>
+                    <td class="r m">{{ num(row.base_science) }}</td>
+                    <td class="r m">{{ num(row.program_bonus) }}</td>
+                    <td class="r m">{{ num(row.request_reward) }}</td>
+                    <td class="r m" :class="{ 'text-[#ff6b6b]': row.penalty_total > 0 }">−{{ num(row.penalty_total) }}</td>
+                    <td class="r m">{{ row.completed_tiles ?? '—' }}</td>
+                    <td class="r m" :class="{ 'text-[#ff6b6b]': Number(row.required_missing) > 0 }">{{ row.required_missing ?? '—' }}</td>
                     <td class="r m">{{ row.submission_count }}</td>
                     <td class="xs">{{ row.kind ? t(`kind.${row.kind}`) : '—' }}</td>
                   </tr>

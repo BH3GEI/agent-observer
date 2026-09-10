@@ -12,7 +12,7 @@ const progressPct = computed(() => `${(state.progress * 100).toFixed(1)}%`)
   <footer class="cosmos-footer border-t text-white">
     <div class="slot-ticker" data-testid="slot-ticker" aria-hidden="true">
       <div class="mx-auto flex max-w-[1600px] flex-wrap items-center gap-x-6 gap-y-1 px-5 md:px-10 xl:px-14">
-        <span>900 S · {{ t('footer.ticker.per_decision') }}</span>
+        <span>900 S · {{ t('footer.ticker.per_slot') }}</span>
         <span class="text-[#78a6ff]">{{ t('footer.ticker.slot') }} {{ slot.slot }}</span>
         <span class="hidden sm:inline">{{ slot.night }} · {{ slot.open ? t('footer.ticker.open') : t('footer.ticker.closed') }}</span>
         <span class="slot-ticker-bar ml-auto" :class="{ 'is-static': state.reduced }"><i :style="{ width: progressPct }"></i></span>

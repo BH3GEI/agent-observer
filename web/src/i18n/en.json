@@ -1,13 +1,13 @@
 {
   "meta": {
     "title": "Agent Observer · GOSIM Hackathon",
-    "description": "A GOSIM hackathon for intelligent survey operations: build an agent observer that reads the sky state and chooses the next observation every 900 seconds.",
+    "description": "A GOSIM hackathon for intelligent survey operations: build an agent observer that reads the published sky state, plans around hidden weather, forecasts and requests, and commits the next observation slot by slot.",
     "wordmark_note": "AGENT HACKATHON",
     "brand": "Agent Observer",
     "pages": {
       "home": {
         "title": "Home",
-        "description": "A GOSIM hackathon for intelligent survey operations: build an agent observer that reads the sky state and chooses the next observation every 900 seconds."
+        "description": "A GOSIM hackathon for intelligent survey operations: build an agent observer that reads the published sky state, plans around hidden weather, forecasts and requests, and commits the next observation slot by slot."
       },
       "brief": {
         "title": "Event brief",
@@ -19,7 +19,7 @@
       },
       "docs": {
         "title": "Docs",
-        "description": "The observer-v1 protocol, the scorer, scenario files and the starter kit."
+        "description": "The participant-agent-protocol-v1 messages, the challenge-score-v3 scorer, scenario files and the starter kit."
       },
       "faq": {
         "title": "FAQ",
@@ -27,11 +27,11 @@
       },
       "resources": {
         "title": "Resources",
-        "description": "Starter kit, scorer, protocol reference and public development scenarios."
+        "description": "Starter kit, per-scenario configuration and reference files, and the public development scenarios."
       },
       "leaderboard": {
         "title": "Leaderboard",
-        "description": "Live standings per phase: score, science yield, completion and uniformity."
+        "description": "Live standings per phase: total score, base science, program bonus, request reward, penalties, tiles completed and REQUIRED tiles missed."
       },
       "announcements": {
         "title": "Announcements",
@@ -63,7 +63,7 @@
       },
       "submission": {
         "title": "Submission",
-        "description": "Evaluation report, observed sky map and action timeline of one submission."
+        "description": "Score breakdown, decision replay, observed sky map and action timeline of one submission."
       },
       "profile": {
         "title": "Profile",
@@ -104,7 +104,7 @@
     "eyebrow": "GOSIM Hackathon · Intelligent Survey Operations",
     "system": "Agent Observer",
     "subtitle": "巡天智能体",
-    "lede": "Build a future agent observer for survey nights: read the sky state, reason like a leading observer, and choose the next observation every 900 seconds.",
+    "lede": "Build a future agent observer for survey nights: read the published sky state, plan around hidden weather, uncertain forecasts and temporary requests, and commit the next observation slot by slot.",
     "pipeline": [
       {
         "label": "Online Training",
@@ -137,8 +137,8 @@
         "label": "2026 · online + Shenzhen"
       },
       {
-        "value": "900 s",
-        "label": "per decision"
+        "value": "1 clock",
+        "label": "global wall clock per scenario"
       },
       {
         "value": "Open",
@@ -148,16 +148,21 @@
     "side_note": "Human judgment / machine speed / one shared sky",
     "console": {
       "title": "Observatory console",
-      "replay_note": "Replay · baseline agent · dev-example",
+      "replay_note": "Replay · minimal agent · {nights} nights · {actions} actions",
       "paused": "Paused",
-      "aria": "Sky map replay of the baseline agent: observed tiles fill in slot by slot",
+      "aria": "Sky map replay of the minimal agent over 14 nights: REQUIRED and FLEXIBLE tiles fill in as exposures complete",
       "slot": "Slot",
-      "weather": "Seeing · transp · sky",
+      "weather": "See · trp · sky · eff",
       "dome_closed": "Dome closed",
       "score": "Score",
       "tiles": "Tiles",
       "legend_visible": "Above 30°",
-      "legend_meridian": "Meridian (LST)"
+      "legend_meridian": "Meridian (LST)",
+      "night": "Night",
+      "legend_required": "REQUIRED",
+      "legend_flexible": "FLEXIBLE",
+      "legend_completed": "Completed",
+      "legend_interrupted": "Interrupted"
     }
   },
   "home": {
@@ -166,18 +171,18 @@
       "title": "Hand the night sky to an agent",
       "lede": "The night sky is too vast and too precious to leave to chance.",
       "paragraphs": [
-        "Every night a survey telescope faces thousands of observable tiles. Weather changes, target visibility changes, and science priorities change. Every decision a human observer makes shapes the quality of the final cosmic sample.",
-        "We are building an open benchmark: an agent reads the state of the night sky, reasons like a seasoned observer, and decides the next observation every 900 seconds. Every participant receives the same survey plan, weather replay, inserted requests, simulator, and scoring rule — the only variable is strategy."
+        "Every night a survey telescope faces dozens of tiles that are only visible for a few hours. Weather closes the dome, directional clouds and smog spoil one part of the sky, the moon brightens another, and a science request with a deadline appears in the middle of the week. Every decision a human observer makes shapes the quality of the final cosmic sample.",
+        "We are building an open benchmark: an agent receives the published sky state, reasons like a seasoned observer, and commits the next action slot by slot. Every participant receives the same calendar, catalogue, forecasts, requests, simulator and scoring rule — the only variables are strategy and how the global wall clock is spent."
       ],
       "link": "Read the full event brief",
       "stats": [
         {
           "value": "900s",
-          "label": "per decision slot"
+          "label": "per slot"
         },
         {
           "value": "1",
-          "label": "unified mission card"
+          "label": "global wall clock"
         },
         {
           "value": "∞",
@@ -191,19 +196,19 @@
       "lede": "Your agent takes over the core decisions of a human lead observer.",
       "cards": [
         {
-          "title": "Read the night sky",
-          "desc": "Weather, forecast, tile progress, and legal candidates are packed into one compact state dictionary."
+          "title": "Read the published sky",
+          "desc": "The current slot's weather, every candidate tile with its geometry, lunar factor and effective conditions, the forecasts issued so far, the active requests and your progress arrive as one JSON snapshot. Future weather never does."
         },
         {
-          "title": "Decide every 900 seconds",
-          "desc": "At the end of each slot, choose a tile to observe or wait for a better moment."
+          "title": "Commit one action at a time",
+          "desc": "Observe a tile in a program (DARK, BRIGHT or BACKUP), optionally tagged with a request, or wait out the slot. Only a committed action advances the survey; a single global wall clock bounds the whole run."
         },
         {
           "title": "One transparent score",
-          "desc": "Science yield, footprint uniformity, time efficiency, and rule compliance are all fixed and public."
+          "desc": "Base science from completed exposures, a bonus for matching the quality band, request rewards, and six published penalty classes: unsafe observations, invalid actions, avoidable waits, missed REQUIRED tiles, FLEXIBLE shortfalls and missed requests."
         }
       ],
-      "closing": "No astronomy background required. Just an agent that reads state, weighs trade-offs, and makes decisions."
+      "closing": "No astronomy background required. Just an agent that reads snapshots, weighs risk against the clock, and commits decisions."
     },
     "participate": {
       "kicker": "03 / How to participate",
@@ -218,12 +223,12 @@
         {
           "n": "02",
           "title": "Build your agent",
-          "desc": "Download the starter kit, run the baseline agent locally with the same protocol and scorer the platform uses, then iterate on the public development scenarios."
+          "desc": "Download the starter kit, run the minimal agent locally with the same workflow and scorer the platform uses, then iterate on the public development scenarios — deterministic code, an LLM through your own .env, or both."
         },
         {
           "n": "03",
           "title": "Submit for evaluation",
-          "desc": "Upload a decisions.csv, or upload your agent and let the platform run it against hidden weather. Every team is scored by the same frozen scorer."
+          "desc": "Upload a decisions.csv for a public-weather scenario, or upload your agent package and let the platform run it against hidden weather under one global wall clock. Every team is scored by the same frozen scorer."
         }
       ],
       "timeline": [
@@ -275,32 +280,32 @@
     "evaluation": {
       "kicker": "05 / Evaluation",
       "title": "One frozen scorer, one public formula",
-      "lede": "The stage-one score rewards weighted effective targets observed under good conditions and charges every wasted second. The formula, the constants and the scorer source are published.",
-      "formula": "score = Σ action_score − idle_penalty × total_waste_seconds\naction_score = Σ_segments H(alt − 30°) · A · (dt / t_nominal) · target_value · priority_factor · (1 + B)\nA = transparency / (seeing · sky_brightness · airmass)",
+      "lede": "The challenge-score-v3 score credits completed exposures by their atmospheric and lunar quality, rewards matching programs and completed requests, and charges six published penalty classes. The formula, the constants and the scorer source are published.",
+      "formula": "total = base_science + program_bonus + request_reward\n      − unsafe_observation − invalid_action − avoidable_wait\n      − required_miss − flexible_shortfall − request_miss\nbase  = Σ_segments V_tile · (dt / t_nominal) · combined\ncombined = min(eff · transp · sky / (seeing · airmass), 3) · lunar",
       "criteria": [
         {
-          "term": "Science yield",
-          "desc": "Weighted target counts (LRG, ELG, QSO, BGS) scaled by observing quality A at each exposure segment."
+          "term": "Base science",
+          "desc": "Σ science_weight of the tile's targets, scaled per segment by instrument efficiency, transparency, sky quality, seeing, airmass and the lunar factor. Only completed exposures score."
         },
         {
-          "term": "Program match",
-          "desc": "A bonus when the decision program matches the DARK / BRIGHT / BACKUP band implied by the conditions."
+          "term": "Program bonus",
+          "desc": "+25 % / +15 % / +8 % when the chosen program matches the DARK / BRIGHT / BACKUP band of the combined quality (thresholds 0.65 and 0.40)."
         },
         {
-          "term": "Time efficiency",
-          "desc": "Idle observable time, invalid actions and exposures taken below the altitude limit or with the dome closed are penalised per second."
+          "term": "Requests",
+          "desc": "Temporary observation requests pay 140 per required tile when completed before the deadline and cost 190 per required tile when missed."
         },
         {
-          "term": "Rule compliance",
-          "desc": "A tile scores once. Exposures cannot cross a night boundary. Program and tile must match."
+          "term": "Safety and validity",
+          "desc": "2000 for observing into a closed dome; 100 for an invalid action; 0.001 per second of avoidable waiting."
         },
         {
-          "term": "Coverage, reported",
-          "desc": "Completion and footprint uniformity are shown on the board and can enter the score in later stages."
+          "term": "Coverage",
+          "desc": "1000 per REQUIRED tile left unfinished, 100 per FLEXIBLE tile below the quota of four per region — applied at the end of every run, even truncated ones."
         },
         {
           "term": "Generalisation",
-          "desc": "The competition weather replay is hidden. Agents run on the platform and see only the current slot plus a four-slot forecast."
+          "desc": "Competition weather, directional events and their forecasts are hidden. Agents run on the platform under one global wall clock and see only the published snapshots."
         }
       ],
       "link": "Read the full rules"
@@ -311,15 +316,15 @@
       "items": [
         {
           "title": "Results file",
-          "desc": "Run your agent locally on a public scenario and upload decisions.csv (columns decision_id, slot_id, action, tile_id, program, reason). Scored within seconds."
+          "desc": "Run your agent locally on a practice scenario whose weather is public and upload decisions.csv (columns decision_id, slot_id, action, tile_id, program, request_id, reason). Scored within seconds."
         },
         {
           "title": "Agent package",
-          "desc": "Upload agent.py or a zip. The platform runs it in a sandbox against hidden weather through the observer-v1 step protocol, then scores the generated decisions."
+          "desc": "Upload a .zip with minimal_agent.py, agent.py or main.py at its root, an optional requirements.txt and an optional .env with your model keys. The platform runs it against hidden weather through participant-agent-protocol-v1 and scores the committed decisions."
         },
         {
           "title": "Limits",
-          "desc": "Python 3.12 standard library only for platform runs, no network, 20 s per decision, 10 minutes per scenario, 10 submissions per team per day in the online competition."
+          "desc": "Python 3.12, network allowed, one global wall clock per scenario (7200 s on the reference scenario, no per-decision timeout), 30 s to initialize, packages up to 20 MB; 10 submissions per team per day in the online competition."
         }
       ],
       "link": "Submission docs"
@@ -341,7 +346,7 @@
         {
           "role": "Science setting",
           "name": "DESI-style survey",
-          "desc": "Site latitude 31.96°, 900-second slots, DARK / BRIGHT / BACKUP programs, LRG / ELG / QSO / BGS target classes."
+          "desc": "Site latitude 31.96°, 900-second slots over a 180-night solar calendar, DARK / BRIGHT / BACKUP programs, REQUIRED / FLEXIBLE tiles, LRG / ELG / QSO / BGS target classes."
         }
       ]
     },
@@ -493,18 +498,18 @@
           "Run your agent against the challenge scenario to generate the observation results required by the competition platform.",
           "Read the mission card, study the public development scenarios and visual reports, prototype against the observer interface, evaluate on development scenarios, inspect the observed-universe maps, then submit only the observation results generated by your agent."
         ],
-        "actionCode": "return {\n    \"action\": \"observe\",\n    \"tile_id\": 100123,\n    \"plan\": \"DARK\",\n    \"reason\": \"good weather and highest useful gain\",\n}"
+        "actionCode": "return {\n    \"action\": \"observe\",\n    \"tile_id\": \"T00037\",\n    \"program\": \"DARK\",\n    \"request_id\": \"\",\n    \"reason\": \"highest preview estimate\",\n}"
       },
       {
         "kicker": "06 / Scoring",
         "title": "Scientific, reproducible, inspectable evaluation",
         "paragraphs": [
-          "The score rewards weighted effective targets and penalizes uneven footprint coverage, wasted time, rule violations, and unfinished high-priority tiles. A good agent trades immediate yield against completion, uniformity, weather risk, and operational discipline.",
+          "The score credits completed exposures by atmospheric and lunar quality, rewards matching programs and completed requests, and charges unsafe observations, invalid actions, avoidable waits, missed REQUIRED tiles, FLEXIBLE shortfalls per region and expired requests. A good agent trades immediate yield against coverage, weather risk, the request deadlines and the global wall clock.",
           "Evaluation follows open-science principles: fixed data and fixed scoring let every submitted observation result be evaluated consistently; readable result artifacts make outcomes inspectable; separate development and final-evaluation weather compare generalization instead of tuning to a known scenario.",
           "Visualization turns completed tile fractions into an observed-target map — a 3D spatial sample and a 2D butterfly plot of sky position plus simulated redshift, in the style DESI uses — so different strategies produce visibly different maps.",
           "The same observer interface can support future mission cards for real survey-log replay, z > 5 quasar planning, LBG planning, and target-of-opportunity inserts; the community can propose new fixed datasets for follow-up tracks."
         ],
-        "formula": "score = science_score\n  - uniformity_penalty\n  - wasted_time_penalty\n  - violation_penalty\n  - incomplete_priority_penalty"
+        "formula": "total = base_science + program_bonus + request_reward\n      - unsafe_observation - invalid_action - avoidable_wait\n      - required_miss - flexible_shortfall - request_miss"
       },
       {
         "kicker": "07 / Glossary",
@@ -512,9 +517,9 @@
         "paragraphs": [
           "You do not need an astronomy background to read the state dictionary and reason about it. A Tile is a patch of sky observed in one pointing; the Footprint is the full survey area; Targets are the object counts inside each tile. High-priority tiles carry extra scientific weight, nearly complete tiles are one exposure from completion, and under-covered regions are lagging behind the rest of the footprint.",
           "Seeing describes atmospheric blur — lower is better. Transparency describes how clear the atmosphere is — higher is better. Sky brightness is background glow; darker is better for faint targets. Airmass measures how much atmosphere the light crosses and changes with sky position — lower is better. DARK, BRIGHT, and BACKUP are programs matched to dark, bright, and poor conditions. donefrac is tile completion: 0 means just started, 1 means finished.",
-          "The state dictionary contains weather (current seeing, transparency, sky brightness, program, observability, and speed), forecast (this slot plus the next four), progress (tiles completed, mean completion, footprint balance, wasted time, and violations), and available_tiles (the legal options right now, with expected gain, expected waste, target counts, priority, and airmass)."
+          "The decision snapshot contains current_site_weather (observability, seeing, transparency, sky quality, instrument efficiency, active events), candidate_tiles (the legal options right now, each with geometry, airmass, lunar factor, effective weather, science value and window), active_requests, the forecasts issued so far, and progress (completed tiles, FLEXIBLE completions per region)."
         ],
-        "actionCode": "return {\n    \"action\": \"observe\",\n    \"tile_id\": 100123,\n    \"plan\": \"DARK\",\n    \"reason\": \"good weather and highest useful gain\",\n}"
+        "actionCode": "return {\n    \"action\": \"observe\",\n    \"tile_id\": \"T00037\",\n    \"program\": \"DARK\",\n    \"request_id\": \"\",\n    \"reason\": \"highest preview estimate\",\n}"
       },
       {
         "kicker": "08 / Timeline",
@@ -781,7 +786,7 @@
     "scenarios": [
       {
         "when": "Excellent dark night",
-        "then": "Spend the slot on high expected gain, high priority, faint-target programs."
+        "then": "Spend the slot on the highest preview estimate: REQUIRED tiles first, then FLEXIBLE tiles in under-covered regions, in the DARK program."
       },
       {
         "when": "Marginal but usable weather",
@@ -808,8 +813,8 @@
   "scoring": {
     "kicker": "05 / Scoring",
     "title": "How the score works",
-    "intro": "The score rewards weighted effective targets and penalizes uneven footprint coverage, wasted time, rule violations, and unfinished high-priority tiles. A good agent trades immediate yield against completion, uniformity, weather risk, and operational discipline.",
-    "formula": "score = science_score\n      - uniformity_penalty\n      - wasted_time_penalty\n      - violation_penalty\n      - incomplete_priority_penalty",
+    "intro": "The score credits completed exposures by atmospheric and lunar quality, rewards matching programs and completed requests, and charges unsafe observations, invalid actions, avoidable waits, missed REQUIRED tiles, FLEXIBLE shortfalls per region and expired requests. A good agent trades immediate yield against coverage, weather risk, the request deadlines and the global wall clock.",
+    "formula": "total = base_science + program_bonus + request_reward\n      - unsafe_observation - invalid_action - avoidable_wait\n      - required_miss - flexible_shortfall - request_miss",
     "principlesTitle": "Open-science design principles",
     "principles": [
       {
@@ -881,31 +886,31 @@
         "desc": "Observing programs matched to dark, bright, and poor sky conditions."
       },
       {
-        "term": "Priority and coverage",
-        "desc": "High-priority, nearly complete, and under-covered tiles compete for each observing slot."
+        "term": "REQUIRED / FLEXIBLE",
+        "desc": "A missed REQUIRED tile costs 1000 at the end of the run; FLEXIBLE tiles need four completions per region or cost 100 each."
       },
       {
-        "term": "donefrac",
-        "desc": "Tile completion: 0 means just started, 1 means finished."
+        "term": "lunar_quality_factor",
+        "desc": "Continuous moonlight reduction of the combined quality: 1 while the moon is down, down to 0.25 near a bright moon."
       }
     ],
     "stateTitle": "What is in the state",
     "state": [
       {
-        "field": "weather",
-        "desc": "Current seeing, transparency, sky brightness, program, observability, and speed."
+        "field": "current_site_weather",
+        "desc": "The current slot's site weather: observability, seeing, transparency, sky quality, instrument efficiency and active events."
       },
       {
-        "field": "forecast",
-        "desc": "This slot plus the next four, which is what makes replanning possible."
+        "field": "forecasts",
+        "desc": "The uncertain, daily-revised forecasts issued so far — only revisions published before the current cursor."
       },
       {
         "field": "progress",
-        "desc": "Tiles completed, mean completion, footprint balance, wasted time, and violations."
+        "desc": "Completed tiles and FLEXIBLE completions per region."
       },
       {
-        "field": "available_tiles",
-        "desc": "The legal options right now, with expected gain, expected waste, target counts, priority, and airmass."
+        "field": "candidate_tiles",
+        "desc": "The legal candidates right now: geometry, airmass, lunar factor, effective weather, science value and window."
       }
     ],
     "actionCode": "return {\n    \"action\": \"observe\",\n    \"tile_id\": 100123,\n    \"plan\": \"DARK\",\n    \"reason\": \"good weather and highest useful gain\",\n}"
@@ -969,7 +974,7 @@
     "published": "Final results published.",
     "live": "Live",
     "tie": "Ties keep the earlier submission ahead. A team's best scored submission counts.",
-    "mean_note": "With several scenarios in a phase, the score is the mean over scenarios.",
+    "mean_note": "With several scenarios in a phase, every column is the mean over scenarios.",
     "download_csv": "Download CSV",
     "json": "JSON",
     "n_entries": "{n} teams",
@@ -983,14 +988,25 @@
     "me": "your team",
     "chart": {
       "title": "Score composition · top 10",
-      "penalty": "waste penalty",
+      "penalty": "penalties",
       "your_team": "Your team",
       "your_position": "Your position",
       "teams_on_board": "Teams on board",
       "scored_runs": "Scored runs",
       "last_update": "Last update",
-      "tooltip": "Score {score} · science {science} · penalty {penalty}"
-    }
+      "tooltip": "Total {score} · base {base} · bonus {bonus} · requests {requests} · penalties −{penalty} · {tiles} tiles · {missing} REQUIRED missing",
+      "legend_base": "base science",
+      "legend_bonus": "program bonus",
+      "legend_request": "requests",
+      "tiles": "tiles",
+      "req_missing": "REQ missing"
+    },
+    "base_science": "Base science",
+    "bonus": "Bonus",
+    "requests": "Requests",
+    "penalties": "Penalties",
+    "tiles": "Tiles",
+    "required_missing": "REQ missing"
   },
   "cta": {
     "title": "Hand the next move of the night sky to the agent you wrote",
@@ -1013,10 +1029,10 @@
     },
     "contact_email": "hackathon@gosim.org",
     "ticker": {
-      "per_decision": "per decision",
       "slot": "Slot",
       "open": "dome open",
-      "closed": "dome closed"
+      "closed": "dome closed",
+      "per_slot": "per slot · one global clock"
     }
   },
   "common": {
@@ -1260,15 +1276,15 @@
     "scenario": "Scenario",
     "file": "File",
     "file_results": "decisions.csv",
-    "file_agent": "agent.py or agent.zip (entry file agent.py at the root)",
+    "file_agent": "agent package: .zip with minimal_agent.py, agent.py or main.py at its root (a bare .py is accepted if it needs nothing else)",
     "title_field": "Label (optional)",
     "notes": "Notes (optional, private to your team)",
     "button": "Upload and queue",
     "quota_left": "{n} left today",
     "phase_closed": "closed",
     "phase_upcoming": "opens {date}",
-    "help_results": "Score a decisions.csv you produced locally against the selected public scenario.",
-    "help_agent": "The platform runs your agent on every scenario of the phase (hidden weather included) and averages the scores.",
+    "help_results": "Score a decisions.csv you produced locally against a practice scenario whose weather is public.",
+    "help_agent": "The platform runs your package on every scenario of the phase (hidden weather included) under one global wall clock per scenario and averages the scores.",
     "errors": {
       "need_team": "Create or join a team first.",
       "bad_phase": "Unknown phase.",
@@ -1290,8 +1306,20 @@
     "hashing": "Computing checksum…",
     "queued": "Submission queued.",
     "no_phase": "No phase is open for submissions right now.",
-    "no_scenario": "No public scenario in this phase. Submit an agent package instead.",
-    "all_scenarios": "All scenarios of the phase"
+    "no_scenario": "No public-weather scenario in this phase. Submit an agent package instead.",
+    "all_scenarios": "All scenarios of the phase",
+    "agent_hints": [
+      "Entry script: minimal_agent.py, agent.py or main.py at the package root (or in its single top-level folder); it speaks participant-agent-protocol-v1 on stdin/stdout.",
+      "requirements.txt (optional) is pip-installed into a fresh virtual environment before the clock starts.",
+      ".env (optional, KEY=VALUE lines) is loaded into the agent's environment only: put MODEL_PROVIDER, MODEL_NAME and the provider API key there. It is never logged.",
+      "Everything else in the zip is importable from the entry script's directory. ≤ 20 MB, ≤ 2,000 files, ≤ 50 MB uncompressed, no symlinks."
+    ],
+    "results_public_only": "Only scenarios with public weather are listed: the scorer needs the full weather truth to replay a results file.",
+    "wallclock": "wall clock",
+    "wallclock_note": "One global wall clock per scenario, started after the initialize message; no per-decision timeout. Actions committed before the cutoff are scored.",
+    "wallclock_results_note": "Results files are replayed offline; the wall clock only applies to platform runs of agent packages.",
+    "weather_public": "weather public",
+    "weather_hidden": "weather hidden"
   },
   "subs": {
     "title": "Submissions",
@@ -1300,9 +1328,6 @@
     "phase": "Phase",
     "kind": "Type",
     "score": "Score",
-    "science": "Science",
-    "completion": "Completion",
-    "uniformity": "Uniformity",
     "by": "By",
     "empty": "No submissions yet.",
     "detail_title": "Submission #{id}",
@@ -1312,23 +1337,14 @@
     "evaluations": "Evaluations",
     "scenario": "Scenario",
     "runtime": "Runtime",
-    "steps": "Steps",
-    "report": "Report JSON",
+    "report": "score_report.json",
     "decisions": "decisions.csv",
     "log": "Agent log",
     "cancel": "Cancel",
     "waiting": "Waiting for the worker… this page refreshes automatically.",
-    "waste": "Waste",
-    "idle": "idle",
-    "invalid": "invalid actions",
-    "unproductive": "unproductive exposure",
     "actions_title": "Action timeline",
-    "region_title": "Region completion",
-    "tiles_done": "tiles completed",
+    "tiles_done": "Tiles completed",
     "stderr": "stderr (last lines)",
-    "warnings": "Warnings",
-    "penalty": "waste penalty",
-    "invalid_count": "invalid",
     "show_all": "Show all actions",
     "download_failed": "Download failed.",
     "no_report": "Report not available yet.",
@@ -1344,7 +1360,89 @@
       "start": "Before the first decision",
       "night": "Night",
       "tiles": "tiles",
-      "score_gained": "score gained"
+      "unavailable": "Tile catalogue could not be loaded."
+    },
+    "mean_of_scenarios": "mean over scenarios",
+    "base_science": "Base science",
+    "program_bonus": "Program bonus",
+    "request_reward": "Request reward",
+    "penalties": "Penalties",
+    "required_missing": "REQUIRED missing",
+    "flexible_shortfall": "FLEXIBLE shortfall",
+    "termination": "Termination",
+    "tiles": "tiles",
+    "completion_title": "Completion",
+    "none_missing": "none — every REQUIRED tile completed",
+    "exposures": "Completed exposures",
+    "actions": "Actions",
+    "flexible_by_region": "FLEXIBLE tiles per region (quota 4)",
+    "requests_title": "Observation requests",
+    "req_satisfied": "satisfied / required",
+    "req_feasible": "feasible",
+    "req_reward": "reward",
+    "req_penalty": "penalty",
+    "no_requests": "No request was issued before the final cursor.",
+    "wait_title": "Wait seconds",
+    "agent_run": "Agent run",
+    "committed_actions": "Committed actions",
+    "in_flight_ignored": "an in-flight response was discarded at the cutoff",
+    "wallclock": "Wall clock used",
+    "agent_error": "Agent error",
+    "workflow": "workflow_result.json",
+    "reading_title": "Reading the report",
+    "reading_formula": "Every panel above is a term of the published formula:",
+    "reading_note": "Penalties for missed REQUIRED tiles, FLEXIBLE shortfalls and expired requests are applied at the end of every run, including runs cut short by the wall clock or an agent error. Hover the timeline for the per-segment quality of each exposure.",
+    "termination_reason": {
+      "survey_complete": "survey complete",
+      "global_wallclock_expired": "wall clock expired",
+      "agent_error": "agent error",
+      "agent_initialization_error": "initialization error",
+      "trace_complete": "trace complete"
+    },
+    "termination_help": {
+      "survey_complete": "The agent answered every decision request until the last slot of the calendar.",
+      "global_wallclock_expired": "The scenario's global wall clock ran out. The actions committed before the cutoff are scored; the rest of the calendar counts as unavailable time, and the terminal penalties apply.",
+      "agent_error": "The agent exited or answered with something other than a valid decision_response. The actions committed before the error are scored, with the terminal penalties applied.",
+      "agent_initialization_error": "The agent did not start or did not read the initialize message within 30 seconds. No action was committed; the run carries the full terminal penalties.",
+      "trace_complete": "A decisions.csv was replayed to its last row."
+    },
+    "penalty_kind": {
+      "unsafe_observation": "unsafe observation",
+      "invalid_action": "invalid action",
+      "avoidable_wait": "avoidable wait",
+      "required_miss": "REQUIRED miss",
+      "flexible_shortfall": "FLEXIBLE shortfall",
+      "request_miss": "request miss"
+    },
+    "wait_kind": {
+      "explicit": "explicit waits",
+      "implicit": "implicit (skipped slots)",
+      "invalid": "consumed by invalid actions",
+      "avoidable": "avoidable (penalised)",
+      "unavailable": "unavailable (closed or nothing observable)"
+    },
+    "request_status": {
+      "completed": "completed",
+      "expired": "expired",
+      "missed": "missed",
+      "excused_unobservable": "excused (unobservable)",
+      "open": "open",
+      "active": "active",
+      "pending": "pending"
+    },
+    "outcome_class": {
+      "completed": "completed",
+      "wait": "wait",
+      "interrupted": "interrupted",
+      "unsafe": "unsafe",
+      "invalid": "invalid"
+    },
+    "replay": {
+      "title": "Decision replay",
+      "open": "Load replay",
+      "new_tab": "Open in new tab",
+      "note": "Self-contained ASTRA // SURVEY replay generated from the scored report; runs in a sandboxed frame.",
+      "download": "decision_replay.html"
     }
   },
   "flash": {
@@ -1362,19 +1460,12 @@
   "resources": {
     "kicker": "Resources",
     "title": "Starter kit and data",
-    "lede": "Everything needed to run and score an agent locally. The platform uses these exact files.",
+    "lede": "Everything needed to run and score an agent locally: the starter kit and, per scenario, the configuration and reference files the platform uses.",
     "kit": "Starter kit (zip)",
-    "kit_desc": "agent.py baseline, local_runner.py, protocol.py, scorer.py, score_config.json, example scenario, generator, SKILL.md, sac_submit.py.",
-    "scorer": "scorer.py",
-    "scorer_desc": "The frozen stage-one scorer. Standard library only, Python 3.9+.",
-    "protocol": "protocol.py",
-    "protocol_desc": "The observer-v1 state builder shared by the platform and local_runner.py.",
+    "kit_desc": "Challenge modules (workflow, scorer, preview, simulators), participant_agent/ (minimal agent with optional LLM via .env), run_challenge.py, score_decisions.py, sac_submit.py, SKILL.md.",
     "skill": "SKILL.md",
     "skill_desc": "One-file instructions an AI coding agent can follow to build, test and submit.",
     "scenarios": "Scenarios",
-    "weather": "weather.csv",
-    "tiles": "tiles.csv",
-    "config": "score_config.json",
     "hidden": "hidden (platform runs only)",
     "nights": "nights",
     "slots": "slots",
@@ -1382,7 +1473,31 @@
     "seed": "seed",
     "cli": "Command line",
     "kit_file": "agent-observer-starter-kit.zip",
-    "example": "example scenario"
+    "docs": "Documentation",
+    "docs_desc": "Data formats with exact columns, the three protocol envelopes, the scoring formula and every penalty, packaging rules and limits.",
+    "scenarios_note": "A scenario is a directory: config/*.json plus outputs/reference/*.csv. Configuration, calendar, catalogue and requests are always downloadable; weather, forecasts and events follow the scenario's visibility flags. Hidden files are shown crossed out.",
+    "weather_public": "weather public",
+    "weather_hidden": "weather hidden",
+    "wallclock": "wall clock",
+    "targets": "targets",
+    "requests": "requests",
+    "contract": "contract",
+    "file_group": {
+      "config": "Configuration",
+      "data": "Calendar · catalogue · requests",
+      "weather": "Weather truth",
+      "forecasts": "Forecasts",
+      "events": "Directional events"
+    },
+    "file_group_desc": {
+      "config": "Seven JSON files: scenario, calendar, tile, weather, request, workflow and score configuration. Published in full in the initialize message as well.",
+      "data": "night_calendar.csv and slots.csv (time axis), tiles.csv and targets.csv (catalogue and science weights), tile_windows.csv (sample windows), observation_requests.csv and observation_request_tiles.csv, manifest and metadata.",
+      "weather": "weather.csv: site baseline per slot. Public on practice scenarios so a local score_decisions.py run reproduces the platform report.",
+      "forecasts": "weather_forecasts.csv: uncertain, daily-revised forecasts. The platform only shows revisions issued at or before the current cursor.",
+      "events": "weather_events.csv: the directional disruption truth behind active_event_ids. Hidden on competition scenarios."
+    },
+    "scorer": "scoring_core.py",
+    "scorer_desc": "The frozen challenge-score-v3 scorer (with contracts.py and score_config.json next to it). Standard library only, Python 3.12."
   },
   "faq": {
     "kicker": "FAQ",
@@ -1390,7 +1505,7 @@
     "items": [
       {
         "q": "Do I need an astronomy background?",
-        "a": "No. The state your agent receives is a small JSON document: current weather, a four-slot forecast, progress, and the candidate tiles with altitude, airmass, quality, expected gain and target counts. The glossary in the brief covers the few terms that appear."
+        "a": "No. Your agent receives JSON snapshots: the current slot's weather, the candidate tiles with altitude, airmass, lunar factor, effective conditions and tile_science_value, the forecasts and requests issued so far, and your progress. The docs explain the few terms that appear, and scoring_preview.py already turns a snapshot into a ranked list of candidates."
       },
       {
         "q": "Can I compete alone?",
@@ -1398,11 +1513,19 @@
       },
       {
         "q": "Which languages can I use?",
-        "a": "Locally, any language: run your agent yourself and upload decisions.csv. For platform runs on hidden weather, the entry point is a Python 3.12 script using the standard library only, with no network access."
+        "a": "Locally, any language: run your agent yourself on a public-weather practice scenario and upload decisions.csv. For platform runs on hidden weather the entry script is Python 3.12 (minimal_agent.py, agent.py or main.py) speaking participant-agent-protocol-v1 over stdin/stdout; it may install packages from requirements.txt and spawn whatever it needs inside the sandbox."
       },
       {
         "q": "Can I use an LLM or a commercial API?",
-        "a": "For local runs on public scenarios, yes. Platform runs have no network access, so an LLM cannot be called during a hidden-weather run; use it to design the strategy, not at decision time."
+        "a": "Yes, at decision time too. Platform runs have network access: put the provider key into the .env of your package (MODEL_PROVIDER, MODEL_NAME, <PROVIDER>_API_KEY) and the minimal agent calls the model through LangChain. Keep the global wall clock in mind — a model call for every one of the ~8,000 decisions of a 180-night scenario does not fit; let deterministic code answer the obvious waits."
+      },
+      {
+        "q": "What is the global wall clock?",
+        "a": "Each scenario publishes global_wallclock_seconds (7200 s on the reference scenario, less on short ones). It starts after the initialize message and covers every decision — snapshot serialisation, your think time and parsing included. There is no per-decision limit. When it expires the process is stopped and the actions committed so far are scored, with the terminal penalties for unfinished REQUIRED tiles, FLEXIBLE shortfalls and expired requests."
+      },
+      {
+        "q": "What is hidden on the competition scenarios?",
+        "a": "weather.csv, weather_forecasts.csv and weather_events.csv. Your agent still sees the current slot's weather, each candidate's effective conditions (directional events applied), the forecasts issued so far and the active requests — everything the snapshots publish — but never future weather. On the practice scenarios all three files are public so that a local score_decisions.py run reproduces the platform report."
       },
       {
         "q": "How many submissions can I make?",
@@ -1426,7 +1549,7 @@
       },
       {
         "q": "What happens if my agent crashes or times out?",
-        "a": "The submission is marked failed with the agent's stderr tail; it does not count on the board and does not consume your best score. Fix and resubmit within the daily limit."
+        "a": "A run that fails to initialize within 30 seconds, exits, or answers with an invalid message ends with termination_reason agent_error or agent_initialization_error. The actions committed before that are still scored, with the terminal penalties applied, and the agent's stderr tail is shown on the submission page. If the global wall clock expires, the committed actions are scored the same way (global_wallclock_expired). Fix and resubmit within the daily limit."
       },
       {
         "q": "Are prizes taxed?",
@@ -1434,7 +1557,7 @@
       },
       {
         "q": "Are there API credits for development?",
-        "a": "Registered teams can claim sponsor API codes from the dashboard, one code per provider per team. Platform runs on hidden weather have no network access, so use the credits for local development."
+        "a": "Registered teams can claim sponsor API codes from the dashboard, one code per provider per team. Platform runs have network access, so the same key works in the .env of your package for hidden-weather runs as well as for local development."
       }
     ]
   },
@@ -1453,15 +1576,16 @@
     "protocol": {
       "title": "Protocol at a glance",
       "tabs": {
-        "init": "init",
-        "step": "step",
-        "answer": "answer"
+        "initialize": "initialize",
+        "decision_request": "decision_request",
+        "decision_response": "decision_response"
       },
       "desc": {
-        "init": "Sent once on stdin when the run starts: scenario metadata, the frozen score configuration, the site and the full tile catalogue.",
-        "step": "Sent once per decision: current slot, weather, forecast, progress so far and the legal candidate tiles with their expected gain.",
-        "answer": "Your agent replies with one JSON line: observe a tile in a program, or wait for the rest of the slot."
-      }
+        "initialize": "Sent once on stdin before the wall clock starts, no reply expected: calendar, site, the full tile and target catalogue with tile_science_value, the scoring contract and global_wallclock_seconds.",
+        "decision_request": "Sent once per decision: the cursor, the current slot's site weather, the candidate tiles with geometry, lunar factor and effective weather, the active requests, night and weekly publications when due, and your progress. Never any future weather.",
+        "decision_response": "Your agent replies with one JSON line carrying the same decision_sequence: observe a tile in a program (optionally tagged with a request_id), or wait out the slot."
+      },
+      "truncated": "Real messages from the 14-night reference run; long arrays are truncated with \"… more\" markers."
     }
   },
   "ann": {
@@ -1525,26 +1649,28 @@
       "delete_confirm": "Delete this phase?"
     },
     "scenarios": {
-      "upload": "Upload scenario",
       "slug": "slug",
       "name": "name",
       "description": "description",
-      "seed": "seed",
+      "seed": "seed / checksum",
       "checksum": "checksum",
       "nights": "nights",
       "slots": "slots",
       "tiles": "tiles",
+      "targets": "targets",
+      "requests": "requests",
+      "wallclock": "wall clock",
+      "contract": "contract",
       "flags": "flags",
       "files": "files",
       "weather_public": "weather public",
+      "forecasts_public": "forecasts public",
+      "events_public": "events public",
       "tiles_public": "tiles public",
       "active": "active",
-      "uploaded": "Scenario uploaded.",
       "saved": "Scenario saved.",
-      "weather_file": "weather.csv",
-      "tiles_file": "tiles.csv",
-      "config_file": "score_config.json (optional)",
-      "note": "Uploads go to the private scenarios bucket. n_slots / n_nights / n_tiles are computed from the CSV files in the browser."
+      "cli_title": "Creating scenarios",
+      "cli_note": "Scenarios are no longer uploaded from the browser. Generate or register a scenario directory with the worker CLI (service role); it uploads config/ and outputs/reference/ to the scenarios bucket, computes the counts and the checksum, and inserts the row. Flags and the wall clock can be edited here."
     },
     "submissions": {
       "any_status": "any status",

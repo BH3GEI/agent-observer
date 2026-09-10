@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
 import { useI18n } from '../composables/useI18n'
 import { supabase } from '../lib/supabase'
 import { SUBMISSION_SELECT, PENDING_STATUSES } from '../lib/data'
-import { fmtUtc, num, pct } from '../lib/format'
+import { fmtUtc, num } from '../lib/format'
 import { useAuth } from '../stores/auth'
 import { useSubmissionWatch } from '../composables/useSubmissionWatch'
 import DashShell from '../components/layout/DashShell.vue'
@@ -36,7 +36,7 @@ onMounted(async () => {
     <p v-else-if="!rows.length" class="text2">{{ t('subs.empty') }} <router-link class="accent-l" to="/submit">{{ t('dash.new_submission') }} →</router-link></p>
     <div v-else class="table-wrap">
       <table class="data-table">
-        <thead><tr><th>{{ t('subs.id') }}</th><th>{{ t('subs.when') }}</th><th>{{ t('subs.phase') }}</th><th>{{ t('subs.kind') }}</th><th>{{ t('subs.scenario') }}</th><th>{{ t('common.status') }}</th><th class="r">{{ t('subs.score') }}</th><th class="r">{{ t('subs.science') }}</th><th class="r">{{ t('subs.completion') }}</th><th>{{ t('subs.by') }}</th></tr></thead>
+        <thead><tr><th>{{ t('subs.id') }}</th><th>{{ t('subs.when') }}</th><th>{{ t('subs.phase') }}</th><th>{{ t('subs.kind') }}</th><th>{{ t('subs.scenario') }}</th><th>{{ t('common.status') }}</th><th class="r">{{ t('subs.score') }}</th><th class="r">{{ t('subs.base_science') }}</th><th class="r">{{ t('subs.penalties') }}</th><th class="r">{{ t('subs.tiles_done') }}</th><th>{{ t('subs.termination') }}</th><th>{{ t('subs.by') }}</th></tr></thead>
         <tbody>
           <tr v-for="s in rows" :key="s.id">
             <td><router-link class="accent-l m" :to="`/submissions/${s.id}`">#{{ s.id }}</router-link><div v-if="s.title" class="text3 text-xs">{{ s.title }}</div></td>
@@ -45,9 +45,11 @@ onMounted(async () => {
             <td>{{ t(`kind.${s.kind}`) }}</td>
             <td class="m xs">{{ s.scenarios?.slug ?? '—' }}</td>
             <td><StatusPill :status="s.status" /></td>
-            <td class="r m">{{ num(s.score) }}</td>
-            <td class="r m">{{ num(s.science_score) }}</td>
-            <td class="r m">{{ pct(s.completion) }}</td>
+            <td class="r m" :class="{ 'text-[#ff6b6b]': Number(s.score) < 0 }">{{ num(s.score) }}</td>
+            <td class="r m">{{ num(s.base_science) }}</td>
+            <td class="r m" :class="{ 'text-[#ff6b6b]': Number(s.penalty_total) > 0 }">{{ s.penalty_total != null ? '−' + num(s.penalty_total) : '—' }}</td>
+            <td class="r m">{{ s.completed_tiles ?? '—' }}</td>
+            <td class="xs">{{ s.termination_reason ? String(s.termination_reason).split(';').map((r: string) => t(`subs.termination_reason.${r}`)).join(' · ') : '—' }}</td>
             <td class="text-sm">{{ s.profiles?.name ?? '—' }}</td>
           </tr>
         </tbody>

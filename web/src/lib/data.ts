@@ -5,9 +5,28 @@ export type LeaderboardMode = 'live' | 'frozen' | 'hidden' | 'published'
 
 export interface Scenario {
   id: string; slug: string; name: string; description: string | null
-  weather_public: boolean; tiles_public: boolean; is_active: boolean
-  n_slots: number | null; n_nights: number | null; n_tiles: number | null; seed: number | null; checksum: string | null; created_at: string
+  weather_public: boolean; tiles_public: boolean; forecasts_public: boolean; events_public: boolean; is_active: boolean
+  n_slots: number | null; n_nights: number | null; n_tiles: number | null; n_targets: number | null; n_requests: number | null
+  global_wallclock_seconds: number | null; contract: string | null; manifest: Record<string, unknown> | null
+  seed: number | null; checksum: string | null; created_at: string
 }
+
+/** Files of a scenario directory in the `scenarios` bucket (`<slug>/config/<file>` and `<slug>/outputs/reference/<file>`). */
+export type ScenarioFileGroup = 'config' | 'data' | 'weather' | 'forecasts' | 'events'
+export interface ScenarioFile { key: string; name: string; group: ScenarioFileGroup; flag?: 'weather_public' | 'forecasts_public' | 'events_public' }
+export const SCENARIO_FILES: ScenarioFile[] = [
+  ...['scenario_config.json', 'calendar_config.json', 'tile_config.json', 'weather_config.json', 'request_config.json', 'workflow_config.json', 'score_config.json']
+    .map(name => ({ key: `config/${name}`, name, group: 'config' as const })),
+  ...['night_calendar.csv', 'slots.csv', 'tiles.csv', 'targets.csv', 'tile_windows.csv', 'observation_requests.csv', 'observation_request_tiles.csv',
+    'scenario_manifest.json', 'calendar_metadata.json', 'catalog_metadata.json', 'observation_request_metadata.json']
+    .map(name => ({ key: `outputs/reference/${name}`, name, group: 'data' as const })),
+  { key: 'outputs/reference/weather.csv', name: 'weather.csv', group: 'weather', flag: 'weather_public' },
+  { key: 'outputs/reference/weather_metadata.json', name: 'weather_metadata.json', group: 'weather', flag: 'weather_public' },
+  { key: 'outputs/reference/weather_forecasts.csv', name: 'weather_forecasts.csv', group: 'forecasts', flag: 'forecasts_public' },
+  { key: 'outputs/reference/weather_events.csv', name: 'weather_events.csv', group: 'events', flag: 'events_public' },
+]
+export const scenarioFileVisible = (s: Scenario, f: ScenarioFile) => !f.flag || Boolean(s[f.flag])
+export const scenarioObjectKey = (slug: string, file: string) => `${slug}/${file}`
 export interface Phase {
   id: string; slug: string; name_en: string; name_zh: string; description_en: string | null; description_zh: string | null
   sort_order: number; starts_at: string | null; ends_at: string | null; allow_results: boolean; allow_agents: boolean
@@ -20,7 +39,9 @@ export interface Announcement {
 }
 export interface LeaderboardEntry {
   rank: number; team_id: string; team_name: string; team_slug: string; total_score: number; science_score: number
-  completion_rate: number; uniformity_score: number; submission_count: number; best_submission_id: number | null; kind: string | null; scored_at: string | null
+  completion_rate: number; uniformity_score: number
+  base_science: number; program_bonus: number; request_reward: number; penalty_total: number; completed_tiles: number | null; required_missing: number | null
+  submission_count: number; best_submission_id: number | null; kind: string | null; scored_at: string | null
 }
 
 export function phaseStatus(p: { is_active: boolean; starts_at: string | null; ends_at: string | null }, now = Date.now()): PhaseStatus {
@@ -87,6 +108,12 @@ export async function loadLeaderboard(phaseSlug: string | null, limit = 500): Pr
     science_score: Number(row.science_score ?? 0),
     completion_rate: Number(row.completion_rate ?? 0),
     uniformity_score: Number(row.uniformity_score ?? 0),
+    base_science: Number(row.base_science ?? 0),
+    program_bonus: Number(row.program_bonus ?? 0),
+    request_reward: Number(row.request_reward ?? 0),
+    penalty_total: Number(row.penalty_total ?? 0),
+    completed_tiles: row.completed_tiles == null ? null : Number(row.completed_tiles),
+    required_missing: row.required_missing == null ? null : Number(row.required_missing),
     submission_count: Number(row.submission_count ?? 0),
     best_submission_id: row.best_submission_id == null ? null : Number(row.best_submission_id),
     kind: row.kind ?? null,
@@ -94,7 +121,7 @@ export async function loadLeaderboard(phaseSlug: string | null, limit = 500): Pr
   }))
 }
 
-export const SUBMISSION_SELECT = '*, phases(slug,name_en,name_zh), scenarios(slug,name), evaluations(*, scenarios(slug,name,tiles_public))'
+export const SUBMISSION_SELECT = '*, phases(slug,name_en,name_zh), scenarios(slug,name), evaluations(*, scenarios(slug,name,tiles_public,weather_public,global_wallclock_seconds,n_tiles,n_nights))'
 export const PENDING_STATUSES = new Set(['queued', 'running'])
 
 // --- sponsor API credits (redeem codes) -----------------------------------

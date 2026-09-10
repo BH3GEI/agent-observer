@@ -1,13 +1,13 @@
 {
   "meta": {
     "title": "巡天智能体 · GOSIM 黑客松",
-    "description": "面向智能巡天的 GOSIM 黑客松：构建观测智能体，读取天空状态，并在每 900 秒选择下一次观测。",
+    "description": "GOSIM 智能巡天黑客松：构建一个读取已发布天空状态、面对隐藏天气与预报和临时请求做规划、逐时隙提交下一次观测的观测智能体。",
     "wordmark_note": "AGENT HACKATHON",
     "brand": "巡天智能体",
     "pages": {
       "home": {
         "title": "首页",
-        "description": "面向智能巡天的 GOSIM 黑客松：构建观测智能体，读取天空状态，并在每 900 秒选择下一次观测。"
+        "description": "GOSIM 智能巡天黑客松：构建一个读取已发布天空状态、面对隐藏天气与预报和临时请求做规划、逐时隙提交下一次观测的观测智能体。"
       },
       "brief": {
         "title": "赛题简报",
@@ -19,7 +19,7 @@
       },
       "docs": {
         "title": "文档",
-        "description": "observer-v1 协议、计分器、场景文件与入门套件。"
+        "description": "participant-agent-protocol-v1 消息、challenge-score-v3 评分器、场景文件与入门套件。"
       },
       "faq": {
         "title": "常见问题",
@@ -27,11 +27,11 @@
       },
       "resources": {
         "title": "资源",
-        "description": "入门套件、计分器、协议参考与公开开发场景。"
+        "description": "入门套件、各场景的配置与参考文件，以及公开开发场景。"
       },
       "leaderboard": {
         "title": "排行榜",
-        "description": "各阶段实时排名：总分、科学产出、完成度与均匀性。"
+        "description": "各阶段实时排名：总分、基础科学分、项目加成、请求奖励、惩罚、已完成天区与缺失的 REQUIRED 天区。"
       },
       "announcements": {
         "title": "公告",
@@ -63,7 +63,7 @@
       },
       "submission": {
         "title": "提交详情",
-        "description": "单次提交的评测报告、观测天图与动作时间线。"
+        "description": "单次提交的得分分解、决策回放、观测天图与动作时间线。"
       },
       "profile": {
         "title": "个人资料",
@@ -104,7 +104,7 @@
     "eyebrow": "GOSIM 黑客松 · 智能巡天",
     "system": "巡天智能体",
     "subtitle": "Agent Observer",
-    "lede": "为巡天之夜构建未来的观测智能体：读取天空状态，像主值观测员一样推理，每 900 秒选择下一次观测。",
+    "lede": "为巡天之夜构建未来的观测智能体：读取已发布的天空状态，面对隐藏天气、不确定预报与临时请求做规划，逐时隙提交下一次观测。",
     "pipeline": [
       {
         "label": "线上培训",
@@ -137,8 +137,8 @@
         "label": "2026 · 线上 + 深圳"
       },
       {
-        "value": "900 s",
-        "label": "一次决策"
+        "value": "1 个时钟",
+        "label": "每个场景一个全局时钟"
       },
       {
         "value": "全球开放",
@@ -148,16 +148,21 @@
     "side_note": "Human judgment / machine speed / one shared sky",
     "console": {
       "title": "观测站控制台",
-      "replay_note": "回放 · 基线智能体 · dev-example",
+      "replay_note": "回放 · 最小智能体 · {nights} 晚 · {actions} 次动作",
       "paused": "已暂停",
-      "aria": "基线智能体的天图回放：已观测天区按时隙逐一填充",
+      "aria": "最小智能体 14 晚回放天图：REQUIRED 与 FLEXIBLE 天区随曝光完成逐一填充",
       "slot": "时隙",
-      "weather": "视宁度 · 透明度 · 天光",
+      "weather": "视宁·透明·天光·效率",
       "dome_closed": "圆顶关闭",
       "score": "得分",
       "tiles": "天区",
       "legend_visible": "高度 ≥ 30°",
-      "legend_meridian": "子午线 (LST)"
+      "legend_meridian": "子午线 (LST)",
+      "night": "夜",
+      "legend_required": "REQUIRED",
+      "legend_flexible": "FLEXIBLE",
+      "legend_completed": "已完成",
+      "legend_interrupted": "被中断"
     }
   },
   "home": {
@@ -166,22 +171,22 @@
       "title": "把夜空交给智能体",
       "lede": "夜空太大、太珍贵，不该靠运气决定看向哪里。",
       "paragraphs": [
-        "巡天望远镜每晚会面对成千上万个可观测的天区。天气在变、目标可见性在变、科学优先级也在变。人类观测员要做出的每一个决定，都影响着最终宇宙样本的质量。",
-        "我们正在构建一个开放基准：让智能体读取夜空状态，像资深观测员一样推理，并在每个 900 秒的时隙里决定下一次观测。所有参赛者面对相同的巡天计划、天气回放、新增请求、模拟器与计分规则——唯一的变量就是策略。"
+        "每晚，巡天望远镜面对几十个只在几小时内可见的天区。天气会关闭圆顶，方向性的云和雾霾破坏一片天空，月亮照亮另一片，而带截止期限的科学请求会在一周中途出现。人类观测员的每个决定都影响最终宇宙样本的质量。",
+        "我们正在建立一个开放基准：智能体收到已发布的天空状态，像资深观测员一样推理，逐时隙提交下一步动作。每个参赛者获得相同的日历、目录、预报、请求、模拟器与评分规则——唯一的变量是策略，以及如何使用全局时钟。"
       ],
       "link": "阅读完整赛事说明",
       "stats": [
         {
           "value": "900s",
-          "label": "每个决策时隙"
+          "label": "每个时隙"
         },
         {
           "value": "1",
-          "label": "统一任务卡"
+          "label": "全局时钟"
         },
         {
           "value": "∞",
-          "label": "策略的可能"
+          "label": "可能的策略"
         }
       ]
     },
@@ -191,19 +196,19 @@
       "lede": "你的智能体接管人类主值观测员的核心决策。",
       "cards": [
         {
-          "title": "读取夜空状态",
-          "desc": "天气、预报、天区进度与合法候选目标，全部装进一个紧凑的状态字典。"
+          "title": "读取已发布的天空",
+          "desc": "当前时隙的天气、每个候选天区的几何、月光因子与有效条件、迄今发布的预报、活动请求与你的进度，作为一份 JSON 快照送达。未来天气永远不会。"
         },
         {
-          "title": "每 900 秒决策一次",
-          "desc": "在每个时隙结束时，选择观测某个天区，或者等待更好的时机。"
+          "title": "一次提交一个动作",
+          "desc": "以某个项目（DARK、BRIGHT 或 BACKUP）观测一个天区，可附带请求标注，或等待本时隙结束。只有提交的动作推进巡天；一个全局时钟约束整场运行。"
         },
         {
-          "title": "同一个评测标准",
-          "desc": "科学产出、覆盖均匀性、时间效率与规则合规，全部固定透明。"
+          "title": "同一个透明评分",
+          "desc": "完成曝光的基础科学分、匹配质量区间的加成、请求奖励，以及六类公开惩罚：不安全观测、无效动作、可避免等待、缺失的 REQUIRED 天区、FLEXIBLE 缺额与错过的请求。"
         }
       ],
-      "closing": "不需要天文专业背景。只需要一个能读状态、会权衡、敢决策的智能体。"
+      "closing": "不需要天文专业背景。只需要一个能读快照、会在时钟约束下权衡风险、敢提交决策的智能体。"
     },
     "participate": {
       "kicker": "03 / 如何参赛",
@@ -212,18 +217,18 @@
       "steps": [
         {
           "n": "01",
-          "title": "报名组队",
-          "desc": "在线注册并创建或加入一支队伍。个人开发者也欢迎。"
+          "title": "注册并组队",
+          "desc": "在线注册，创建或加入队伍。个人开发者同样欢迎。"
         },
         {
           "n": "02",
-          "title": "开发智能体",
-          "desc": "下载入门包，用与平台相同的协议和评分器在本地运行基线智能体，再在公开开发场景上迭代策略。"
+          "title": "构建智能体",
+          "desc": "下载入门包，用与平台相同的 workflow 和评分器在本地运行最小智能体，然后在公开开发场景上迭代——确定性代码、通过你自己的 .env 调用大模型，或两者结合。"
         },
         {
           "n": "03",
           "title": "提交评测",
-          "desc": "上传 decisions.csv，或上传智能体由平台在隐藏天气上运行。所有队伍都由同一个冻结的评分器打分。"
+          "desc": "为天气公开的场景上传 decisions.csv，或上传智能体程序包，让平台在一个全局时钟下对隐藏天气运行它。每支队伍由同一个冻结的评分器评分。"
         }
       ],
       "timeline": [
@@ -275,32 +280,32 @@
     "evaluation": {
       "kicker": "05 / 评测",
       "title": "一个冻结的评分器，一个公开的公式",
-      "lede": "第一阶段得分奖励在良好天况下观测到的加权有效目标，并对每一秒浪费扣分。公式、常数与评分器源码全部公开。",
-      "formula": "score = Σ action_score − idle_penalty × total_waste_seconds\naction_score = Σ_segments H(alt − 30°) · A · (dt / t_nominal) · target_value · priority_factor · (1 + B)\nA = transparency / (seeing · sky_brightness · airmass)",
+      "lede": "challenge-score-v3 按大气与月光质量为完成的曝光计分，奖励匹配的项目与完成的请求，并按六类公开惩罚扣分。公式、常数与评分器源码全部公开。",
+      "formula": "total = base_science + program_bonus + request_reward\n      − unsafe_observation − invalid_action − avoidable_wait\n      − required_miss − flexible_shortfall − request_miss\nbase  = Σ_segments V_tile · (dt / t_nominal) · combined\ncombined = min(eff · transp · sky / (seeing · airmass), 3) · lunar",
       "criteria": [
         {
-          "term": "科学产出",
-          "desc": "按各曝光段观测质量 A 缩放的加权目标数（LRG、ELG、QSO、BGS）。"
+          "term": "基础科学分",
+          "desc": "天区目标的 science_weight 之和，按各分段的仪器效率、透明度、天光质量、视宁度、airmass 与月光因子缩放。只有完成的曝光计分。"
         },
         {
-          "term": "项目匹配",
-          "desc": "决策项目与天况所对应的 DARK / BRIGHT / BACKUP 波段一致时获得加成。"
+          "term": "项目加成",
+          "desc": "所选项目与组合质量的 DARK / BRIGHT / BACKUP 区间（阈值 0.65 与 0.40）一致时 +25 % / +15 % / +8 %。"
         },
         {
-          "term": "时间效率",
-          "desc": "空闲的可观测时间、无效动作，以及低于高度限制或穹顶关闭时的曝光按秒扣分。"
+          "term": "请求",
+          "desc": "临时观测请求在截止前完成每个所需天区奖励 140，错过则每个所需天区扣 190。"
         },
         {
-          "term": "规则合规",
-          "desc": "每个天区只计分一次；曝光不能跨越夜晚边界；项目与天区必须匹配。"
+          "term": "安全与有效",
+          "desc": "圆顶关闭时观测扣 2000；无效动作扣 100；可避免等待每秒 0.001。"
         },
         {
-          "term": "覆盖情况（仅展示）",
-          "desc": "完成度与天区均匀性展示在榜单上，后续阶段可纳入得分。"
+          "term": "覆盖",
+          "desc": "每个未完成的 REQUIRED 天区扣 1000，每个分区少于 4 个配额的 FLEXIBLE 天区每个扣 100——每次运行结束时都适用，被截断的运行也不例外。"
         },
         {
           "term": "泛化能力",
-          "desc": "比赛天气回放不公开。智能体在平台上运行，只能看到当前时隙和未来四个时隙的预报。"
+          "desc": "比赛的天气、方向性事件及其预报不公开。智能体在平台上于一个全局时钟下运行，只能看到已发布的快照。"
         }
       ],
       "link": "阅读完整规则"
@@ -311,15 +316,15 @@
       "items": [
         {
           "title": "结果文件",
-          "desc": "在公开场景上本地运行智能体，上传 decisions.csv（列：decision_id、slot_id、action、tile_id、program、reason），数秒内出分。"
+          "desc": "在天气公开的练习场景上本地运行智能体，上传 decisions.csv（列：decision_id、slot_id、action、tile_id、program、request_id、reason），数秒内出分。"
         },
         {
           "title": "智能体程序包",
-          "desc": "上传 agent.py 或 zip。平台在沙箱中通过 observer-v1 逐步协议对隐藏天气运行，再对生成的决策评分。"
+          "desc": "上传根目录含 minimal_agent.py、agent.py 或 main.py 的 .zip，可选 requirements.txt 与存放模型密钥的 .env。平台通过 participant-agent-protocol-v1 对隐藏天气运行，并对提交的决策评分。"
         },
         {
           "title": "限制",
-          "desc": "平台运行仅支持 Python 3.12 标准库，无网络，每步 20 秒，每个场景 10 分钟；线上比赛每队每天 10 次提交。"
+          "desc": "Python 3.12，允许联网，每个场景一个全局时钟（参考场景 7200 秒，无单次决策超时），初始化 30 秒，程序包最大 20 MB；线上比赛每队每天 10 次提交。"
         }
       ],
       "link": "提交文档"
@@ -341,7 +346,7 @@
         {
           "role": "科学背景",
           "name": "DESI 式巡天",
-          "desc": "台址纬度 31.96°，900 秒时隙，DARK / BRIGHT / BACKUP 项目，LRG / ELG / QSO / BGS 目标类别。"
+          "desc": "台址纬度 31.96°，180 晚太阳历上的 900 秒时隙，DARK / BRIGHT / BACKUP 项目，REQUIRED / FLEXIBLE 天区，LRG / ELG / QSO / BGS 目标类别。"
         }
       ]
     },
@@ -493,18 +498,18 @@
           "运行智能体完成挑战场景，生成比赛平台要求的观测结果。",
           "阅读任务卡，研究公开开发场景与可视化报告，依据观测员接口开发原型，在开发场景中评测并检查已观测宇宙图，最后只提交智能体生成的观测结果。"
         ],
-        "actionCode": "return {\n    \"action\": \"observe\",\n    \"tile_id\": 100123,\n    \"plan\": \"DARK\",\n    \"reason\": \"good weather and highest useful gain\",\n}"
+        "actionCode": "return {\n    \"action\": \"observe\",\n    \"tile_id\": \"T00037\",\n    \"program\": \"DARK\",\n    \"request_id\": \"\",\n    \"reason\": \"highest preview estimate\",\n}"
       },
       {
         "kicker": "06 / 计分",
         "title": "科学、可复现、可检视的评测",
         "paragraphs": [
-          "得分奖励加权有效目标数，并惩罚天区覆盖不均、时间浪费、规则违规，以及未完成的高优先级天区。一个好的智能体，会在即时产出与完成度、均匀性、天气风险和运行纪律之间做出权衡。",
+          "得分按大气与月光质量为完成的曝光计分，奖励匹配的项目与完成的请求，并对不安全观测、无效动作、可避免等待、缺失的 REQUIRED 天区、各分区 FLEXIBLE 缺额与到期请求扣分。好的智能体会在即时产出与覆盖、天气风险、请求截止期限和全局时钟之间权衡。",
           "评测遵循开放科学原则：固定数据与固定计分，让每份观测结果都按同一标准评估；可读的结果文件便于检查最终产出；开发天气与最终评测天气分离，比较的是泛化能力，而不是针对已知场景调参。",
           "结果可视化把已完成的天区比例转换成「已观测目标图」——三维空间采样与二维蝴蝶图（天球位置加模拟红移，风格与 DESI 一致），让不同策略肉眼可辨。",
           "同一观测员接口未来可以承载真实巡天日志回放、z > 5 类星体规划、LBG 规划和临时目标插入等任务卡；社区也可以为后续赛道提议新的固定数据集。"
         ],
-        "formula": "score = science_score\n  - uniformity_penalty            均匀性惩罚\n  - wasted_time_penalty           时间浪费惩罚\n  - violation_penalty             违规惩罚\n  - incomplete_priority_penalty   高优先级未完成惩罚"
+        "formula": "total = base_science + program_bonus + request_reward\n      - unsafe_observation - invalid_action - avoidable_wait\n      - required_miss - flexible_shortfall - request_miss"
       },
       {
         "kicker": "07 / 名词",
@@ -512,9 +517,9 @@
         "paragraphs": [
           "不是天文专业也能读懂状态字典并据此推理。天区（Tile）是望远镜一次指向的一小片天空；巡天天区（Footprint）是整个巡天区域；目标（Targets）是每个天区内的天体计数。高优先级天区具有额外科学权重，接近完成的天区只差一次曝光，覆盖不足区域的进度落后于巡天整体。",
           "视宁度（Seeing）描述大气扰动造成的模糊，数值越低越好；透过率（Transparency）越高表示大气越通透；天光亮度（Sky brightness）是背景光，对暗弱目标而言越暗越好；大气质量（Airmass）随天球位置变化，数值越低越好；DARK、BRIGHT、BACKUP 分别对应暗夜、亮夜和较差天况；donefrac 表示天区完成度，0 表示刚开始，1 表示已完成。",
-          "状态字典包含 weather（当前视宁度、透过率、天光亮度、观测项目、可观测性与速度）、forecast（当前时隙加上未来四个时隙）、progress（已完成天区数、平均完成度、天区均衡度、浪费时间与违规次数）以及 available_tiles（当下的合法选项，包含期望增益、期望浪费、目标计数、优先级与大气质量）。"
+          "决策快照包含 current_site_weather（可观测性、视宁度、透明度、天光质量、仪器效率、活动事件）、candidate_tiles（此刻的合法候选，各带几何、airmass、月光因子、有效天气、科学价值与窗口）、active_requests、迄今发布的预报，以及 progress（已完成天区、各分区 FLEXIBLE 完成数）。"
         ],
-        "actionCode": "return {\n    \"action\": \"observe\",\n    \"tile_id\": 100123,\n    \"plan\": \"DARK\",\n    \"reason\": \"good weather and highest useful gain\",\n}"
+        "actionCode": "return {\n    \"action\": \"observe\",\n    \"tile_id\": \"T00037\",\n    \"program\": \"DARK\",\n    \"request_id\": \"\",\n    \"reason\": \"highest preview estimate\",\n}"
       },
       {
         "kicker": "08 / 时间线",
@@ -781,7 +786,7 @@
     "scenarios": [
       {
         "when": "良好暗夜",
-        "then": "优先考虑高期望增益、高优先级与暗弱目标项目。"
+        "then": "把时隙用在 preview 估计最高的候选上：先 REQUIRED 天区，再覆盖不足分区的 FLEXIBLE 天区，选 DARK 项目。"
       },
       {
         "when": "临界但可用的天气",
@@ -808,8 +813,8 @@
   "scoring": {
     "kicker": "05 / 计分",
     "title": "计分怎么算",
-    "intro": "得分奖励加权有效目标数，并惩罚天区覆盖不均、时间浪费、规则违规，以及未完成的高优先级天区。一个好的智能体，会在即时产出与完成度、均匀性、天气风险和运行纪律之间做出权衡。",
-    "formula": "score = science_score\n      - uniformity_penalty            均匀性惩罚\n      - wasted_time_penalty           时间浪费惩罚\n      - violation_penalty             违规惩罚\n      - incomplete_priority_penalty   高优先级未完成惩罚",
+    "intro": "得分按大气与月光质量为完成的曝光计分，奖励匹配的项目与完成的请求，并对不安全观测、无效动作、可避免等待、缺失的 REQUIRED 天区、各分区 FLEXIBLE 缺额与到期请求扣分。好的智能体会在即时产出与覆盖、天气风险、请求截止期限和全局时钟之间权衡。",
+    "formula": "total = base_science + program_bonus + request_reward\n      - unsafe_observation - invalid_action - avoidable_wait\n      - required_miss - flexible_shortfall - request_miss",
     "principlesTitle": "开放科学的设计原则",
     "principles": [
       {
@@ -881,31 +886,31 @@
         "desc": "分别匹配暗夜、亮夜和较差天况的观测项目。"
       },
       {
-        "term": "优先级与覆盖",
-        "desc": "高优先级、接近完成和覆盖不足的天区会竞争每个观测时隙。"
+        "term": "REQUIRED / FLEXIBLE",
+        "desc": "运行结束时每个缺失的 REQUIRED 天区扣 1000；FLEXIBLE 天区每个分区需完成 4 个，否则每个扣 100。"
       },
       {
-        "term": "donefrac",
-        "desc": "天区完成度：0 表示刚开始，1 表示已完成。"
+        "term": "lunar_quality_factor",
+        "desc": "月光对组合质量的连续折减：月亮在地平线下时为 1，靠近亮月时最低 0.25。"
       }
     ],
     "stateTitle": "状态里都有什么",
     "state": [
       {
-        "field": "weather",
-        "desc": "当前视宁度、透过率、天光亮度、观测项目、可观测性与速度。"
+        "field": "current_site_weather",
+        "desc": "当前时隙的站点天气：可观测性、视宁度、透明度、天光质量、仪器效率与活动事件。"
       },
       {
-        "field": "forecast",
-        "desc": "当前时隙加上未来四个时隙，给智能体重规划的机会。"
+        "field": "forecasts",
+        "desc": "迄今发布的、每日修订的不确定预报——只有当前游标之前的修订。"
       },
       {
         "field": "progress",
-        "desc": "已完成天区数、平均完成度、天区均衡度、浪费时间与违规次数。"
+        "desc": "已完成天区与各分区 FLEXIBLE 完成数。"
       },
       {
-        "field": "available_tiles",
-        "desc": "当下的合法选项，包含期望增益、期望浪费、目标计数、优先级与大气质量。"
+        "field": "candidate_tiles",
+        "desc": "此刻合法的候选天区：几何、airmass、月光因子、有效天气、科学价值与窗口。"
       }
     ],
     "actionCode": "return {\n    \"action\": \"observe\",\n    \"tile_id\": 100123,\n    \"plan\": \"DARK\",\n    \"reason\": \"good weather and highest useful gain\",\n}"
@@ -969,7 +974,7 @@
     "published": "最终结果已公布。",
     "live": "实时更新",
     "tie": "同分时先提交者在前。每队取最佳已评分成绩。",
-    "mean_note": "阶段含多个场景时，得分为各场景的平均值。",
+    "mean_note": "阶段含多个场景时，各列均为各场景的平均值。",
     "download_csv": "下载 CSV",
     "json": "JSON",
     "n_entries": "{n} 支队伍",
@@ -983,14 +988,25 @@
     "me": "你的队伍",
     "chart": {
       "title": "得分构成 · 前 10 名",
-      "penalty": "浪费扣分",
+      "penalty": "惩罚",
       "your_team": "你的队伍",
       "your_position": "你的位置",
       "teams_on_board": "上榜队伍",
       "scored_runs": "已评分提交",
       "last_update": "最近更新",
-      "tooltip": "总分 {score} · 科学产出 {science} · 扣分 {penalty}"
-    }
+      "tooltip": "总分 {score} · 基础 {base} · 加成 {bonus} · 请求 {requests} · 惩罚 −{penalty} · {tiles} 个天区 · 缺失 REQUIRED {missing}",
+      "legend_base": "基础科学分",
+      "legend_bonus": "项目加成",
+      "legend_request": "请求奖励",
+      "tiles": "天区",
+      "req_missing": "REQ 缺失"
+    },
+    "base_science": "基础科学分",
+    "bonus": "加成",
+    "requests": "请求",
+    "penalties": "惩罚",
+    "tiles": "天区",
+    "required_missing": "REQ 缺失"
   },
   "cta": {
     "title": "把夜空的下一步，交给你写的智能体",
@@ -1013,10 +1029,10 @@
     },
     "contact_email": "hackathon@gosim.org",
     "ticker": {
-      "per_decision": "一次决策",
       "slot": "时隙",
       "open": "圆顶开启",
-      "closed": "圆顶关闭"
+      "closed": "圆顶关闭",
+      "per_slot": "每时隙 · 一个全局时钟"
     }
   },
   "common": {
@@ -1260,15 +1276,15 @@
     "scenario": "场景",
     "file": "文件",
     "file_results": "decisions.csv",
-    "file_agent": "agent.py 或 agent.zip（根目录须有 agent.py）",
+    "file_agent": "智能体程序包：根目录含 minimal_agent.py、agent.py 或 main.py 的 .zip（不依赖其他文件时也可上传单个 .py）",
     "title_field": "备注名称（可选）",
     "notes": "备注（可选，仅队伍可见）",
     "button": "上传并排队评测",
     "quota_left": "今日剩余 {n} 次",
     "phase_closed": "已关闭",
     "phase_upcoming": "{date} 开放",
-    "help_results": "对所选公开场景评分你在本地生成的 decisions.csv。",
-    "help_agent": "平台在该阶段的每个场景（含隐藏天气）上运行你的智能体并取平均分。",
+    "help_results": "对天气公开的练习场景评分你在本地生成的 decisions.csv。",
+    "help_agent": "平台在该阶段的每个场景（含隐藏天气）上以每场景一个全局时钟运行你的程序包，并取平均分。",
     "errors": {
       "need_team": "请先创建或加入队伍。",
       "bad_phase": "阶段无效。",
@@ -1290,8 +1306,20 @@
     "hashing": "正在计算校验和…",
     "queued": "提交已排队。",
     "no_phase": "当前没有开放提交的阶段。",
-    "no_scenario": "本阶段没有公开场景，请改为提交智能体程序包。",
-    "all_scenarios": "本阶段全部场景"
+    "no_scenario": "本阶段没有天气公开的场景，请改为提交智能体程序包。",
+    "all_scenarios": "本阶段全部场景",
+    "agent_hints": [
+      "入口脚本：程序包根目录（或唯一顶层文件夹）中的 minimal_agent.py、agent.py 或 main.py；通过 stdin/stdout 使用 participant-agent-protocol-v1。",
+      "requirements.txt（可选）会在时钟开始前用 pip 装进全新虚拟环境。",
+      ".env（可选，KEY=VALUE 行）只注入智能体环境：把 MODEL_PROVIDER、MODEL_NAME 与服务商 API key 写在这里。它永远不会被记录。",
+      "zip 中的其他文件可从入口脚本所在目录导入。≤ 20 MB、≤ 2,000 个文件、解压后 ≤ 50 MB、不含符号链接。"
+    ],
+    "results_public_only": "只列出天气公开的场景：评分器需要完整天气真值才能回放结果文件。",
+    "wallclock": "全局时钟",
+    "wallclock_note": "每个场景一个全局时钟，在 initialize 消息后开始；没有单次决策超时。截止前提交的动作照常评分。",
+    "wallclock_results_note": "结果文件离线回放；全局时钟只适用于智能体程序包的平台运行。",
+    "weather_public": "天气公开",
+    "weather_hidden": "天气隐藏"
   },
   "subs": {
     "title": "提交记录",
@@ -1300,9 +1328,6 @@
     "phase": "阶段",
     "kind": "类型",
     "score": "得分",
-    "science": "科学产出",
-    "completion": "完成度",
-    "uniformity": "均匀性",
     "by": "提交人",
     "empty": "还没有提交。",
     "detail_title": "提交 #{id}",
@@ -1312,23 +1337,14 @@
     "evaluations": "评测结果",
     "scenario": "场景",
     "runtime": "耗时",
-    "steps": "步数",
-    "report": "报告 JSON",
+    "report": "score_report.json",
     "decisions": "decisions.csv",
     "log": "智能体日志",
     "cancel": "取消",
     "waiting": "等待评测… 页面会自动刷新。",
-    "waste": "浪费",
-    "idle": "空闲",
-    "invalid": "无效动作",
-    "unproductive": "无效曝光",
     "actions_title": "动作时间线",
-    "region_title": "分区完成度",
     "tiles_done": "已完成天区",
     "stderr": "stderr（末尾）",
-    "warnings": "警告",
-    "penalty": "浪费惩罚",
-    "invalid_count": "无效",
     "show_all": "显示全部动作",
     "download_failed": "下载失败。",
     "no_report": "报告尚未生成。",
@@ -1344,7 +1360,89 @@
       "start": "首次决策之前",
       "night": "夜",
       "tiles": "个天区",
-      "score_gained": "得分"
+      "unavailable": "无法加载天区目录。"
+    },
+    "mean_of_scenarios": "各场景平均",
+    "base_science": "基础科学分",
+    "program_bonus": "项目加成",
+    "request_reward": "请求奖励",
+    "penalties": "惩罚",
+    "required_missing": "REQUIRED 缺失",
+    "flexible_shortfall": "FLEXIBLE 缺额",
+    "termination": "终止原因",
+    "tiles": "个天区",
+    "completion_title": "完成情况",
+    "none_missing": "无——全部 REQUIRED 天区已完成",
+    "exposures": "完成的曝光",
+    "actions": "动作数",
+    "flexible_by_region": "各分区 FLEXIBLE 天区（配额 4）",
+    "requests_title": "观测请求",
+    "req_satisfied": "已满足 / 所需",
+    "req_feasible": "可行",
+    "req_reward": "奖励",
+    "req_penalty": "惩罚",
+    "no_requests": "最终游标之前没有发布任何请求。",
+    "wait_title": "等待秒数",
+    "agent_run": "智能体运行",
+    "committed_actions": "已提交动作",
+    "in_flight_ignored": "截止时一条在途响应被丢弃",
+    "wallclock": "已用时钟",
+    "agent_error": "智能体错误",
+    "workflow": "workflow_result.json",
+    "reading_title": "如何阅读报告",
+    "reading_formula": "上面的每个面板都是公开公式中的一项：",
+    "reading_note": "REQUIRED 缺失、FLEXIBLE 缺额与到期请求的惩罚在每次运行结束时适用，包括被时钟或智能体错误截断的运行。将鼠标悬停在时间线上可查看每次曝光各分段的质量。",
+    "termination_reason": {
+      "survey_complete": "巡天完成",
+      "global_wallclock_expired": "时钟到期",
+      "agent_error": "智能体错误",
+      "agent_initialization_error": "初始化错误",
+      "trace_complete": "轨迹回放完成"
+    },
+    "termination_help": {
+      "survey_complete": "智能体回答了直到日历最后一个时隙的全部决策请求。",
+      "global_wallclock_expired": "场景的全局时钟耗尽。截止前提交的动作照常评分；日历其余部分计为不可用时间，并适用终局惩罚。",
+      "agent_error": "智能体退出或回复了无效的 decision_response。错误前提交的动作照常评分，并适用终局惩罚。",
+      "agent_initialization_error": "智能体未能在 30 秒内启动并读取 initialize 消息。没有提交任何动作；本次运行承担全部终局惩罚。",
+      "trace_complete": "一份 decisions.csv 被回放到最后一行。"
+    },
+    "penalty_kind": {
+      "unsafe_observation": "不安全观测",
+      "invalid_action": "无效动作",
+      "avoidable_wait": "可避免等待",
+      "required_miss": "REQUIRED 缺失",
+      "flexible_shortfall": "FLEXIBLE 缺额",
+      "request_miss": "请求错过"
+    },
+    "wait_kind": {
+      "explicit": "显式等待",
+      "implicit": "隐式（跳过的时隙）",
+      "invalid": "被无效动作消耗",
+      "avoidable": "可避免（受罚）",
+      "unavailable": "不可用（关闭或无可观测）"
+    },
+    "request_status": {
+      "completed": "已完成",
+      "expired": "已到期",
+      "missed": "已错过",
+      "excused_unobservable": "免责（不可观测）",
+      "open": "进行中",
+      "active": "进行中",
+      "pending": "待处理"
+    },
+    "outcome_class": {
+      "completed": "完成",
+      "wait": "等待",
+      "interrupted": "中断",
+      "unsafe": "不安全",
+      "invalid": "无效"
+    },
+    "replay": {
+      "title": "决策回放",
+      "open": "加载回放",
+      "new_tab": "在新标签页打开",
+      "note": "由评分报告生成的自包含 ASTRA // SURVEY 回放；在沙箱框架中运行。",
+      "download": "decision_replay.html"
     }
   },
   "flash": {
@@ -1362,19 +1460,12 @@
   "resources": {
     "kicker": "资源",
     "title": "入门包与数据",
-    "lede": "在本地运行和评分智能体所需的全部文件。平台使用的正是这些文件。",
+    "lede": "在本地运行和评分智能体所需的全部内容：入门包，以及平台使用的各场景配置与参考文件。",
     "kit": "入门包（zip）",
-    "kit_desc": "基线 agent.py、local_runner.py、protocol.py、scorer.py、score_config.json、示例场景、生成器、SKILL.md、sac_submit.py。",
-    "scorer": "scorer.py",
-    "scorer_desc": "冻结的第一阶段评分器。仅标准库，Python 3.9+。",
-    "protocol": "protocol.py",
-    "protocol_desc": "平台与 local_runner.py 共用的 observer-v1 状态构建器。",
+    "kit_desc": "挑战模块（workflow、评分器、preview、模拟器）、participant_agent/（可通过 .env 启用大模型的最小智能体）、run_challenge.py、score_decisions.py、sac_submit.py、SKILL.md。",
     "skill": "SKILL.md",
     "skill_desc": "AI 编程助手可直接照做的单文件说明：构建、测试、提交。",
     "scenarios": "场景",
-    "weather": "weather.csv",
-    "tiles": "tiles.csv",
-    "config": "score_config.json",
     "hidden": "不公开（仅平台运行）",
     "nights": "夜",
     "slots": "时隙",
@@ -1382,7 +1473,31 @@
     "seed": "种子",
     "cli": "命令行",
     "kit_file": "agent-observer-starter-kit.zip",
-    "example": "示例场景"
+    "docs": "参赛文档",
+    "docs_desc": "带精确列的数据格式、三种协议消息、评分公式与全部惩罚、打包规则与限制。",
+    "scenarios_note": "一个场景是一个目录：config/*.json 加 outputs/reference/*.csv。配置、日历、目录与请求始终可下载；天气、预报与事件遵循场景的可见性标记。隐藏文件以删除线显示。",
+    "weather_public": "天气公开",
+    "weather_hidden": "天气隐藏",
+    "wallclock": "全局时钟",
+    "targets": "目标",
+    "requests": "请求",
+    "contract": "合约",
+    "file_group": {
+      "config": "配置",
+      "data": "日历 · 目录 · 请求",
+      "weather": "天气真值",
+      "forecasts": "预报",
+      "events": "方向性事件"
+    },
+    "file_group_desc": {
+      "config": "七个 JSON 文件：场景、日历、天区、天气、请求、workflow 与评分配置。initialize 消息中也会完整发布。",
+      "data": "night_calendar.csv 与 slots.csv（时间轴）、tiles.csv 与 targets.csv（目录与科学权重）、tile_windows.csv（窗口示例）、observation_requests.csv 与 observation_request_tiles.csv、manifest 与 metadata。",
+      "weather": "weather.csv：逐时隙站点基线。练习场景公开，本地运行 score_decisions.py 可复现平台报告。",
+      "forecasts": "weather_forecasts.csv：不确定、每日修订的预报。平台只显示当前游标之前发布的修订。",
+      "events": "weather_events.csv：active_event_ids 背后的方向性干扰真值。比赛场景隐藏。"
+    },
+    "scorer": "scoring_core.py",
+    "scorer_desc": "冻结的 challenge-score-v3 评分器（旁边还有 contracts.py 与 score_config.json）。仅标准库，Python 3.12。"
   },
   "faq": {
     "kicker": "常见问题",
@@ -1390,7 +1505,7 @@
     "items": [
       {
         "q": "需要天文背景吗？",
-        "a": "不需要。智能体收到的状态是一份小型 JSON：当前天气、未来四个时隙的预报、进度，以及带有高度、大气质量、质量因子、期望增益和目标计数的候选天区。赛事说明中的名词表覆盖了会出现的少数术语。"
+        "a": "不需要。智能体收到的是 JSON 快照：当前时隙天气、带高度、airmass、月光因子、有效条件与 tile_science_value 的候选天区、迄今发布的预报与请求，以及进度。文档解释了会出现的少数术语，scoring_preview.py 也已经能把快照变成候选排序。"
       },
       {
         "q": "可以个人参赛吗？",
@@ -1398,11 +1513,19 @@
       },
       {
         "q": "可以用什么语言？",
-        "a": "本地不限语言：自己运行智能体并上传 decisions.csv。平台在隐藏天气上运行时，入口须为仅使用标准库的 Python 3.12 脚本，且无网络访问。"
+        "a": "本地不限语言：在天气公开的练习场景上自己运行智能体并上传 decisions.csv。平台在隐藏天气上运行时，入口脚本须为通过 stdin/stdout 使用 participant-agent-protocol-v1 的 Python 3.12（minimal_agent.py、agent.py 或 main.py）；它可以按 requirements.txt 安装依赖，并在沙箱内启动所需的子进程。"
       },
       {
         "q": "可以使用大模型或商业 API 吗？",
-        "a": "在公开场景本地运行时可以。平台运行无网络，隐藏天气运行期间无法调用大模型；请用它来设计策略，而不是在决策时调用。"
+        "a": "可以，决策时也可以。平台运行允许联网：把服务商密钥写进程序包的 .env（MODEL_PROVIDER、MODEL_NAME、<PROVIDER>_API_KEY），最小智能体会通过 LangChain 调用模型。注意全局时钟——180 晚场景约 8,000 次决策每次都调用模型是放不下的；把显而易见的等待交给确定性代码。"
+      },
+      {
+        "q": "什么是全局时钟？",
+        "a": "每个场景公布 global_wallclock_seconds（参考场景 7200 秒，短场景更少）。它在 initialize 消息后开始并覆盖全部决策——包括快照序列化、你的思考时间与解析。没有单次决策限制。到期时进程被停止，已提交动作照常评分，并适用未完成 REQUIRED 天区、FLEXIBLE 缺额与到期请求的终局惩罚。"
+      },
+      {
+        "q": "比赛场景隐藏了什么？",
+        "a": "weather.csv、weather_forecasts.csv 与 weather_events.csv。智能体仍能看到当前时隙天气、每个候选的有效条件（已应用方向性事件）、迄今发布的预报与活动请求——快照发布的一切——但永远看不到未来天气。练习场景三份文件全部公开，本地运行 score_decisions.py 可复现平台报告。"
       },
       {
         "q": "可以提交多少次？",
@@ -1426,7 +1549,7 @@
       },
       {
         "q": "智能体崩溃或超时会怎样？",
-        "a": "该提交被标记为失败并附带 stderr 末尾内容；不计入榜单，也不影响已有最佳成绩。修复后在每日限额内重新提交即可。"
+        "a": "未能在 30 秒内初始化、退出或回复无效消息的运行以 agent_error 或 agent_initialization_error 结束。此前提交的动作照常评分并适用终局惩罚，智能体的 stderr 末尾显示在提交页。全局时钟到期时同样只对已提交动作评分（global_wallclock_expired）。修复后在每日限额内重新提交即可。"
       },
       {
         "q": "奖金是否含税？",
@@ -1434,7 +1557,7 @@
       },
       {
         "q": "开发阶段有 API 额度吗？",
-        "a": "已注册队伍可在控制台领取赞助商 API 兑换码，每队每个服务商一个。平台在隐藏天气上运行时不联网，请将额度用于本地开发。"
+        "a": "已注册队伍可在控制台领取赞助商 API 兑换码，每队每个服务商一个。平台运行允许联网，同一个密钥既可用于本地开发，也可写进程序包的 .env 用于隐藏天气运行。"
       }
     ]
   },
@@ -1453,15 +1576,16 @@
     "protocol": {
       "title": "协议速览",
       "tabs": {
-        "init": "init",
-        "step": "step",
-        "answer": "answer"
+        "initialize": "initialize",
+        "decision_request": "decision_request",
+        "decision_response": "decision_response"
       },
       "desc": {
-        "init": "运行开始时通过 stdin 发送一次：场景元数据、冻结的计分配置、台址与完整天区目录。",
-        "step": "每次决策发送一次：当前时隙、天气、预报、当前进度以及合法候选天区及其期望收益。",
-        "answer": "智能体回复一行 JSON：在某个观测程序下观测一个天区，或等待本时隙结束。"
-      }
+        "initialize": "时钟开始前通过 stdin 发送一次，不需回复：日历、台址、带 tile_science_value 的完整天区与目标目录、评分合约与 global_wallclock_seconds。",
+        "decision_request": "每次决策发送一次：游标、当前时隙的站点天气、带几何、月光因子与有效天气的候选天区、活动请求、到期时的当夜与每周发布，以及你的进度。永远没有未来天气。",
+        "decision_response": "智能体回复一行带相同 decision_sequence 的 JSON：以某个项目观测一个天区（可附带 request_id），或等待本时隙结束。"
+      },
+      "truncated": "来自 14 晚参考运行的真实消息；长数组以“… more”标记截断。"
     }
   },
   "ann": {
@@ -1525,26 +1649,28 @@
       "delete_confirm": "删除该阶段？"
     },
     "scenarios": {
-      "upload": "上传场景",
       "slug": "slug",
       "name": "名称",
       "description": "说明",
-      "seed": "种子",
+      "seed": "种子 / 校验和",
       "checksum": "校验和",
       "nights": "夜数",
-      "slots": "时段",
+      "slots": "时隙",
       "tiles": "天区",
+      "targets": "目标",
+      "requests": "请求",
+      "wallclock": "全局时钟",
+      "contract": "合约",
       "flags": "标记",
       "files": "文件",
       "weather_public": "天气公开",
+      "forecasts_public": "预报公开",
+      "events_public": "事件公开",
       "tiles_public": "天区公开",
       "active": "启用",
-      "uploaded": "场景已上传。",
       "saved": "场景已保存。",
-      "weather_file": "weather.csv",
-      "tiles_file": "tiles.csv",
-      "config_file": "score_config.json（可选）",
-      "note": "文件上传到私有 scenarios 存储桶。n_slots / n_nights / n_tiles 由浏览器根据 CSV 计算。"
+      "cli_title": "创建场景",
+      "cli_note": "场景不再从浏览器上传。用 worker CLI（service role）生成或注册场景目录；它会把 config/ 与 outputs/reference/ 上传到 scenarios 存储桶、计算计数与校验和并插入记录。标记与全局时钟可在此编辑。"
     },
     "submissions": {
       "any_status": "任意状态",
