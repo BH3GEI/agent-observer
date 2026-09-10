@@ -13,16 +13,16 @@ Sponsor API credits are handed out as redeem codes: once your team is registered
 
 ## 2. Starter kit
 
-Download `agent-observer-starter-kit.zip` from the Resources page. It contains the challenge modules (`contracts.py`, `observing_calendar.py`, `tile_geometry_simulator.py`, `weather_simulator.py`, `observation_request_simulator.py`, `challenge_workflow.py`, `scoring_core.py`, `scoring_preview.py`, `run_challenge.py`, `score_decisions.py`), the `participant_agent/` package (`minimal_agent.py`, `decision_graph.py`, `model_factory.py`, `protocol.py`, `state.py`, `requirements.txt`, `.env.example`), `sac_submit.py`, `SKILL.md` and `README.md`. Exact commands are printed in `SKILL.md`; the outline is:
+Download `agent-observer-starter-kit.zip` from the Resources page. Layout: `agent/` (the submission: `minimal_agent.py`, `decision_graph.py`, `model_factory.py`, `protocol.py`, `state.py`, `scoring_preview.py`, `requirements.txt`, `.env.example`), `challenge/` (the public environment: contracts, calendar, tile geometry, weather, requests, workflow, scorer, replay renderer), `scenarios/dev-reference/` (the public 180-night scenario), `local_runner.py`, `score_decisions.py`, `make_scenario.py`, `pack_agent.py`, `sac_submit.py`, `SKILL.md` and `README.md`. Python 3.10+ and the standard library are enough.
 
 ```
-python3 -B run_challenge.py --root scenarios/dev-fortnight \
-    --agent-command python3 -B participant_agent/minimal_agent.py --output-dir run_output
-python3 -B score_decisions.py --root scenarios/dev-fortnight run_output/decisions.csv \
-    --output run_output/score_report.json
+python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py --wallclock 600 --out run_output
+python3 score_decisions.py --scenario scenarios/dev-reference --decisions run_output/decisions.csv
+python3 make_scenario.py --out scenarios/mine --seed 7 --days 30 --start-date 2026-10-05
+python3 pack_agent.py --agent agent --out my-agent.zip
 ```
 
-`run_output/decisions.csv` is what you upload as a results file; `run_output/score_report.json` is the report the platform produces (identical when the scenario's weather and events are public). The minimal agent runs without any package or key (`MODEL_PROVIDER=deterministic`) and completes a 180-night scenario in a few seconds of wall time.
+`run_output/decisions.csv` is what you upload as a results file; `run_output/score_report.json` is the report the platform produces (identical when the scenario's weather and events are public); `run_output/decision_replay.html` is the same replay the submission page embeds. Other public scenarios (`dev-fortnight`) can be downloaded file by file from the Resources page into `scenarios/<slug>/`. The minimal agent runs without any package or key (`MODEL_PROVIDER=deterministic`) and completes a 180-night scenario in a few seconds of wall time.
 
 ## 3. Data formats
 
@@ -178,7 +178,7 @@ Only completed exposures score. An exposure whose later segment meets closed wea
 | Network | allowed (model APIs); an egress proxy may be configured by the organizers |
 | Initialization | 30 s to start and read `initialize`; failure is `agent_initialization_error` |
 | Wall clock | the scenario's `global_wallclock_seconds`; no per-decision limit |
-| Memory / CPU | 1 GB, one CPU, 128 processes, 256 MB of written files under the package's `scratch/` directory |
+| Memory / CPU | 2 GB, one CPU, 128 processes, 256 MB of written files under the package's `scratch/` directory |
 | Package | `.zip` (a bare `.py` is accepted when it needs nothing else) ≤ 20 MB, ≤ 2,000 files, ≤ 50 MB uncompressed, no symlinks |
 
 Environment variables available to the agent: `PARTICIPANT_PROTOCOL=participant-agent-protocol-v1`, `SAC_SCENARIO` (slug), `SAC_WALLCLOCK_SECONDS`, `HOME` and `TMPDIR` (the scratch directory), plus everything from your `.env`. The scenario directory is never mounted into the agent's sandbox; the only weather you see is what the snapshots publish.
@@ -219,7 +219,7 @@ Because the practice scenarios publish `weather_events.csv`, a local `score_deci
 
 ## 10. Local verification checklist
 
-1. `run_challenge.py` finishes with `termination_reason = survey_complete` on `dev-fortnight`.
+1. `local_runner.py` finishes with `termination_reason = survey_complete` on `scenarios/dev-reference` (and on a fresh `make_scenario.py` seed).
 2. `score_decisions.py` on the produced `decisions.csv` prints the same `score.total` as the run.
 3. The package unzips to an entry script at its root, `requirements.txt` installs into a fresh virtual environment, `.env` holds only the keys the agent needs.
 4. The agent writes only to `scratch/` and prints only protocol lines to standard output.

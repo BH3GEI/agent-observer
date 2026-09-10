@@ -1462,7 +1462,7 @@
     "title": "入门包与数据",
     "lede": "在本地运行和评分智能体所需的全部内容：入门包，以及平台使用的各场景配置与参考文件。",
     "kit": "入门包（zip）",
-    "kit_desc": "挑战模块（workflow、评分器、preview、模拟器）、participant_agent/（可通过 .env 启用大模型的最小智能体）、run_challenge.py、score_decisions.py、sac_submit.py、SKILL.md。",
+    "kit_desc": "agent/（最小智能体，可通过 .env 启用大模型）、challenge/（workflow、评分器、preview、模拟器、回放）、scenarios/dev-reference、local_runner.py、score_decisions.py、make_scenario.py、pack_agent.py、sac_submit.py、SKILL.md。",
     "skill": "SKILL.md",
     "skill_desc": "AI 编程助手可直接照做的单文件说明：构建、测试、提交。",
     "scenarios": "场景",

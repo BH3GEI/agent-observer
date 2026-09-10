@@ -50,7 +50,14 @@ means the environment is broken; read `run_output/agent.log` first. Exit code 2 
    Penalties: 2000 unsafe observe (`is_observable` false at start), 100 invalid action, 0.001/s avoidable wait,
    1000 per missed REQUIRED tile, 100 per FLEXIBLE tile short of 4 per region, and each expired request's
    `miss_penalty`. Completed requests add their `completion_reward`. A tile scores once.
-6. `agent/scoring_preview.py` (`preview_actions(snapshot, scoring_contract)`) computes the public estimate for every
+6. Scenario directory (`scenarios/<name>/`): `config/*.json` (calendar, tiles, weather, requests, workflow,
+   score) and `outputs/reference/*.csv` (`night_calendar`, `slots`, `tiles`, `targets`, `tile_windows`,
+   `observation_requests`, `observation_request_tiles`, `weather`, `weather_forecasts`, `weather_events`).
+   `README.md` lists every file. Weather events are directional (`REGION_SET`, `SKY_CAP_ICRS`, `HORIZON_SECTOR`
+   or `ALL`) and some force a closure, so a candidate's `effective_weather` can differ from
+   `current_site_weather`; forecasts are uncertain and revised daily. Requests have deadline classes
+   `ONE_WEEK` / `TWO_WEEKS` / `ONE_MONTH` and completion modes `ALL` / `AT_LEAST_N`.
+7. `agent/scoring_preview.py` (`preview_actions(snapshot, scoring_contract)`) computes the public estimate for every
    legal candidate, including terminal-penalty avoidance and request value; it is what the baseline ranks by.
 
 ## 4. Generate more scenarios

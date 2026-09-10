@@ -118,11 +118,11 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
   font-family: 'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums;
 }
 .sky-hud > div { min-width: 0; padding: .6rem .7rem; border-right: 1px solid rgba(255,255,255,.1); border-bottom: 1px solid rgba(255,255,255,.1); }
-.sky-hud dt { font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sky-hud dt { font-size: .58rem; letter-spacing: .07em; text-transform: uppercase; color: rgba(255,255,255,.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sky-hud dd { margin: .15rem 0 0; font-size: .76rem; color: #f5f5f5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sky-hud-weather { grid-column: span 2; }
 @media (min-width: 640px) {
-  .sky-hud { grid-template-columns: 1.55fr 1.25fr 1.6fr .8fr .8fr; }
+  .sky-hud { grid-template-columns: 1.35fr 1.45fr 1.75fr .75fr .8fr; }
   .sky-hud-slot, .sky-hud-weather { grid-column: auto; }
   .sky-hud > div { border-bottom: 0; }
   .sky-hud > div:last-child { border-right: 0; }

@@ -27,11 +27,13 @@ export SAC_KEY=${import.meta.env.VITE_SUPABASE_ANON_KEY || '<anon key>'}
 export SAC_EMAIL=you@example.org SAC_PASSWORD='...'
 
 unzip agent-observer-starter-kit.zip && cd agent-observer-starter-kit
-# run the minimal agent locally against a downloaded scenario directory, then score the trace (exact commands: SKILL.md)
-python3 -B run_challenge.py --root scenarios/dev-fortnight --agent-command python3 -B participant_agent/minimal_agent.py --output-dir run_output
-python3 -B score_decisions.py --root scenarios/dev-fortnight run_output/decisions.csv --output run_output/score_report.json
+# run the minimal agent locally on the bundled public scenario, then re-score the trace (details: SKILL.md)
+python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py --wallclock 600 --out run_output
+python3 score_decisions.py --scenario scenarios/dev-reference --decisions run_output/decisions.csv
+python3 make_scenario.py --out scenarios/mine --seed 7 --days 30      # more practice scenarios
+python3 pack_agent.py --agent agent --out my_agent.zip                 # the package you submit
 # submit: a results file for a public-weather practice scenario, or the agent package (zip) for platform runs
-python3 sac_submit.py --phase practice --kind results --scenario dev-fortnight --file run_output/decisions.csv --wait
+python3 sac_submit.py --phase practice --kind results --scenario dev-reference --file run_output/decisions.csv --wait
 python3 sac_submit.py --phase online --kind agent --file my_agent.zip --wait`
 
 const filesFor = (group: ScenarioFileGroup) => SCENARIO_FILES.filter(f => f.group === group)

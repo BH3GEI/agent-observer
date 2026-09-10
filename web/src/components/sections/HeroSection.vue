@@ -11,7 +11,7 @@ import SkyConsole from './SkyConsole.vue'
 const { t, tf, pick, locale } = useI18n()
 const { isLoggedIn } = useAuth()
 const { registrationOpen } = useRegistrationOpen()
-const { current, next, nextStartsAt, usingFallback, countdown } = usePhaseClock()
+const { current, next, nextStartsAt, usingFallback, countdown, loaded } = usePhaseClock()
 type Metric = { value: string; label: string }
 const metrics = computed(() => t('hero.metrics') as Metric[])
 const heroTitleLines = computed(() => locale.value === 'zh' ? ['巡天智能体'] : ['Agent Observer'])
@@ -62,10 +62,11 @@ const parts = computed(() => [
             <div class="phase-strip-now">
               <span class="phase-strip-label">{{ t('phase_clock.now') }}</span>
               <span v-if="current" class="pill open">{{ pick(current.name_en, current.name_zh) }} · {{ t('leaderboard.status.open') }}</span>
-              <span v-else class="pill">{{ t('phase_clock.no_open') }}</span>
+              <span v-else-if="loaded" class="pill">{{ t('phase_clock.no_open') }}</span>
+              <span v-else class="pill" aria-busy="true">…</span>
             </div>
             <div class="phase-strip-next">
-              <span class="phase-strip-label">{{ t('phase_clock.next') }} · {{ nextName }}<template v-if="nextStartsAt"> · {{ fmtUtc(nextStartsAt) }} UTC</template></span>
+              <span class="phase-strip-label">{{ t('phase_clock.next') }} · {{ loaded ? nextName : '…' }}<template v-if="nextStartsAt"> · {{ fmtUtc(nextStartsAt) }} UTC</template></span>
               <div v-if="nextStartsAt" class="phase-countdown" role="timer" :aria-label="t('phase_clock.countdown_aria')">
                 <span v-for="p in parts" :key="p.l"><b>{{ p.v }}</b><small>{{ p.l }}</small></span>
               </div>

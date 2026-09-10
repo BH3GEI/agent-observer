@@ -39,6 +39,33 @@ python3 local_runner.py --scenario scenarios/mine --agent agent/minimal_agent.py
 python3 score_decisions.py --scenario scenarios/mine --decisions run_mine/decisions.csv
 ```
 
+## Scenario directory
+
+Every scenario (the shipped `scenarios/dev-reference/`, anything `make_scenario.py` writes, and the platform's
+hidden competition scenarios) has the same layout. `local_runner.py` and `score_decisions.py` read it directly.
+
+| Path | Contents |
+|---|---|
+| `config/scenario_config.json` | scenario id, seed, `competition.global_wallclock_seconds` |
+| `config/calendar_config.json` | site (latitude 31.9634°, longitude −111.599°, UTC−7, sun altitude limit −12°), survey start, days, `slot_seconds` 900 |
+| `config/tile_config.json` | 8 regions × 8 tiles, 2 REQUIRED per region (one available for 14 days only), altitude limit 30°, lunar model, target classes |
+| `config/weather_config.json` | quality processes, closure model, forecast horizon and error model (12 % misses, 6 false positives), event catalogue |
+| `config/request_config.json` | request cadence (every 7 nights, p = 0.55), deadline classes `ONE_WEEK` / `TWO_WEEKS` / `ONE_MONTH`, completion modes `ALL` / `AT_LEAST_N`, reward 140 and miss penalty 190 per required tile |
+| `config/workflow_config.json` | `global_wallclock_seconds`, weekly horizon 7 days, tile-window horizon 7 days, `per_decision_timeout_seconds: null`, clock starts after the initial publication |
+| `config/score_config.json` | `challenge-score-v3` thresholds, program bonus, penalties, FLEXIBLE quota |
+| `outputs/reference/night_calendar.csv`, `slots.csv` | the shared time axis: solar dusk/dawn per night, 900 s slots |
+| `outputs/reference/tiles.csv`, `targets.csv`, `tile_windows.csv` | catalogue, per-target science weights, per-night visibility windows |
+| `outputs/reference/observation_requests.csv`, `observation_request_tiles.csv` | pre-generated requests and their tiles |
+| `outputs/reference/weather.csv` | site baseline weather per slot (public on practice scenarios only) |
+| `outputs/reference/weather_forecasts.csv` | uncertain, daily-revised forecasts (the snapshots only show revisions issued so far) |
+| `outputs/reference/weather_events.csv` | directional events: `rainy`, `cloudy`, `smoggy`, `rocket_launch`, `cold_wave`, `tornado` with scope `ALL` / `REGION_SET` / `SKY_CAP_ICRS` / `HORIZON_SECTOR`, `force_close` and quality multipliers (hidden on competition scenarios) |
+| `outputs/reference/scenario_manifest.json`, `*_metadata.json` | row counts and SHA-256 of every file |
+
+The platform never mounts this directory into your agent's sandbox: the only weather an agent sees is the
+`current_site_weather` and per-candidate `effective_weather` of each snapshot, plus the forecast revisions in
+`weekly`. A `decisions.csv` scored with `score_decisions.py` reports `termination_reason = trace_complete`; a
+live run reports `survey_complete`, `global_wallclock_expired`, `agent_error` or `agent_initialization_error`.
+
 ## How a run works
 
 1. The platform starts your entry script once (`python -B minimal_agent.py`, cwd = your package folder, a

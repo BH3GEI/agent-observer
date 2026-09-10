@@ -39,12 +39,12 @@ onMounted(load)
         <tbody>
           <tr v-for="s in rows" :key="s.id">
             <td class="m">{{ s.slug }}</td>
-            <td><input v-model="s.name" type="text" class="input w-44 mb-1"><input v-model="s.description" type="text" class="input w-44 text-xs" :placeholder="t('admin.scenarios.description')"></td>
+            <td style="min-width: 15rem"><input v-model="s.name" type="text" class="input mb-1"><input v-model="s.description" type="text" class="input text-xs" :placeholder="t('admin.scenarios.description')"></td>
             <td class="r m">{{ s.n_nights ?? '—' }}</td><td class="r m">{{ s.n_slots ?? '—' }}</td><td class="r m">{{ s.n_tiles ?? '—' }}</td><td class="r m">{{ s.n_targets ?? '—' }}</td><td class="r m">{{ s.n_requests ?? '—' }}</td>
-            <td><input v-model.number="s.global_wallclock_seconds" type="number" min="60" step="60" class="input w-24 m" :data-testid="`wallclock-${s.slug}`"> s</td>
+            <td class="whitespace-nowrap" style="min-width: 8rem"><input v-model.number="s.global_wallclock_seconds" type="number" min="60" step="60" class="input m" style="width: 6rem" :data-testid="`wallclock-${s.slug}`"> s</td>
             <td class="m">{{ s.seed ?? '—' }}<div class="text3 xs">{{ (s.checksum ?? '').slice(0, 10) }}</div></td>
             <td class="m xs">{{ s.contract ?? '—' }}</td>
-            <td>
+            <td class="whitespace-nowrap">
               <div class="flex flex-col gap-1">
                 <label class="check m-0"><input v-model="s.weather_public" type="checkbox"> {{ t('admin.scenarios.weather_public') }}</label>
                 <label class="check m-0"><input v-model="s.forecasts_public" type="checkbox"> {{ t('admin.scenarios.forecasts_public') }}</label>

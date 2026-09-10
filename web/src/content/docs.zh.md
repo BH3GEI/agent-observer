@@ -13,16 +13,16 @@
 
 ## 2. 入门包
 
-在「资源」页下载 `agent-observer-starter-kit.zip`。其中包含挑战模块（`contracts.py`、`observing_calendar.py`、`tile_geometry_simulator.py`、`weather_simulator.py`、`observation_request_simulator.py`、`challenge_workflow.py`、`scoring_core.py`、`scoring_preview.py`、`run_challenge.py`、`score_decisions.py`）、`participant_agent/` 包（`minimal_agent.py`、`decision_graph.py`、`model_factory.py`、`protocol.py`、`state.py`、`requirements.txt`、`.env.example`）、`sac_submit.py`、`SKILL.md` 与 `README.md`。准确命令见 `SKILL.md`，大意如下：
+在「资源」页下载 `agent-observer-starter-kit.zip`。目录结构：`agent/`（要提交的智能体：`minimal_agent.py`、`decision_graph.py`、`model_factory.py`、`protocol.py`、`state.py`、`scoring_preview.py`、`requirements.txt`、`.env.example`）、`challenge/`（公开环境：契约、历法、瓦片几何、天气、请求、workflow、评分器、回放渲染器）、`scenarios/dev-reference/`（公开的 180 晚场景）、`local_runner.py`、`score_decisions.py`、`make_scenario.py`、`pack_agent.py`、`sac_submit.py`、`SKILL.md` 与 `README.md`。Python 3.10+ 与标准库即可运行。
 
 ```
-python3 -B run_challenge.py --root scenarios/dev-fortnight \
-    --agent-command python3 -B participant_agent/minimal_agent.py --output-dir run_output
-python3 -B score_decisions.py --root scenarios/dev-fortnight run_output/decisions.csv \
-    --output run_output/score_report.json
+python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py --wallclock 600 --out run_output
+python3 score_decisions.py --scenario scenarios/dev-reference --decisions run_output/decisions.csv
+python3 make_scenario.py --out scenarios/mine --seed 7 --days 30 --start-date 2026-10-05
+python3 pack_agent.py --agent agent --out my-agent.zip
 ```
 
-`run_output/decisions.csv` 就是可上传的结果文件；`run_output/score_report.json` 与平台生成的报告一致（场景天气与事件公开时逐字节相同）。最小智能体不需要任何依赖或密钥（`MODEL_PROVIDER=deterministic`），几秒钟即可跑完 180 晚的场景。
+`run_output/decisions.csv` 就是可上传的结果文件；`run_output/score_report.json` 与平台生成的报告一致（场景天气与事件公开时逐字节相同）；`run_output/decision_replay.html` 就是提交页内嵌的那份回放。其它公开场景（`dev-fortnight`）可在「资源」页逐个文件下载到 `scenarios/<slug>/`。最小智能体不需要任何依赖或密钥（`MODEL_PROVIDER=deterministic`），几秒钟即可跑完 180 晚的场景。
 
 ## 3. 数据格式
 
@@ -178,7 +178,7 @@ bonus      = program == band 时 base · {DARK: 0.25, BRIGHT: 0.15, BACKUP: 0.08
 | 网络 | 允许（模型 API）；主办方可配置出口代理 |
 | 初始化 | 启动并读取 `initialize` 有 30 秒；失败记为 `agent_initialization_error` |
 | 时钟 | 场景的 `global_wallclock_seconds`；无单次决策限制 |
-| 内存 / CPU | 1 GB、一个 CPU、128 个进程、程序包 `scratch/` 目录下最多 256 MB 写入 |
+| 内存 / CPU | 2 GB、一个 CPU、128 个进程、程序包 `scratch/` 目录下最多 256 MB 写入 |
 | 程序包 | `.zip`（不依赖其他文件时也接受单个 `.py`）≤ 20 MB、≤ 2,000 个文件、解压后 ≤ 50 MB、不含符号链接 |
 
 智能体可用的环境变量：`PARTICIPANT_PROTOCOL=participant-agent-protocol-v1`、`SAC_SCENARIO`（slug）、`SAC_WALLCLOCK_SECONDS`、`HOME` 与 `TMPDIR`（scratch 目录），以及 `.env` 中的全部内容。场景目录不会挂载进智能体沙箱；你能看到的天气只有快照发布的内容。
@@ -219,7 +219,7 @@ python3 sac_submit.py --phase online --kind agent --file my_agent.zip --wait
 
 ## 10. 本地自检清单
 
-1. `run_challenge.py` 在 `dev-fortnight` 上以 `termination_reason = survey_complete` 结束。
+1. `local_runner.py` 在 `scenarios/dev-reference`（以及 `make_scenario.py` 新生成的种子）上以 `termination_reason = survey_complete` 结束。
 2. `score_decisions.py` 对生成的 `decisions.csv` 输出与运行相同的 `score.total`。
 3. 程序包解压后入口脚本位于根目录，`requirements.txt` 能装进全新虚拟环境，`.env` 只含智能体需要的密钥。
 4. 智能体只写 `scratch/`，标准输出只打印协议行。
