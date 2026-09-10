@@ -59,6 +59,7 @@ legacy/fastapi/      first self-hosted version (reference only)
 SAC_POSTGREST_BIN=/path/to/postgrest .venv/bin/pytest tests/supabase                        # RLS/RPC/worker on embedded Postgres + PostgREST
 cd web && npm ci && npm run build && cd .. && .venv/bin/pytest tests/e2e_web                # browser e2e against the harness
 SUPABASE_URL=… SUPABASE_ANON_KEY=… SUPABASE_SERVICE_ROLE_KEY=… python tests/hosted_smoke.py # live project, self-cleaning
+python tests/hosted_agent_smoke.py --dispatch                                                # queue a minimal-agent zip on the hosted project and run it through the GitHub Actions worker
 ```
 
 ## Known deviations from the science team's package
