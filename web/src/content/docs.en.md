@@ -13,16 +13,17 @@ Sponsor API credits are handed out as redeem codes: once your team is registered
 
 ## 2. Starter kit
 
-Download `agent-observer-starter-kit.zip` from the Resources page. Layout: `agent/` (the submission: `minimal_agent.py`, `decision_graph.py`, `model_factory.py`, `protocol.py`, `state.py`, `scoring_preview.py`, `requirements.txt`, `.env.example`), `challenge/` (the public environment: contracts, calendar, tile geometry, weather, requests, workflow, scorer, replay renderer), `scenarios/dev-reference/` (the public 180-night scenario), `local_runner.py`, `score_decisions.py`, `make_scenario.py`, `pack_agent.py`, `sac_submit.py`, `SKILL.md` and `README.md`. Python 3.10+ and the standard library are enough.
+Download `agent-observer-starter-kit.zip` from the Resources page. Layout: `agent/` (the submission: `minimal_agent.py`, `decision_graph.py`, `model_factory.py`, `protocol.py`, `state.py`, `scoring_preview.py`, `requirements.txt`, `.env.example`), `challenge/` (the public environment: contracts, calendar, tile geometry, weather, requests, workflow, scorer, replay renderer), `scenarios/dev-reference/` (the public 180-night scenario), `local_runner.py`, `score_decisions.py`, `make_scenario.py`, `fetch_scenario.py`, `pack_agent.py`, `sac_submit.py`, `SKILL.md` and `README.md`. Python 3.10+ and the standard library are enough.
 
 ```
 python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py --wallclock 600 --out run_output
 python3 score_decisions.py --scenario scenarios/dev-reference --decisions run_output/decisions.csv
 python3 make_scenario.py --out scenarios/mine --seed 7 --days 30 --start-date 2026-10-05
 python3 pack_agent.py --agent agent --out my-agent.zip
+python3 fetch_scenario.py --list && python3 fetch_scenario.py dev-fortnight   # other public scenarios -> scenarios/<slug>/
 ```
 
-`run_output/decisions.csv` is what you upload as a results file; `run_output/score_report.json` is the report the platform produces (identical when the scenario's weather and events are public); `run_output/decision_replay.html` is the same replay the submission page embeds. Other public scenarios (`dev-fortnight`) can be downloaded file by file from the Resources page into `scenarios/<slug>/`. The minimal agent runs without any package or key (`MODEL_PROVIDER=deterministic`) and completes a 180-night scenario in a few seconds of wall time.
+`run_output/decisions.csv` is what you upload as a results file; `run_output/score_report.json` is the report the platform produces (identical when the scenario's weather and events are public); `run_output/decision_replay.html` is the same replay the submission page embeds. `fetch_scenario.py` downloads any published scenario (for example `dev-fortnight`) into `scenarios/<slug>/` with checksums verified; the same files are also linked one by one on the Resources page. The minimal agent runs without any package or key (`MODEL_PROVIDER=deterministic`) and completes a 180-night scenario in a few seconds of wall time.
 
 ## 3. Data formats
 

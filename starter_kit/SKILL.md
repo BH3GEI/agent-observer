@@ -4,15 +4,16 @@ Platform website: {{BASE_URL}}
 Backend (Supabase) URL: {{SUPABASE_URL}}
 Public anon key: {{SUPABASE_ANON_KEY}}
 
-Follow the steps in order. Commands assume Python 3.10+ (`python3`); the kit itself needs no extra packages.
+Follow the steps in order. Commands assume Python 3.10+ (`python3`; on macOS the system python3 is 3.9, use `python3.12`);
+the kit itself needs no extra packages. `python3 --version` first.
 Use absolute paths when running from another directory.
 
 ## 1. Get the kit
 
-1. Download `{{BASE_URL}}/download/starter-kit.zip` and unzip it.
+1. Download `{{BASE_URL}}/downloads/agent-observer-starter-kit.zip` (the "Starter kit" button on {{BASE_URL}}/resources) and unzip it.
 2. `cd agent-observer-starter-kit`. Layout: `agent/` (the submission), `challenge/` (environment, read-only),
    `scenarios/dev-reference/` (public 180-night scenario), `local_runner.py`, `score_decisions.py`,
-   `make_scenario.py`, `pack_agent.py`, `sac_submit.py`, `README.md`.
+   `make_scenario.py`, `fetch_scenario.py`, `pack_agent.py`, `sac_submit.py`, `README.md`.
 
 ## 2. Run the baseline
 
@@ -68,6 +69,8 @@ python3 make_scenario.py --out scenarios/s21 --seed 21 --days 60 --start-date 20
 python3 local_runner.py --scenario scenarios/s7 --agent agent/minimal_agent.py --out run_s7 --quiet
 ```
 
+`python3 fetch_scenario.py --list` shows the scenarios the platform publishes and `python3 fetch_scenario.py dev-fortnight`
+downloads one into `scenarios/dev-fortnight/` (weather files included only for public-weather practice scenarios).
 Short scenarios (fewer than 10 nights) automatically get a shorter forecast horizon (`forecast_horizon_days` in the output). Hidden platform
 scenarios come from the same generator with undisclosed seeds, sizes and wall clocks; test on several seeds
 and at least one long (≥ 90-night) scenario before submitting.

@@ -33,6 +33,12 @@ import urllib.request
 from pathlib import Path
 
 
+
+# filled in by the kit build (web/scripts/build-kit.mjs); override with SAC_URL / SAC_KEY / SAC_SITE_URL or the flags
+DEFAULT_URL = "{{SUPABASE_URL}}"
+DEFAULT_KEY = "{{SUPABASE_ANON_KEY}}"
+DEFAULT_SITE_URL = "{{BASE_URL}}"
+
 class Api:
     def __init__(self, url: str, key: str):
         self.url = url.rstrip("/")
@@ -72,8 +78,8 @@ class Api:
 
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description="Submit to the Agent Observer platform.")
-    p.add_argument("--url", default=os.environ.get("SAC_URL"), help="Supabase project URL")
-    p.add_argument("--key", default=os.environ.get("SAC_KEY"), help="Supabase anon (publishable) key")
+    p.add_argument("--url", default=os.environ.get("SAC_URL") or (None if "{{" in DEFAULT_URL else DEFAULT_URL), help="Supabase project URL")
+    p.add_argument("--key", default=os.environ.get("SAC_KEY") or (None if "{{" in DEFAULT_KEY else DEFAULT_KEY), help="Supabase anon (publishable) key")
     p.add_argument("--email", default=os.environ.get("SAC_EMAIL"))
     p.add_argument("--password", default=os.environ.get("SAC_PASSWORD"))
     p.add_argument("--phase", required=True, help="phase slug shown on the website, e.g. practice or online")
@@ -105,20 +111,33 @@ def main(argv=None) -> int:
         "p_phase_slug": args.phase, "p_kind": args.kind, "p_scenario_slug": args.scenario, "p_storage_path": path,
         "p_filename": args.file.name, "p_sha256": sha, "p_title": args.title, "p_notes": args.notes,
     })
-    site = os.environ.get("SAC_SITE_URL", "").rstrip("/")
-    print(f"submission #{sid} queued for team {me['team']['name']}" + (f": {site}/submissions/{sid}" if site else ""))
+    site = (os.environ.get("SAC_SITE_URL") or DEFAULT_SITE_URL).rstrip("/")
+    page = f"{site}/submissions/{sid}" if site and "{{" not in site else ""
+    print(f"submission #{sid} queued for team {me['team']['name']}" + (f": {page}" if page else ""))
     if not args.wait:
         return 0
+    last = None
     while True:
         time.sleep(4)
-        rows = api.call("GET", f"/rest/v1/submissions?id=eq.{sid}&select=id,status,score,science_score,completion,uniformity,error,evaluations(scenarios(slug),status,score,error)")
+        rows = api.call("GET", f"/rest/v1/submissions?id=eq.{sid}&select=id,status,score,base_science,program_bonus,request_reward,penalty_total,"
+                               "completed_tiles,required_missing,flexible_shortfall,termination_reason,error,"
+                               "evaluations(scenarios(slug),status,score,termination_reason,error)")
         cur = rows[0]
         if cur["status"] in ("queued", "running"):
-            print(f"  status: {cur['status']}", file=sys.stderr)
+            note = ""
+            if cur["status"] == "queued":
+                pos = api.rpc("queue_position", {"p_id": sid})
+                note = " (next)" if pos == 0 else f" ({pos} ahead)" if isinstance(pos, int) else ""
+            if (cur["status"], note) != last:
+                print(f"  status: {cur['status']}{note}", file=sys.stderr)
+                last = (cur["status"], note)
             continue
-        print(json.dumps({k: cur.get(k) for k in ("id", "status", "score", "science_score", "completion", "uniformity", "error")}, indent=2))
+        print(json.dumps({k: cur.get(k) for k in ("id", "status", "score", "base_science", "program_bonus", "request_reward", "penalty_total",
+                                                  "completed_tiles", "required_missing", "flexible_shortfall", "termination_reason", "error")}, indent=2))
         for ev in cur.get("evaluations") or []:
-            print(f"  {ev['scenarios']['slug']}: {ev['status']} score={ev.get('score')} {ev.get('error') or ''}")
+            print(f"  {ev['scenarios']['slug']}: {ev['status']} score={ev.get('score')} termination={ev.get('termination_reason') or '-'} {ev.get('error') or ''}")
+        if page:
+            print(f"  report, replay and logs: {page}")
         return 0 if cur["status"] == "scored" else 1
 
 

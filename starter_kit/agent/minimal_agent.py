@@ -7,6 +7,11 @@ import json
 import sys
 from pathlib import Path
 
+if sys.version_info < (3, 10):  # the agent modules use `X | Y` unions and typing.NotRequired
+    sys.stderr.write(f"minimal-agent: Python 3.10 or newer is required, this interpreter is {sys.version.split()[0]} "
+                     f"({sys.executable}). Run the kit with a newer python3 (e.g. `python3.12 local_runner.py ...`).\n")
+    sys.exit(3)
+
 
 AGENT_DIR = Path(__file__).resolve().parent
 # scoring_preview.py ships next to this file in the starter kit; on the platform it lives one level up.

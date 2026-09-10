@@ -18,6 +18,13 @@ optional LangChain extras from agent/requirements.txt are installed).
 """
 from __future__ import annotations
 
+import sys
+
+if sys.version_info < (3, 10):
+    sys.stderr.write(f"local_runner: Python 3.10 or newer is required (this is {sys.version.split()[0]} at {sys.executable}); "
+                     "on macOS install python.org / Homebrew Python 3.12 and run `python3.12 local_runner.py ...`.\n")
+    sys.exit(3)
+
 import argparse
 import json
 import os
@@ -215,6 +222,12 @@ def main(argv=None) -> int:
                 log(f"[local-runner] replay rendering failed: {type(exc).__name__}: {exc}")
 
     summary = summarize(result, report, out_dir, elapsed)
+    if summary.get("termination_reason") in ("agent_error", "agent_initialization_error") and not args.quiet:
+        tail = (out_dir / "agent.log").read_text(encoding="utf-8", errors="replace").splitlines()[-15:]
+        print("[local-runner] the agent failed; last lines of agent.log:", file=sys.stderr)
+        for line in tail:
+            print("    " + line, file=sys.stderr)
+        print(f"[local-runner] full log: {out_dir / 'agent.log'}", file=sys.stderr, flush=True)
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0 if result["termination_reason"] in ("survey_complete", "global_wallclock_expired") else 2
 

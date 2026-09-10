@@ -31,6 +31,7 @@ unzip agent-observer-starter-kit.zip && cd agent-observer-starter-kit
 python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py --wallclock 600 --out run_output
 python3 score_decisions.py --scenario scenarios/dev-reference --decisions run_output/decisions.csv
 python3 make_scenario.py --out scenarios/mine --seed 7 --days 30      # more practice scenarios
+python3 fetch_scenario.py dev-fortnight                                # any published scenario -> scenarios/dev-fortnight/
 python3 pack_agent.py --agent agent --out my_agent.zip                 # the package you submit
 # submit: a results file for a public-weather practice scenario, or the agent package (zip) for platform runs
 python3 sac_submit.py --phase practice --kind results --scenario dev-reference --file run_output/decisions.csv --wait

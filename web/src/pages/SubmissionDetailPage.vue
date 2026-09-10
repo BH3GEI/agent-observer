@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from '../composables/useI18n'
 import { supabase } from '../lib/supabase'
@@ -11,6 +11,7 @@ import { PENALTY_KEYS, WAIT_KEYS, outcomeClass, penaltyTotal, terminationTone, t
 import { useAuth } from '../stores/auth'
 import { useFlash } from '../stores/flash'
 import { useSubmissionWatch } from '../composables/useSubmissionWatch'
+import { useWorkerStatus } from '../composables/useWorkerStatus'
 import DashShell from '../components/layout/DashShell.vue'
 import StatusPill from '../components/layout/StatusPill.vue'
 import ObservedSkyMap from '../components/submissions/ObservedSkyMap.vue'
@@ -30,6 +31,8 @@ const busy = ref(false)
 const missing = ref(false)
 const id = computed(() => String(route.params.id))
 const pending = computed(() => Boolean(sub.value && PENDING_STATUSES.has(sub.value.status)))
+const worker = useWorkerStatus()
+watch(pending, (p) => { if (p) worker.start(id.value); else worker.stop() }, { immediate: true })
 const evaluations = computed(() => ((sub.value?.evaluations ?? []) as any[]).slice().sort((a, b) => Number(a.id) - Number(b.id)))
 const watcher = useSubmissionWatch(load, () => pending.value)
 
@@ -101,6 +104,12 @@ onMounted(async () => {
             <span class="m xs">{{ fmtUtc(sub.created_at) }} UTC</span>
           </div>
           <p v-if="pending" class="text2 flex items-center gap-3"><span class="live-dot"></span>{{ t('subs.waiting') }}</p>
+          <p v-if="pending" class="m xs text3 mt-2" data-testid="worker-status">
+            <template v-if="worker.online.value">{{ tf('subs.worker_online', { s: worker.ageSeconds.value ?? 0 }) }}</template>
+            <template v-else>{{ t('subs.worker_offline') }}</template>
+            <template v-if="sub.status === 'queued' && worker.position.value != null"> · {{ worker.position.value === 0 ? t('subs.queue_next') : tf('subs.queue_ahead', { n: worker.position.value }) }}</template>
+            <template v-else-if="sub.status === 'running'"> · {{ t('subs.queue_running') }}</template>
+          </p>
           <div v-if="sub.error" class="errors mt-4"><b>{{ t('subs.error') }}:</b> {{ sub.error }}</div>
           <div v-if="sub.score != null" class="score-card mt-4" data-testid="score-card">
             <div>

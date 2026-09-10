@@ -1,11 +1,13 @@
 name: Evaluation worker
 
 # Runs the Python evaluation worker on a GitHub-hosted runner: claims queued submissions from Supabase,
-# executes agent packages in a sandbox against the hidden scenarios, scores them and writes results back.
-# Public repositories get unlimited Actions minutes, so this needs no server of its own.
+# executes agent packages in a sandbox against the scenarios, scores them and writes results back.
+# The job stays alive polling the queue (near-instant evaluation) and, before it ends, dispatches its
+# successor with the workflow's own token, so there is always a worker without any extra credentials.
+# The cron is only a safety net in case the chain breaks; the concurrency group keeps a single worker.
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 concurrency:
@@ -14,22 +16,27 @@ concurrency:
 
 permissions:
   contents: read
+  actions: write
+
+env:
+  WORKER_RUN_SECONDS: "19800"   # 5 h 30 min, under the 6 h job limit
 
 jobs:
   evaluate:
     runs-on: ubuntu-latest
-    timeout-minutes: 330
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Process the queue until it is empty
+      - name: Poll the queue and evaluate submissions
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SAC_WORKER_ID: gha-${{ github.run_id }}
           SAC_WORKER_KINDS: agent,results
+          SAC_POLL_SECONDS: "5"
           # challenge v3: the wall clock comes from each scenario (global_wallclock_seconds); these cap the rest
           SAC_AGENT_INIT_TIMEOUT_SECONDS: "30"
           SAC_INSTALL_TIMEOUT_SECONDS: "900"
@@ -37,4 +44,9 @@ jobs:
           SAC_AGENT_MEMORY_MB: "2048"
           SAC_AGENT_NETWORK: "all"
           SAC_DATA_DIR: ${{ runner.temp }}/sac
-        run: python -m worker.main once
+        run: python -m worker.main run --max-seconds "$WORKER_RUN_SECONDS"
+      - name: Dispatch the next worker run
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run worker.yml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"

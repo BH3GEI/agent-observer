@@ -1322,6 +1322,11 @@
     "weather_hidden": "weather hidden"
   },
   "subs": {
+    "worker_online": "Evaluator online · last seen {s} s ago",
+    "worker_offline": "No evaluator is reporting right now: queued runs start as soon as the next worker comes up (normally within a few minutes).",
+    "queue_next": "your run is next",
+    "queue_ahead": "{n} run(s) ahead of yours",
+    "queue_running": "your run is being evaluated",
     "title": "Submissions",
     "id": "ID",
     "when": "Submitted",

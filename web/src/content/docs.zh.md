@@ -13,16 +13,17 @@
 
 ## 2. 入门包
 
-在「资源」页下载 `agent-observer-starter-kit.zip`。目录结构：`agent/`（要提交的智能体：`minimal_agent.py`、`decision_graph.py`、`model_factory.py`、`protocol.py`、`state.py`、`scoring_preview.py`、`requirements.txt`、`.env.example`）、`challenge/`（公开环境：契约、历法、瓦片几何、天气、请求、workflow、评分器、回放渲染器）、`scenarios/dev-reference/`（公开的 180 晚场景）、`local_runner.py`、`score_decisions.py`、`make_scenario.py`、`pack_agent.py`、`sac_submit.py`、`SKILL.md` 与 `README.md`。Python 3.10+ 与标准库即可运行。
+在「资源」页下载 `agent-observer-starter-kit.zip`。目录结构：`agent/`（要提交的智能体：`minimal_agent.py`、`decision_graph.py`、`model_factory.py`、`protocol.py`、`state.py`、`scoring_preview.py`、`requirements.txt`、`.env.example`）、`challenge/`（公开环境：契约、历法、瓦片几何、天气、请求、workflow、评分器、回放渲染器）、`scenarios/dev-reference/`（公开的 180 晚场景）、`local_runner.py`、`score_decisions.py`、`make_scenario.py`、`fetch_scenario.py`、`pack_agent.py`、`sac_submit.py`、`SKILL.md` 与 `README.md`。Python 3.10+ 与标准库即可运行。
 
 ```
 python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py --wallclock 600 --out run_output
 python3 score_decisions.py --scenario scenarios/dev-reference --decisions run_output/decisions.csv
 python3 make_scenario.py --out scenarios/mine --seed 7 --days 30 --start-date 2026-10-05
 python3 pack_agent.py --agent agent --out my-agent.zip
+python3 fetch_scenario.py --list && python3 fetch_scenario.py dev-fortnight   # 其它公开场景 -> scenarios/<slug>/
 ```
 
-`run_output/decisions.csv` 就是可上传的结果文件；`run_output/score_report.json` 与平台生成的报告一致（场景天气与事件公开时逐字节相同）；`run_output/decision_replay.html` 就是提交页内嵌的那份回放。其它公开场景（`dev-fortnight`）可在「资源」页逐个文件下载到 `scenarios/<slug>/`。最小智能体不需要任何依赖或密钥（`MODEL_PROVIDER=deterministic`），几秒钟即可跑完 180 晚的场景。
+`run_output/decisions.csv` 就是可上传的结果文件；`run_output/score_report.json` 与平台生成的报告一致（场景天气与事件公开时逐字节相同）；`run_output/decision_replay.html` 就是提交页内嵌的那份回放。`fetch_scenario.py` 可把任一已发布场景（如 `dev-fortnight`）完整下载到 `scenarios/<slug>/` 并校验哈希；「资源」页也提供逐个文件的链接。最小智能体不需要任何依赖或密钥（`MODEL_PROVIDER=deterministic`），几秒钟即可跑完 180 晚的场景。
 
 ## 3. 数据格式
 

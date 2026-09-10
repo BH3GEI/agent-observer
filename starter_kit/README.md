@@ -4,7 +4,7 @@ Everything in this folder is what the evaluation platform runs: the same workflo
 transport, the same scorer. A local run on a public scenario reproduces the platform's `score_report.json`
 for the same `decisions.csv`.
 
-Python 3.10+ and the standard library are enough. Only an LLM-backed agent needs the optional packages in
+Python 3.10+ (3.12 recommended; the macOS system `python3` is 3.9 and will refuse to start) and the standard library are enough. Only an LLM-backed agent needs the optional packages in
 `agent/requirements.txt`.
 
 | Path | Purpose |
@@ -15,6 +15,7 @@ Python 3.10+ and the standard library are enough. Only an LLM-backed agent needs
 | `local_runner.py` | Runs an agent through the platform transport on a scenario and scores it. |
 | `score_decisions.py` | Re-scores a `decisions.csv` (public scenarios only). |
 | `make_scenario.py` | Generates new public practice scenarios from a seed. |
+| `fetch_scenario.py` | Downloads any scenario the platform publishes (`--list`, then `fetch_scenario.py dev-fortnight`) into `scenarios/<slug>/`. |
 | `pack_agent.py` | Zips `agent/` into the submission package and validates it. |
 | `sac_submit.py` | Uploads a package or a results file to the platform and waits for the score. |
 | `SKILL.md` | Step-by-step instructions an AI coding assistant can follow. |
@@ -37,6 +38,8 @@ More scenarios keep a strategy from tuning to one weather sequence:
 python3 make_scenario.py --out scenarios/mine --seed 7 --days 30 --start-date 2026-10-05
 python3 local_runner.py --scenario scenarios/mine --agent agent/minimal_agent.py --out run_mine
 python3 score_decisions.py --scenario scenarios/mine --decisions run_mine/decisions.csv
+python3 fetch_scenario.py --list                     # scenarios published by the platform
+python3 fetch_scenario.py dev-fortnight              # -> scenarios/dev-fortnight/, ready for local_runner.py
 ```
 
 ## Scenario directory

@@ -36,7 +36,7 @@ const subst = {
   '{{SUPABASE_ANON_KEY}}': process.env.VITE_SUPABASE_ANON_KEY || '<anon key>',
 }
 const fill = (buf) => Buffer.from(Object.entries(subst).reduce((t, [k, v]) => t.split(k).join(v), buf.toString('utf8')))
-const FILLED = new Set(['README.md', 'SKILL.md'])
+const FILLED = new Set(['README.md', 'SKILL.md', 'fetch_scenario.py', 'sac_submit.py'])
 
 function walk(dir, rel = '') {
   const out = []

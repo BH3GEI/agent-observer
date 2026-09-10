@@ -18,6 +18,7 @@ import shutil
 import sys
 import tempfile
 import time
+from typing import Optional
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
@@ -262,6 +263,7 @@ def process_one(sb: Supa) -> bool:
     if not sub or not sub.get("id"):
         return False
     log.info("evaluating submission %s (%s)", sub["id"], sub["kind"])
+    heartbeat(sb, busy=True, processed=-1)
     try:
         evaluate(sb, sub)
     except Exception as exc:  # noqa: BLE001
@@ -273,11 +275,29 @@ def process_one(sb: Supa) -> bool:
     return True
 
 
-def run_loop(once: bool = False) -> int:
+def heartbeat(sb: Supa, *, busy: bool, processed: int) -> None:
+    """Publish the worker's liveness (site_settings.worker_heartbeat, readable by everyone) so the site can tell
+    participants whether an evaluator is online and how long the queue is."""
+    s = get_settings()
+    try:
+        queued = sb.rpc("queue_depth")
+        sb.insert("site_settings", {"key": "worker_heartbeat", "value": {"worker_id": s.worker_id, "at": now_iso(), "busy": busy,
+                                                                          "queued": queued, "processed": processed, "kinds": s.kinds}},
+                  upsert=True, on_conflict="key")
+    except SupabaseError as exc:
+        log.warning("heartbeat: %s", exc)
+
+
+def run_loop(once: bool = False, max_seconds: Optional[float] = None) -> int:
+    """Claim and evaluate submissions. `once` drains the queue and returns; `max_seconds` bounds a long-running
+    worker (GitHub-hosted runners are limited to 6 h per job; the workflow re-dispatches itself)."""
     s = get_settings()
     sb = client()
     n = 0
     last_stale = 0.0
+    last_beat = 0.0
+    started = time.monotonic()
+    heartbeat(sb, busy=False, processed=n)
     while True:
         if time.monotonic() - last_stale > 300:
             try:
@@ -285,6 +305,9 @@ def run_loop(once: bool = False) -> int:
             except SupabaseError as exc:
                 log.warning("requeue_stale: %s", exc)
             last_stale = time.monotonic()
+        if time.monotonic() - last_beat > 30:
+            heartbeat(sb, busy=False, processed=n)
+            last_beat = time.monotonic()
         try:
             did = process_one(sb)
         except SupabaseError as exc:
@@ -293,8 +316,13 @@ def run_loop(once: bool = False) -> int:
             time.sleep(5)
         if did:
             n += 1
+            heartbeat(sb, busy=False, processed=n)
+            last_beat = time.monotonic()
             continue
         if once:
+            return n
+        if max_seconds is not None and time.monotonic() - started > max_seconds:
+            log.info("max run time reached after %d submissions", n)
             return n
         time.sleep(s.poll_seconds)
 
@@ -367,7 +395,8 @@ def main(argv=None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sp = p.add_subparsers(dest="cmd", required=True)
-    sp.add_parser("run"); sp.add_parser("once"); sp.add_parser("seed")
+    r = sp.add_parser("run"); r.add_argument("--max-seconds", type=float, default=None, help="exit after this long (the Actions workflow chains runs)")
+    sp.add_parser("once"); sp.add_parser("seed")
     a = sp.add_parser("add-scenario"); a.add_argument("--slug", required=True); a.add_argument("--name"); a.add_argument("--description", default="")
     a.add_argument("--root", type=Path, required=True); a.add_argument("--wallclock", type=int)
     for x in (a,):
@@ -379,7 +408,7 @@ def main(argv=None) -> int:
     pa = sp.add_parser("promote-admin"); pa.add_argument("email")
     args = p.parse_args(argv)
     if args.cmd == "run":
-        return run_loop(once=False)
+        n = run_loop(once=False, max_seconds=args.max_seconds); print(f"processed {n} submissions"); return 0
     if args.cmd == "once":
         n = run_loop(once=True); print(f"processed {n} submissions"); return 0
     sb = client()

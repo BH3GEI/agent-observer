@@ -1322,6 +1322,11 @@
     "weather_hidden": "天气隐藏"
   },
   "subs": {
+    "worker_online": "评测器在线 · {s} 秒前上报",
+    "worker_offline": "当前没有评测器上报状态：排队的运行会在下一个评测器启动后立即开始（通常几分钟内）。",
+    "queue_next": "下一个就是你的运行",
+    "queue_ahead": "前面还有 {n} 个运行",
+    "queue_running": "正在评测你的运行",
     "title": "提交记录",
     "id": "ID",
     "when": "提交时间",
