@@ -8,6 +8,13 @@ from typing import Mapping
 from scoring_preview import CandidatePreview, preview_actions
 from state import DecisionState
 
+try:  # the participant's single-file strategy (optional: the deterministic ranking is used when absent)
+    import my_strategy
+except Exception as exc:  # noqa: BLE001  (a syntax error in the strategy must not kill the whole run)
+    import sys as _sys
+    print(f"my_strategy.py could not be imported ({type(exc).__name__}: {exc}); using the default ranking", file=_sys.stderr, flush=True)
+    my_strategy = None
+
 
 SYSTEM_PROMPT = """You choose one telescope action for the current decision only.
 Every listed candidate is a legal current start and already uses the public scoring
@@ -158,6 +165,9 @@ def _finalize(state: DecisionState) -> dict[str, object]:
                 "decision_source": "deterministic",
             }
         }
+    strategy = _strategy_decision(previews, state)
+    if strategy is not None:
+        return {"decision": strategy}
     best = previews[0]
     suffix = f" after {state['model_error']}" if state.get("model_error") else ""
     return {
@@ -170,6 +180,37 @@ def _finalize(state: DecisionState) -> dict[str, object]:
             "decision_source": "deterministic",
         }
     }
+
+
+def _strategy_decision(previews: list[CandidatePreview], state: DecisionState) -> dict[str, object] | None:
+    """Ask my_strategy.choose_action; anything invalid falls back to the default ranking (logged to stderr)."""
+    chooser = getattr(my_strategy, "choose_action", None) if my_strategy is not None else None
+    if chooser is None:
+        return None
+    candidates = [_compact(preview, rank) for rank, preview in enumerate(previews, start=1)]
+    allowed = {(c["tile_id"], c["program"], c["request_id"]): c for c in candidates}
+    memory = state.setdefault("memory", {})  # type: ignore[typeddict-item]
+    try:
+        choice = chooser(candidates, state["snapshot"], memory)
+    except Exception as exc:  # noqa: BLE001
+        import sys
+        print(f"my_strategy.choose_action raised {type(exc).__name__}: {exc}; using the default ranking", file=sys.stderr, flush=True)
+        return None
+    if choice is None:
+        return {"action": "wait", "tile_id": "", "program": "", "request_id": "", "reason": "my_strategy chose to wait", "decision_source": "strategy"}
+    if isinstance(choice, int) and not isinstance(choice, bool) and 0 <= choice < len(candidates):
+        choice = candidates[choice]
+    if isinstance(choice, str):
+        choice = next((c for c in candidates if c["tile_id"] == choice), None)
+    if not isinstance(choice, dict):
+        return None
+    key = (str(choice.get("tile_id", "")), str(choice.get("program", "")), str(choice.get("request_id", "")))
+    if key not in allowed:
+        import sys
+        print(f"my_strategy returned a candidate that is not legal now ({key}); using the default ranking", file=sys.stderr, flush=True)
+        return None
+    reason = " ".join(str(choice.get("reason") or "my_strategy choice").split())[:240]
+    return {"action": "observe", "tile_id": key[0], "program": key[1], "request_id": key[2], "reason": reason, "decision_source": "strategy"}
 
 
 class _SequentialGraph:
@@ -207,6 +248,7 @@ class MinimalDecisionAgent:
             raise ValueError("top_k must be positive")
         self.initial_publication = initial_publication
         self.top_k = top_k
+        self.memory: dict = {}  # handed to my_strategy.choose_action on every decision; persists for the run
         self.graph = build_decision_graph(model)
 
     def decide(self, snapshot: dict) -> dict[str, object]:
@@ -215,6 +257,7 @@ class MinimalDecisionAgent:
                 "initial_publication": self.initial_publication,
                 "snapshot": snapshot,
                 "top_k": self.top_k,
+                "memory": self.memory,
             }
         )
         return result["decision"]

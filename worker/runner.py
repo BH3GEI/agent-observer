@@ -59,14 +59,21 @@ class RunResult:
 # Package handling
 # ---------------------------------------------------------------------------
 
-def prepare_agent_dir(upload: Path, dest: Path, *, max_files: int = 2000, max_bytes: int = 50 * 1024 * 1024) -> Path:
-    """Extract an uploaded .py or .zip into dest safely. Returns the entry script path."""
+AGENT_TEMPLATE_FILES = ("minimal_agent.py", "decision_graph.py", "model_factory.py", "protocol.py", "state.py", "my_strategy.py", "scoring_preview.py")
+
+
+def prepare_agent_dir(upload: Path, dest: Path, *, max_files: int = 2000, max_bytes: int = 50 * 1024 * 1024, original_name: str = "") -> Path:
+    """Extract an uploaded .py or .zip into dest safely. Returns the entry script path (or dest when none is found)."""
     if dest.exists():
         shutil.rmtree(dest)
     dest.mkdir(parents=True)
     if upload.suffix.lower() == ".py":
-        shutil.copyfile(upload, dest / "agent.py")
-        return dest / "agent.py"
+        # a bare script keeps its name when it is one of the kit's modules (my_strategy.py, decision_graph.py ...)
+        # so that complete_agent_package() can wrap it with the rest of the minimal agent; otherwise it is the entry
+        base = os.path.basename(original_name or "")
+        name = base if base in AGENT_TEMPLATE_FILES else "agent.py"
+        shutil.copyfile(upload, dest / name)
+        return dest / name
     if not zipfile.is_zipfile(upload):
         raise AgentPackageError("upload must be a .py file or a .zip archive")
     total = 0
@@ -319,3 +326,28 @@ def run_agent(entry: Path, workdir: Path, *, weather: Path, tiles: Path, config:
     except OSError:
         pass
     return RunResult(decisions_path=decisions_path, log_path=log_path, steps=steps, wall_seconds=wall, report=report, stderr_tail=tail, warnings=warnings)
+
+
+def complete_agent_package(agent_dir: Path, template_dir: Path, preview_path: Path) -> list[str]:
+    """Wrap a partial upload (for example only my_strategy.py) with the kit's minimal agent.
+
+    Missing standard files are copied from the template; files the participant shipped are never overwritten.
+    Returns the names that were added (empty when the package already had an entry script or looks unrelated)."""
+    root = agent_dir
+    subdirs = [p for p in agent_dir.iterdir() if p.is_dir() and not p.name.startswith(".") and p.name != "scratch"]
+    if not any((agent_dir / c).is_file() for c in ENTRY_CANDIDATES) and len(subdirs) == 1 and not any(p.is_file() for p in agent_dir.iterdir()):
+        root = subdirs[0]
+    if any((root / c).is_file() for c in ENTRY_CANDIDATES):
+        return []
+    present = {p.name for p in root.iterdir() if p.is_file()}
+    if not (present & set(AGENT_TEMPLATE_FILES)) and not (present & {".env", "requirements.txt"}):
+        return []
+    added = []
+    for name in AGENT_TEMPLATE_FILES:
+        if name in present:
+            continue
+        src = preview_path if name == "scoring_preview.py" else template_dir / name
+        if src.is_file():
+            shutil.copyfile(src, root / name)
+            added.append(name)
+    return added

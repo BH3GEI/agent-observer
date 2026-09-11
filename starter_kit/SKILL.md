@@ -4,7 +4,7 @@ Platform website: {{BASE_URL}}
 Backend (Supabase) URL: {{SUPABASE_URL}}
 Public anon key: {{SUPABASE_ANON_KEY}}
 
-Follow the steps in order. Commands assume Python 3.10+ (`python3`; on macOS the system python3 is 3.9, use `python3.12`);
+Follow the steps in order. Commands assume Python 3.9+ (`python3`; the macOS system python3 works; on Windows use `py -3`);
 the kit itself needs no extra packages. `python3 --version` first.
 Use absolute paths when running from another directory.
 
@@ -77,6 +77,12 @@ and at least one long (≥ 90-night) scenario before submitting.
 
 ## 5. Edit the agent
 
+0. Simplest path: `agent/my_strategy.py` → `choose_action(candidates, snapshot, memory)` receives the legal candidates
+   ranked best-first (dicts with tile_id, program, request_id, region_id, scheduling_class, nominal_exptime_seconds,
+   combined_quality, estimated_science_score, terminal_penalty_avoidance, request_policy_value, estimated_total_gain,
+   estimated_gain_per_second) and returns one of them (optionally with a `reason`) or `None` to wait; `memory` is a
+   dict that persists for the run. Exceptions or illegal picks fall back to the default ranking (logged to stderr).
+   This single file can be submitted on its own: the platform wraps it with the rest of the minimal agent.
 1. Decision logic lives in `agent/decision_graph.py`: `_prepare` builds the ranked previews, `_model_node`
    optionally asks an LLM to pick among the top-K, `_finalize` validates and falls back to the deterministic
    best. Change the ranking, add lookahead over `night_start` / `weekly` windows, add memory across decisions
@@ -102,7 +108,8 @@ and at least one long (≥ 90-night) scenario before submitting.
    excludes caches, includes `.env` (add `--no-env` to leave keys out).
 2. Ask the user for the email and password of their platform account (the account must already be on a team)
    and the phase slug (`practice` for public scenarios, `online` for the competition).
-3. Agent package, evaluated by the platform on the phase's scenarios:
+3. Agent package, evaluated by the platform on the phase's scenarios (a bare `agent/my_strategy.py` may be sent
+   instead of the zip when nothing else changed):
    `python3 sac_submit.py --url {{SUPABASE_URL}} --key {{SUPABASE_ANON_KEY}} --email EMAIL --password PASSWORD --phase PHASE --kind agent --file my-agent.zip --wait`
 4. Results file, scored against a public scenario:
    `python3 sac_submit.py --url {{SUPABASE_URL}} --key {{SUPABASE_ANON_KEY}} --email EMAIL --password PASSWORD --phase practice --kind results --scenario dev-reference --file run_output/decisions.csv --wait`

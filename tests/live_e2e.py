@@ -216,7 +216,44 @@ def register_and_submit(page: Page, base: str, email: str, results_csv: Path, zi
     sid_agent = int(page.url.rsplit("/", 1)[1])
     expect(page.locator("[data-testid=sub-status]")).to_contain_text(re.compile("queued|Queued|排队"), timeout=20000)
     ok(True, f"agent submission #{sid_agent} queued")
-    return sid_results, sid_agent
+    # beginner path 1: a single my_strategy.py (the platform completes the package)
+    strategy = SHOTS / "tmp" / "my_strategy.py"
+    strategy.write_text("def choose_action(candidates, snapshot, memory):\n    if not candidates:\n        return None\n"
+                        "    required = [c for c in candidates if c['scheduling_class'] == 'REQUIRED']\n    return required[0] if required else candidates[0]\n")
+    page.goto(base + "/submit", wait_until="domcontentloaded")
+    page.select_option("[data-testid=submit-phase]", "practice")
+    page.check("[data-testid=submit-kind-agent]")
+    page.set_input_files("[data-testid=submit-file]", str(strategy))
+    page.fill("[data-testid=submit-title]", "live smoke single file")
+    page.click("[data-testid=submit-button]")
+    expect(page).to_have_url(re.compile(r"/submissions/\d+"), timeout=30000)
+    sid_single = int(page.url.rsplit("/", 1)[1])
+    ok(True, f"single-file my_strategy.py submission #{sid_single} queued")
+    # beginner path 2: the whole agent folder, zipped in the browser
+    folder = SHOTS / "tmp" / "agent"
+    if folder.exists():
+        import shutil
+        shutil.rmtree(folder)
+    folder.mkdir(parents=True)
+    for f in (ROOT / "starter_kit" / "agent").glob("*.py"):
+        (folder / f.name).write_bytes(f.read_bytes())
+    (folder / "__pycache__").mkdir()
+    (folder / "__pycache__" / "junk.pyc").write_bytes(b"\x00")
+    (folder / ".env").write_text("MODEL_PROVIDER=deterministic\n")
+    page.goto(base + "/submit", wait_until="domcontentloaded")
+    page.select_option("[data-testid=submit-phase]", "practice")
+    page.check("[data-testid=submit-kind-agent]")
+    page.set_input_files("[data-testid=submit-folder]", str(folder))
+    expect(page.locator("[data-testid=packed-summary]")).to_contain_text(re.compile(r"\d+"), timeout=20000)
+    summary = page.locator("[data-testid=packed-summary]").inner_text()
+    ok("my_strategy.py" in summary and "junk" not in summary, f"folder packed in the browser: {summary[:90]}")
+    page.fill("[data-testid=submit-title]", "live smoke folder")
+    shot(page, "14-submit-folder", full=False)
+    page.click("[data-testid=submit-button]")
+    expect(page).to_have_url(re.compile(r"/submissions/\d+"), timeout=30000)
+    sid_folder = int(page.url.rsplit("/", 1)[1])
+    ok(True, f"browser-packed folder submission #{sid_folder} queued")
+    return sid_results, sid_agent, sid_single, sid_folder
 
 
 def wait_scored(token: str, ids: list[int], timeout: int):
@@ -326,6 +363,18 @@ def submission_pages(page: Page, base: str, token: str, sid_results: int, sid_ag
     ok(True, "submission page in Chinese")
     shot(page, "26-submission-agent-zh", full=False)
     page.click("[data-testid=lang-toggle]")
+
+
+def beginner_submissions(token: str, sid_single: int, sid_folder: int):
+    st, rows = call("GET", f"/rest/v1/submissions?id=in.({sid_single},{sid_folder})&select=id,status,score,required_missing,error,evaluations(status,log_path,scenarios(slug))", token=token)
+    by = {r["id"]: r for r in rows} if st == 200 else {}
+    single = by.get(sid_single, {})
+    ok(single.get("status") == "scored" and single.get("required_missing") in (0, 1), f"single my_strategy.py scored {single.get('score')} (REQUIRED missing {single.get('required_missing')}) error={single.get('error')!r}")
+    lp = next((e.get("log_path") for e in single.get("evaluations", []) if e.get("log_path")), None)
+    st, log = call("GET", f"/storage/v1/object/results/{lp}", token=token) if lp else (0, b"")
+    ok(st == 200 and b"completed this package" in log, "agent.log says the platform completed the package")
+    folder = by.get(sid_folder, {})
+    ok(folder.get("status") == "scored" and abs(float(folder.get("score") or 0) - 9400.099832) < 1e-3, f"browser-packed folder scored {folder.get('score')} error={folder.get('error')!r}")
 
 
 def leaderboard(page: Page, base: str, team_pat: str):
@@ -450,8 +499,8 @@ def main() -> int:
         try:
             public_pages(page, base)
             storage_sweep()
-            sid_results, sid_agent = register_and_submit(page, base, email, results_csv, zip_path)
-            sids = [sid_results, sid_agent]
+            sid_results, sid_agent, sid_single, sid_folder = register_and_submit(page, base, email, results_csv, zip_path)
+            sids = [sid_results, sid_agent, sid_single, sid_folder]
             st, sess = call("POST", "/auth/v1/token?grant_type=password", {"email": email, "password": PASSWORD})
             token, uid = sess["access_token"], sess["user"]["id"]
             st, team = call("POST", "/rest/v1/rpc/my_team_id", {}, token=token)
@@ -462,6 +511,7 @@ def main() -> int:
             rows = wait_scored(token, sids, args.timeout)
             ok(bool(rows) and all(r["status"] == "scored" for r in rows), f"both submissions scored by {[r.get('claimed_by') for r in rows]}")
             submission_pages(page, base, token, sid_results, sid_agent)
+            beginner_submissions(token, sid_single, sid_folder)
             leaderboard(page, base, "Live Smoke")
             mobile(browser, base, email, sid_agent)
             admin(page, base, uid)

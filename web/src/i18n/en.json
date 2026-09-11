@@ -1084,7 +1084,8 @@
     "id": "ID",
     "signed_in_as": "Signed in as",
     "no_data": "Nothing here yet.",
-    "by": "by"
+    "by": "by",
+    "or": "or"
   },
   "status": {
     "queued": "Queued",
@@ -1276,7 +1277,7 @@
     "scenario": "Scenario",
     "file": "File",
     "file_results": "decisions.csv",
-    "file_agent": "agent package: .zip with minimal_agent.py, agent.py or main.py at its root (a bare .py is accepted if it needs nothing else)",
+    "file_agent": "One file is enough: my_strategy.py alone (the platform adds the rest of the starter agent). A folder or .zip is used as is when it has minimal_agent.py, agent.py or main.py at its root.",
     "title_field": "Label (optional)",
     "notes": "Notes (optional, private to your team)",
     "button": "Upload and queue",
@@ -1300,7 +1301,8 @@
       "agent_file": "Agent must be a .py or .zip file.",
       "too_large": "File exceeds {mb} MB.",
       "invalid_file": "File rejected",
-      "cannot_cancel": "Only queued submissions can be cancelled."
+      "cannot_cancel": "Only queued submissions can be cancelled.",
+      "folder_empty": "The folder has no files to package."
     },
     "uploading": "Uploading file…",
     "hashing": "Computing checksum…",
@@ -1309,17 +1311,21 @@
     "no_scenario": "No public-weather scenario in this phase. Submit an agent package instead.",
     "all_scenarios": "All scenarios of the phase",
     "agent_hints": [
-      "Entry script: minimal_agent.py, agent.py or main.py at the package root (or in its single top-level folder); it speaks participant-agent-protocol-v1 on stdin/stdout.",
-      "requirements.txt (optional) is pip-installed into a fresh virtual environment before the clock starts.",
-      ".env (optional, KEY=VALUE lines) is loaded into the agent's environment only: put MODEL_PROVIDER, MODEL_NAME and the provider API key there. It is never logged.",
-      "Everything else in the zip is importable from the entry script's directory. ≤ 20 MB, ≤ 2,000 files, ≤ 50 MB uncompressed, no symlinks."
+      "Changed only my_strategy.py? Upload that single file; the platform completes the package with the starter kit's standard files.",
+      "Using a language model? Drop the whole agent folder: its .env (your API keys, never shown to anyone) and requirements.txt (installed before the clock starts) come along.",
+      "Written your own agent from scratch? A .zip with minimal_agent.py, agent.py or main.py at its root, speaking participant-agent-protocol-v1 on stdin/stdout.",
+      "Limits: 20 MB per upload, 2,000 files, 50 MB uncompressed, no symlinks. Caches, scratch/ and run_output/ are left out automatically."
     ],
     "results_public_only": "Only scenarios with public weather are listed: the scorer needs the full weather truth to replay a results file.",
     "wallclock": "wall clock",
     "wallclock_note": "One global wall clock per scenario, started after the initialize message; no per-decision timeout. Actions committed before the cutoff are scored.",
     "wallclock_results_note": "Results files are replayed offline; the wall clock only applies to platform runs of agent packages.",
     "weather_public": "weather public",
-    "weather_hidden": "weather hidden"
+    "weather_hidden": "weather hidden",
+    "drop_agent": "Drop your my_strategy.py, your whole agent folder, or a .zip here",
+    "drop_results": "Drop your decisions.csv here",
+    "pick_folder": "Choose a folder (we zip it for you)",
+    "packed": "Packed {n} file(s) in the browser"
   },
   "subs": {
     "worker_online": "Evaluator online · last seen {s} s ago",
@@ -1508,6 +1514,10 @@
     "kicker": "FAQ",
     "title": "Questions before you register",
     "items": [
+      {
+        "q": "I am not a strong programmer. What is the minimum?",
+        "a": "Download the kit, double-click run_baseline, and edit one function in agent/my_strategy.py: it receives the candidates that can be observed right now, already ranked, and returns the one to observe or None to wait. Upload that single file on the Submit page; the platform adds the rest of the starter agent. macOS's built-in Python is enough; Windows needs Python 3.12 from python.org."
+      },
       {
         "q": "Do I need an astronomy background?",
         "a": "No. Your agent receives JSON snapshots: the current slot's weather, the candidate tiles with altitude, airmass, lunar factor, effective conditions and tile_science_value, the forecasts and requests issued so far, and your progress. The docs explain the few terms that appear, and scoring_preview.py already turns a snapshot into a ranked list of candidates."

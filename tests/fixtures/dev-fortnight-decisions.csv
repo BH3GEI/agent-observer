@@ -1,20 +1,20 @@
 decision_id,slot_id,action,tile_id,program,request_id,reason
-D000001,N20261005-S001,observe,T00042,DARK,,highest public current-snapshot estimate
-D000002,N20261005-S001,observe,T00058,DARK,,highest public current-snapshot estimate
-D000003,N20261005-S002,observe,T00057,DARK,,highest public current-snapshot estimate
-D000004,N20261005-S003,observe,T00049,DARK,,highest public current-snapshot estimate
-D000005,N20261005-S004,observe,T00002,BRIGHT,,highest public current-snapshot estimate
-D000006,N20261005-S005,observe,T00050,DARK,,highest public current-snapshot estimate
-D000007,N20261005-S006,observe,T00001,DARK,,highest public current-snapshot estimate
-D000008,N20261005-S008,observe,T00051,DARK,,highest public current-snapshot estimate
-D000009,N20261005-S008,observe,T00056,DARK,,highest public current-snapshot estimate
-D000010,N20261005-S009,observe,T00055,DARK,,highest public current-snapshot estimate
-D000011,N20261005-S009,observe,T00006,DARK,RQ0001,highest public current-snapshot estimate
-D000012,N20261005-S010,observe,T00061,DARK,,highest public current-snapshot estimate
-D000013,N20261005-S011,observe,T00063,DARK,,highest public current-snapshot estimate
-D000014,N20261005-S012,observe,T00054,DARK,,highest public current-snapshot estimate
-D000015,N20261005-S012,observe,T00005,DARK,,highest public current-snapshot estimate
-D000016,N20261005-S013,observe,T00059,DARK,,highest public current-snapshot estimate
+D000001,N20261005-S001,observe,T00042,DARK,,my_strategy choice
+D000002,N20261005-S001,observe,T00058,DARK,,my_strategy choice
+D000003,N20261005-S002,observe,T00057,DARK,,my_strategy choice
+D000004,N20261005-S003,observe,T00049,DARK,,my_strategy choice
+D000005,N20261005-S004,observe,T00002,BRIGHT,,my_strategy choice
+D000006,N20261005-S005,observe,T00050,DARK,,my_strategy choice
+D000007,N20261005-S006,observe,T00001,DARK,,my_strategy choice
+D000008,N20261005-S008,observe,T00051,DARK,,my_strategy choice
+D000009,N20261005-S008,observe,T00056,DARK,,my_strategy choice
+D000010,N20261005-S009,observe,T00055,DARK,,my_strategy choice
+D000011,N20261005-S009,observe,T00006,DARK,RQ0001,my_strategy choice
+D000012,N20261005-S010,observe,T00061,DARK,,my_strategy choice
+D000013,N20261005-S011,observe,T00063,DARK,,my_strategy choice
+D000014,N20261005-S012,observe,T00054,DARK,,my_strategy choice
+D000015,N20261005-S012,observe,T00005,DARK,,my_strategy choice
+D000016,N20261005-S013,observe,T00059,DARK,,my_strategy choice
 D000017,N20261005-S014,wait,,,,no legal observable candidate can finish in its known window
 D000018,N20261005-S015,wait,,,,no legal observable candidate can finish in its known window
 D000019,N20261005-S016,wait,,,,no legal observable candidate can finish in its known window
@@ -44,49 +44,49 @@ D000042,N20261005-S039,wait,,,,no legal observable candidate can finish in its k
 D000043,N20261005-S040,wait,,,,no legal observable candidate can finish in its known window
 D000044,N20261005-S041,wait,,,,no legal observable candidate can finish in its known window
 D000045,N20261005-S042,wait,,,,no legal observable candidate can finish in its known window
-D000046,N20261006-S001,observe,T00041,BRIGHT,,highest public current-snapshot estimate
-D000047,N20261006-S002,observe,T00044,BRIGHT,,highest public current-snapshot estimate
-D000048,N20261006-S002,observe,T00046,BRIGHT,,highest public current-snapshot estimate
-D000049,N20261006-S003,observe,T00052,DARK,,highest public current-snapshot estimate
-D000050,N20261006-S004,observe,T00059,DARK,,highest public current-snapshot estimate
-D000051,N20261006-S005,observe,T00045,BRIGHT,,highest public current-snapshot estimate
-D000052,N20261006-S006,observe,T00062,DARK,,highest public current-snapshot estimate
-D000053,N20261006-S007,observe,T00048,BRIGHT,,highest public current-snapshot estimate
-D000054,N20261006-S008,observe,T00053,DARK,,highest public current-snapshot estimate
-D000055,N20261006-S009,observe,T00004,BRIGHT,,highest public current-snapshot estimate
-D000056,N20261006-S011,observe,T00008,BACKUP,,highest public current-snapshot estimate
-D000057,N20261006-S012,observe,T00009,BACKUP,,highest public current-snapshot estimate
-D000058,N20261006-S013,observe,T00060,DARK,,highest public current-snapshot estimate
-D000059,N20261006-S014,observe,T00014,BRIGHT,,highest public current-snapshot estimate
-D000060,N20261006-S015,observe,T00013,BRIGHT,,highest public current-snapshot estimate
-D000061,N20261006-S017,observe,T00010,BACKUP,,highest public current-snapshot estimate
-D000062,N20261006-S018,observe,T00011,BRIGHT,,highest public current-snapshot estimate
-D000063,N20261006-S019,observe,T00015,BRIGHT,,highest public current-snapshot estimate
-D000064,N20261006-S020,observe,T00007,DARK,,highest public current-snapshot estimate
-D000065,N20261006-S021,observe,T00003,DARK,,highest public current-snapshot estimate
-D000066,N20261006-S023,observe,T00016,BACKUP,,highest public current-snapshot estimate
-D000067,N20261006-S023,observe,T00064,BRIGHT,,highest public current-snapshot estimate
-D000068,N20261006-S024,observe,T00012,BRIGHT,,highest public current-snapshot estimate
+D000046,N20261006-S001,observe,T00041,BRIGHT,,my_strategy choice
+D000047,N20261006-S002,observe,T00044,BRIGHT,,my_strategy choice
+D000048,N20261006-S002,observe,T00046,BRIGHT,,my_strategy choice
+D000049,N20261006-S003,observe,T00052,DARK,,my_strategy choice
+D000050,N20261006-S004,observe,T00059,DARK,,my_strategy choice
+D000051,N20261006-S005,observe,T00045,BRIGHT,,my_strategy choice
+D000052,N20261006-S006,observe,T00062,DARK,,my_strategy choice
+D000053,N20261006-S007,observe,T00048,BRIGHT,,my_strategy choice
+D000054,N20261006-S008,observe,T00053,DARK,,my_strategy choice
+D000055,N20261006-S009,observe,T00004,BRIGHT,,my_strategy choice
+D000056,N20261006-S011,observe,T00008,BACKUP,,my_strategy choice
+D000057,N20261006-S012,observe,T00009,BACKUP,,my_strategy choice
+D000058,N20261006-S013,observe,T00060,DARK,,my_strategy choice
+D000059,N20261006-S014,observe,T00014,BRIGHT,,my_strategy choice
+D000060,N20261006-S015,observe,T00013,BRIGHT,,my_strategy choice
+D000061,N20261006-S017,observe,T00010,BACKUP,,my_strategy choice
+D000062,N20261006-S018,observe,T00011,BRIGHT,,my_strategy choice
+D000063,N20261006-S019,observe,T00015,BRIGHT,,my_strategy choice
+D000064,N20261006-S020,observe,T00007,DARK,,my_strategy choice
+D000065,N20261006-S021,observe,T00003,DARK,,my_strategy choice
+D000066,N20261006-S023,observe,T00016,BACKUP,,my_strategy choice
+D000067,N20261006-S023,observe,T00064,BRIGHT,,my_strategy choice
+D000068,N20261006-S024,observe,T00012,BRIGHT,,my_strategy choice
 D000069,N20261006-S026,wait,,,,no legal observable candidate can finish in its known window
-D000070,N20261006-S027,observe,T00017,BACKUP,,highest public current-snapshot estimate
-D000071,N20261006-S028,observe,T00019,BACKUP,,highest public current-snapshot estimate
-D000072,N20261006-S029,observe,T00020,BRIGHT,,highest public current-snapshot estimate
-D000073,N20261006-S031,observe,T00021,BACKUP,,highest public current-snapshot estimate
+D000070,N20261006-S027,observe,T00017,BACKUP,,my_strategy choice
+D000071,N20261006-S028,observe,T00019,BACKUP,,my_strategy choice
+D000072,N20261006-S029,observe,T00020,BRIGHT,,my_strategy choice
+D000073,N20261006-S031,observe,T00021,BACKUP,,my_strategy choice
 D000074,N20261006-S031,wait,,,,no legal observable candidate can finish in its known window
 D000075,N20261006-S032,wait,,,,no legal observable candidate can finish in its known window
-D000076,N20261006-S033,observe,T00024,BRIGHT,,highest public current-snapshot estimate
-D000077,N20261006-S033,observe,T00023,BACKUP,,highest public current-snapshot estimate
+D000076,N20261006-S033,observe,T00024,BRIGHT,,my_strategy choice
+D000077,N20261006-S033,observe,T00023,BACKUP,,my_strategy choice
 D000078,N20261006-S034,wait,,,,no legal observable candidate can finish in its known window
 D000079,N20261006-S035,wait,,,,no legal observable candidate can finish in its known window
-D000080,N20261006-S036,observe,T00018,BRIGHT,,highest public current-snapshot estimate
-D000081,N20261006-S037,observe,T00022,BRIGHT,,highest public current-snapshot estimate
-D000082,N20261006-S038,observe,T00031,BRIGHT,,highest public current-snapshot estimate
+D000080,N20261006-S036,observe,T00018,BRIGHT,,my_strategy choice
+D000081,N20261006-S037,observe,T00022,BRIGHT,,my_strategy choice
+D000082,N20261006-S038,observe,T00031,BRIGHT,,my_strategy choice
 D000083,N20261006-S039,wait,,,,no legal observable candidate can finish in its known window
 D000084,N20261006-S040,wait,,,,no legal observable candidate can finish in its known window
-D000085,N20261006-S041,observe,T00026,BACKUP,,highest public current-snapshot estimate
-D000086,N20261006-S042,observe,T00030,BACKUP,,highest public current-snapshot estimate
-D000087,N20261007-S001,observe,T00043,BRIGHT,,highest public current-snapshot estimate
-D000088,N20261007-S001,observe,T00039,BRIGHT,,highest public current-snapshot estimate
+D000085,N20261006-S041,observe,T00026,BACKUP,,my_strategy choice
+D000086,N20261006-S042,observe,T00030,BACKUP,,my_strategy choice
+D000087,N20261007-S001,observe,T00043,BRIGHT,,my_strategy choice
+D000088,N20261007-S001,observe,T00039,BRIGHT,,my_strategy choice
 D000089,N20261007-S002,wait,,,,no legal observable candidate can finish in its known window
 D000090,N20261007-S003,wait,,,,no legal observable candidate can finish in its known window
 D000091,N20261007-S004,wait,,,,no legal observable candidate can finish in its known window
@@ -125,9 +125,9 @@ D000123,N20261007-S036,wait,,,,no legal observable candidate can finish in its k
 D000124,N20261007-S037,wait,,,,no legal observable candidate can finish in its known window
 D000125,N20261007-S038,wait,,,,no legal observable candidate can finish in its known window
 D000126,N20261007-S039,wait,,,,no legal observable candidate can finish in its known window
-D000127,N20261007-S040,observe,T00027,BRIGHT,,highest public current-snapshot estimate
+D000127,N20261007-S040,observe,T00027,BRIGHT,,my_strategy choice
 D000128,N20261007-S041,wait,,,,no legal observable candidate can finish in its known window
-D000129,N20261007-S042,observe,T00032,BRIGHT,,highest public current-snapshot estimate
+D000129,N20261007-S042,observe,T00032,BRIGHT,,my_strategy choice
 D000130,N20261008-S001,wait,,,,no legal observable candidate can finish in its known window
 D000131,N20261008-S002,wait,,,,no legal observable candidate can finish in its known window
 D000132,N20261008-S003,wait,,,,no legal observable candidate can finish in its known window
@@ -168,7 +168,7 @@ D000166,N20261008-S037,wait,,,,no legal observable candidate can finish in its k
 D000167,N20261008-S038,wait,,,,no legal observable candidate can finish in its known window
 D000168,N20261008-S039,wait,,,,no legal observable candidate can finish in its known window
 D000169,N20261008-S040,wait,,,,no legal observable candidate can finish in its known window
-D000170,N20261008-S041,observe,T00028,BACKUP,,highest public current-snapshot estimate
+D000170,N20261008-S041,observe,T00028,BACKUP,,my_strategy choice
 D000171,N20261008-S042,wait,,,,no legal observable candidate can finish in its known window
 D000172,N20261009-S001,wait,,,,no legal observable candidate can finish in its known window
 D000173,N20261009-S002,wait,,,,no legal observable candidate can finish in its known window
@@ -590,5 +590,5 @@ D000588,N20261018-S038,wait,,,,no legal observable candidate can finish in its k
 D000589,N20261018-S039,wait,,,,no legal observable candidate can finish in its known window
 D000590,N20261018-S040,wait,,,,no legal observable candidate can finish in its known window
 D000591,N20261018-S041,wait,,,,no legal observable candidate can finish in its known window
-D000592,N20261018-S042,observe,T00025,BACKUP,,highest public current-snapshot estimate
+D000592,N20261018-S042,observe,T00025,BACKUP,,my_strategy choice
 D000593,N20261018-S043,wait,,,,no legal observable candidate can finish in its known window

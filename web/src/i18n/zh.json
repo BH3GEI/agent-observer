@@ -1084,7 +1084,8 @@
     "id": "编号",
     "signed_in_as": "当前登录",
     "no_data": "暂无内容。",
-    "by": "由"
+    "by": "由",
+    "or": "或"
   },
   "status": {
     "queued": "排队中",
@@ -1276,7 +1277,7 @@
     "scenario": "场景",
     "file": "文件",
     "file_results": "decisions.csv",
-    "file_agent": "智能体程序包：根目录含 minimal_agent.py、agent.py 或 main.py 的 .zip（不依赖其他文件时也可上传单个 .py）",
+    "file_agent": "只传一个文件就够：单独上传 my_strategy.py，平台会补齐入门包里其余标准文件。文件夹或 .zip 的根目录含 minimal_agent.py、agent.py 或 main.py 时原样运行。",
     "title_field": "备注名称（可选）",
     "notes": "备注（可选，仅队伍可见）",
     "button": "上传并排队评测",
@@ -1300,7 +1301,8 @@
       "agent_file": "智能体须为 .py 或 .zip 文件。",
       "too_large": "文件超过 {mb} MB。",
       "invalid_file": "文件被拒绝",
-      "cannot_cancel": "只有排队中的提交可以取消。"
+      "cannot_cancel": "只有排队中的提交可以取消。",
+      "folder_empty": "该文件夹里没有可打包的文件。"
     },
     "uploading": "正在上传文件…",
     "hashing": "正在计算校验和…",
@@ -1309,17 +1311,21 @@
     "no_scenario": "本阶段没有天气公开的场景，请改为提交智能体程序包。",
     "all_scenarios": "本阶段全部场景",
     "agent_hints": [
-      "入口脚本：程序包根目录（或唯一顶层文件夹）中的 minimal_agent.py、agent.py 或 main.py；通过 stdin/stdout 使用 participant-agent-protocol-v1。",
-      "requirements.txt（可选）会在时钟开始前用 pip 装进全新虚拟环境。",
-      ".env（可选，KEY=VALUE 行）只注入智能体环境：把 MODEL_PROVIDER、MODEL_NAME 与服务商 API key 写在这里。它永远不会被记录。",
-      "zip 中的其他文件可从入口脚本所在目录导入。≤ 20 MB、≤ 2,000 个文件、解压后 ≤ 50 MB、不含符号链接。"
+      "只改了 my_strategy.py？直接上传这一个文件，平台会用入门包的标准文件补齐程序包。",
+      "用了大模型？把整个 agent 文件夹拖进来：.env（你的 API key，不会展示给任何人）和 requirements.txt（开钟前安装）一起带上。",
+      "自己从零写的智能体？根目录含 minimal_agent.py、agent.py 或 main.py 的 .zip，通过 stdin/stdout 使用 participant-agent-protocol-v1。",
+      "限制：单次 20 MB、2,000 个文件、解压后 50 MB、不含符号链接。缓存、scratch/ 与 run_output/ 会自动剔除。"
     ],
     "results_public_only": "只列出天气公开的场景：评分器需要完整天气真值才能回放结果文件。",
     "wallclock": "全局时钟",
     "wallclock_note": "每个场景一个全局时钟，在 initialize 消息后开始；没有单次决策超时。截止前提交的动作照常评分。",
     "wallclock_results_note": "结果文件离线回放；全局时钟只适用于智能体程序包的平台运行。",
     "weather_public": "天气公开",
-    "weather_hidden": "天气隐藏"
+    "weather_hidden": "天气隐藏",
+    "drop_agent": "把 my_strategy.py、整个 agent 文件夹或 .zip 拖到这里",
+    "drop_results": "把 decisions.csv 拖到这里",
+    "pick_folder": "选择文件夹（网站替你打包）",
+    "packed": "已在浏览器内打包 {n} 个文件"
   },
   "subs": {
     "worker_online": "评测器在线 · {s} 秒前上报",
@@ -1508,6 +1514,10 @@
     "kicker": "常见问题",
     "title": "报名前的问题",
     "items": [
+      {
+        "q": "我编程基础一般，最少要做什么？",
+        "a": "下载入门包，双击 run_baseline，然后只改 agent/my_strategy.py 里的一个函数：它收到「现在能观测的候选」（已排好序），返回要观测的那个或 None 等待。把这一个文件拖到「提交」页即可，平台会补齐其余文件。macOS 自带的 Python 就够用，Windows 从 python.org 装 Python 3.12。"
+      },
       {
         "q": "需要天文背景吗？",
         "a": "不需要。智能体收到的是 JSON 快照：当前时隙天气、带高度、airmass、月光因子、有效条件与 tile_science_value 的候选天区、迄今发布的预报与请求，以及进度。文档解释了会出现的少数术语，scoring_preview.py 也已经能把快照变成候选排序。"

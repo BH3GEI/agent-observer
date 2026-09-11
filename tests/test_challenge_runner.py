@@ -100,3 +100,33 @@ def test_zip_layouts_and_entry_detection(tmp_path):
     prepare_agent_dir(bad, tmp_path / "e")
     with pytest.raises(cr.AgentPackageError):
         cr.find_entry(tmp_path / "e")
+
+
+def test_partial_package_is_completed_with_the_kit(tmp_path):
+    """A participant may upload only my_strategy.py (bare or zipped): the worker wraps it with the minimal agent."""
+    from worker import challenge_runner as cr
+    from worker.runner import complete_agent_package, prepare_agent_dir
+    template = ROOT / "challenge" / "participant_agent"
+    preview = ROOT / "challenge" / "scoring_preview.py"
+    bare = tmp_path / "upload.py"
+    bare.write_text("def choose_action(candidates, snapshot, memory):\n    return candidates[0] if candidates else None\n")
+    d = tmp_path / "bare"
+    prepare_agent_dir(bare, d, original_name="my_strategy.py")
+    added = complete_agent_package(d, template, preview)
+    assert (d / "my_strategy.py").read_text().startswith("def choose_action") and "minimal_agent.py" in added and "scoring_preview.py" in added
+    assert cr.find_entry(d) == d / "minimal_agent.py"
+    z = tmp_path / "partial.zip"
+    with zipfile.ZipFile(z, "w") as zf:
+        zf.writestr("strategy/my_strategy.py", "def choose_action(candidates, snapshot, memory):\n    return None\n")
+        zf.writestr("strategy/.env", "MODEL_PROVIDER=deterministic\n")
+    d2 = tmp_path / "zipped"
+    prepare_agent_dir(z, d2)
+    added = complete_agent_package(d2, template, preview)
+    assert "decision_graph.py" in added and (d2 / "strategy" / "my_strategy.py").read_text().endswith("return None\n")
+    assert cr.find_entry(d2) == d2 / "strategy" / "minimal_agent.py"
+    full = tmp_path / "full"
+    full.mkdir(); (full / "agent.py").write_text("print('x')\n")
+    assert complete_agent_package(full, template, preview) == []
+    unrelated = tmp_path / "unrelated"
+    unrelated.mkdir(); (unrelated / "notes.txt").write_text("hi\n")
+    assert complete_agent_package(unrelated, template, preview) == []

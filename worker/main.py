@@ -28,8 +28,8 @@ from challenge import scenario_builder
 from challenge.scoring_core import score_files
 
 from . import challenge_runner as cr
-from .config import get_settings
-from .runner import prepare_agent_dir, AgentPackageError as ZipError
+from .config import ROOT, get_settings
+from .runner import prepare_agent_dir, complete_agent_package, AgentPackageError as ZipError
 from .supa import Supa, SupabaseError
 
 log = logging.getLogger("sac.worker")
@@ -173,7 +173,12 @@ def evaluate(sb: Supa, sub: dict) -> None:
     if sub["kind"] == "agent":
         agent_dir = work / "agent"
         try:
-            prepare_agent_dir(upload, agent_dir)
+            prepare_agent_dir(upload, agent_dir, original_name=sub.get("original_filename") or "")
+            completed = complete_agent_package(agent_dir, ROOT / "challenge" / "participant_agent", ROOT / "challenge" / "scoring_preview.py")
+            if completed:
+                log.info("submission %s: completed a partial package with %s", sid, ", ".join(completed))
+                (agent_dir / "scratch").mkdir(exist_ok=True)
+                (agent_dir / "PLATFORM_NOTE.txt").write_text("The platform completed this package with the kit's standard files: " + ", ".join(completed) + "\n")
             cr.find_entry(agent_dir)
         except (ZipError, cr.AgentPackageError) as exc:
             for scn in scn_rows:

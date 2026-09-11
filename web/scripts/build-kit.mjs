@@ -57,7 +57,9 @@ let rawBytes = 0
 for (const rel of walk(kitDir)) {
   const raw = readFileSync(resolve(kitDir, rel))
   rawBytes += raw.length
-  entries[`${zipFolder}/${rel}`] = [FILLED.has(rel) ? fill(raw) : raw, { mtime, level: 9 }]
+  // executable bit for the double-click launchers so `unzip` on macOS / Linux restores it (UNIX external attrs)
+  const executable = /\.(command|sh)$/.test(rel)
+  entries[`${zipFolder}/${rel}`] = [FILLED.has(rel) ? fill(raw) : raw, executable ? { mtime, level: 9, os: 3, attrs: 0o100755 << 16 } : { mtime, level: 9 }]
 }
 const zip = zipSync(entries, { level: 9, mtime })
 writeFileSync(resolve(outDir, 'agent-observer-starter-kit.zip'), zip)

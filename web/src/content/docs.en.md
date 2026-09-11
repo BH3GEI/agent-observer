@@ -13,7 +13,18 @@ Sponsor API credits are handed out as redeem codes: once your team is registered
 
 ## 2. Starter kit
 
-Download `agent-observer-starter-kit.zip` from the Resources page. Layout: `agent/` (the submission: `minimal_agent.py`, `decision_graph.py`, `model_factory.py`, `protocol.py`, `state.py`, `scoring_preview.py`, `requirements.txt`, `.env.example`), `challenge/` (the public environment: contracts, calendar, tile geometry, weather, requests, workflow, scorer, replay renderer), `scenarios/dev-reference/` (the public 180-night scenario), `local_runner.py`, `score_decisions.py`, `make_scenario.py`, `fetch_scenario.py`, `pack_agent.py`, `sac_submit.py`, `SKILL.md` and `README.md`. Python 3.10+ and the standard library are enough.
+### The short path (no tooling)
+
+1. Download the kit, unzip it, and double-click `run_baseline.command` (macOS), `run_baseline.bat` (Windows, after installing Python 3.12 from python.org) or run `./run_baseline.sh` (Linux). The baseline scores about 12287 on the bundled scenario and the replay opens in your browser.
+2. Edit `agent/my_strategy.py`: its `choose_action(candidates, snapshot, memory)` receives the legal candidates ranked best-first and returns the one to observe, or `None` to wait. Run the launcher again to compare.
+3. On the Submit page choose *Agent run* and drop that single file. The platform wraps it with the rest of the starter agent; dropping the whole `agent` folder (packaged in the browser) or a `.zip` works too.
+
+`QUICKSTART.md` and `快速上手.md` in the kit repeat these three steps. Everything below is the engineer's version.
+
+### Contents and commands
+
+
+Download `agent-observer-starter-kit.zip` from the Resources page. Layout: `agent/` (the submission: `minimal_agent.py`, `decision_graph.py`, `model_factory.py`, `protocol.py`, `state.py`, `scoring_preview.py`, `requirements.txt`, `.env.example`), `challenge/` (the public environment: contracts, calendar, tile geometry, weather, requests, workflow, scorer, replay renderer), `scenarios/dev-reference/` (the public 180-night scenario), `local_runner.py`, `score_decisions.py`, `make_scenario.py`, `fetch_scenario.py`, `pack_agent.py`, `sac_submit.py`, `SKILL.md` and `README.md`. Python 3.9 or newer and the standard library are enough (the macOS system `python3` works; on Windows install Python 3.12 from python.org).
 
 ```
 python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py --wallclock 600 --out run_output

@@ -1,3 +1,5 @@
+> 最省事的改法：只改 `my_strategy.py` 里的 `choose_action`（候选已按公开评分排好序，返回要观测的候选或 `None` 等待），然后把这一个文件上传到网站，平台会自动补齐其余文件。下面是完整版说明。
+>
 > 入门包用法：在 `agent-observer-starter-kit/` 目录运行 `python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py`；打包提交用 `python3 pack_agent.py` 与 `python3 sac_submit.py`。下文的 `src/run_challenge.py` 命令来自主办方的原始仓库，在入门包中对应 `local_runner.py`。
 
 # Minimal Example Agent

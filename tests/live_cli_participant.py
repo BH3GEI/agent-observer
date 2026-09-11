@@ -149,8 +149,10 @@ def main() -> int:
                     src = src.replace("import json\n", "import json\nimport tabulate  # noqa: F401  (installed from requirements.txt by the platform)\nimport sys as _s; _s.stderr.write('tabulate imported ok\\n')\n", 1)
                 zf.writestr(f.name, src)
             zf.writestr("requirements.txt", "tabulate==0.9.0\n")
+        single = work / "my_strategy.py"
+        single.write_text("def choose_action(candidates, snapshot, memory):\n    return candidates[0] if candidates else None\n")
         results = {}
-        for label, path in (("mac", mac), ("crash", crash), ("reqs", reqs)):
+        for label, path in (("mac", mac), ("crash", crash), ("reqs", reqs), ("single", single)):
             r = run([PY, "sac_submit.py", "--phase", "practice", "--kind", "agent", "--file", str(path), "--title", label], kit, env=env, check=False)
             m = re.search(r"submission #(\d+)", r.stdout)
             results[label] = int(m.group(1)) if m else -1
@@ -174,6 +176,8 @@ def main() -> int:
             lp = cr["evaluations"][0].get("log_path")
             st, log = call("GET", f"/storage/v1/object/results/{lp}", token=tok) if lp else (0, b"")
             ok(st == 200 and b"I forgot to read" in log, "agent.log of the crash is downloadable and contains the traceback")
+        sg = by.get(results["single"], {})
+        ok(sg.get("status") == "scored" and abs(float(sg.get("score") or 0) - 9400.099832) < 1e-3, f"bare my_strategy.py via sac_submit is completed by the platform and scores {sg.get('score')} error={sg.get('error')!r}")
         rq = by.get(results["reqs"], {})
         ok(rq.get("status") == "scored", f"requirements.txt package: status={rq.get('status')} error={rq.get('error')!r}")
         if rq.get("evaluations"):

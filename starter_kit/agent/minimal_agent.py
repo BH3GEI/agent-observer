@@ -7,9 +7,9 @@ import json
 import sys
 from pathlib import Path
 
-if sys.version_info < (3, 10):  # the agent modules use `X | Y` unions and typing.NotRequired
-    sys.stderr.write(f"minimal-agent: Python 3.10 or newer is required, this interpreter is {sys.version.split()[0]} "
-                     f"({sys.executable}). Run the kit with a newer python3 (e.g. `python3.12 local_runner.py ...`).\n")
+if sys.version_info < (3, 9):
+    sys.stderr.write(f"minimal-agent: Python 3.9 or newer is required, this interpreter is {sys.version.split()[0]} "
+                     f"({sys.executable}). Install Python 3.12 from python.org and run the kit with it.\n")
     sys.exit(3)
 
 

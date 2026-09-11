@@ -1,15 +1,19 @@
 # Agent Observer — starter kit (challenge v3)
 
+> New to this? Read **[QUICKSTART.md](QUICKSTART.md)** / **[快速上手.md](快速上手.md)**: double-click `run_baseline`, edit
+> `agent/my_strategy.py`, drop that one file on the website. This README is the detailed engineering version.
+
 Everything in this folder is what the evaluation platform runs: the same workflow, the same JSON-Lines
 transport, the same scorer. A local run on a public scenario reproduces the platform's `score_report.json`
 for the same `decisions.csv`.
 
-Python 3.10+ (3.12 recommended; the macOS system `python3` is 3.9 and will refuse to start) and the standard library are enough. Only an LLM-backed agent needs the optional packages in
+Windows, macOS and Linux are supported (the runner uses a thread-based transport on Windows). Python 3.9 or newer and the standard library are enough: the `python3` that ships with macOS works as is; on Windows install Python 3.12 from python.org (tick "Add python.exe to PATH"). Only an LLM-backed agent needs the optional packages in
 `agent/requirements.txt`.
 
 | Path | Purpose |
 |---|---|
-| `agent/` | Your agent. `minimal_agent.py` is the entry script; edit `decision_graph.py`, add files, zip the folder, submit. |
+| `agent/` | Your agent. `my_strategy.py` is the one file most teams edit (`choose_action`); `minimal_agent.py` is the entry script; `decision_graph.py` holds the full pipeline for those who want more. |
+| `run_baseline.command` / `.bat` / `.sh` | Double-click launchers: run the baseline on the bundled scenario and open the replay. |
 | `challenge/` | The public environment: contracts, calendar, tile geometry, weather, requests, workflow, scorer, replay renderer. Do not edit. |
 | `scenarios/dev-reference/` | Public reference scenario: 180 nights, 7,928 slots, 64 tiles, weather truth included. |
 | `local_runner.py` | Runs an agent through the platform transport on a scenario and scores it. |

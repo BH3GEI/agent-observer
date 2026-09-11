@@ -13,7 +13,18 @@
 
 ## 2. 入门包
 
-在「资源」页下载 `agent-observer-starter-kit.zip`。目录结构：`agent/`（要提交的智能体：`minimal_agent.py`、`decision_graph.py`、`model_factory.py`、`protocol.py`、`state.py`、`scoring_preview.py`、`requirements.txt`、`.env.example`）、`challenge/`（公开环境：契约、历法、瓦片几何、天气、请求、workflow、评分器、回放渲染器）、`scenarios/dev-reference/`（公开的 180 晚场景）、`local_runner.py`、`score_decisions.py`、`make_scenario.py`、`fetch_scenario.py`、`pack_agent.py`、`sac_submit.py`、`SKILL.md` 与 `README.md`。Python 3.10+ 与标准库即可运行。
+### 最短路径（不需要任何工具）
+
+1. 下载入门包并解压，双击 `run_baseline.command`（macOS）、`run_baseline.bat`（Windows，先从 python.org 安装 Python 3.12）或运行 `./run_baseline.sh`（Linux）。基线在自带场景上约 12287 分，回放会在浏览器里打开。
+2. 修改 `agent/my_strategy.py`：`choose_action(candidates, snapshot, memory)` 收到按估计收益排好序的合法候选，返回要观测的那个，或返回 `None` 等待。再双击一次比较分数。
+3. 在「提交」页选择「智能体运行」，把这一个文件拖进去即可，平台会自动补齐入门包其余文件；拖整个 `agent` 文件夹（浏览器内打包）或 `.zip` 也可以。
+
+入门包里的 `快速上手.md` / `QUICKSTART.md` 就是这三步。下面是给工程师看的完整版。
+
+### 内容与命令
+
+
+在「资源」页下载 `agent-observer-starter-kit.zip`。目录结构：`agent/`（要提交的智能体：`minimal_agent.py`、`decision_graph.py`、`model_factory.py`、`protocol.py`、`state.py`、`scoring_preview.py`、`requirements.txt`、`.env.example`）、`challenge/`（公开环境：契约、历法、瓦片几何、天气、请求、workflow、评分器、回放渲染器）、`scenarios/dev-reference/`（公开的 180 晚场景）、`local_runner.py`、`score_decisions.py`、`make_scenario.py`、`fetch_scenario.py`、`pack_agent.py`、`sac_submit.py`、`SKILL.md` 与 `README.md`。Python 3.9 及以上加标准库即可运行（macOS 自带的 `python3` 直接可用；Windows 请从 python.org 安装 Python 3.12）。
 
 ```
 python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py --wallclock 600 --out run_output

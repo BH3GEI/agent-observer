@@ -20,9 +20,9 @@ from __future__ import annotations
 
 import sys
 
-if sys.version_info < (3, 10):
-    sys.stderr.write(f"local_runner: Python 3.10 or newer is required (this is {sys.version.split()[0]} at {sys.executable}); "
-                     "on macOS install python.org / Homebrew Python 3.12 and run `python3.12 local_runner.py ...`.\n")
+if sys.version_info < (3, 9):
+    sys.stderr.write(f"local_runner: Python 3.9 or newer is required (this is {sys.version.split()[0]} at {sys.executable}); "
+                     "install Python 3.12 from python.org and run the kit with it.\n")
     sys.exit(3)
 
 import argparse
@@ -93,16 +93,20 @@ class LocalAgentProcess(JsonLineAgentProcess):
 
     def _start(self):
         if self.process is None:
+            group = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if sys.platform == "win32" else {"start_new_session": True}
             self.process = subprocess.Popen(self.command, cwd=str(self.agent_dir), env=self.env, stdin=subprocess.PIPE,
-                                            stdout=subprocess.PIPE, stderr=self.stderr, text=False, bufsize=0,
-                                            start_new_session=True)
+                                            stdout=subprocess.PIPE, stderr=self.stderr, text=False, bufsize=0, **group)
+            self._configure_pipes(self.process)
         return self.process
 
     def close(self, force: bool = False) -> None:
         proc = self.process
         if proc is not None and proc.poll() is None:
             try:
-                os.killpg(os.getpgid(proc.pid), signal.SIGKILL if force else signal.SIGTERM)
+                if sys.platform == "win32":
+                    subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], capture_output=True, timeout=10)
+                else:
+                    os.killpg(os.getpgid(proc.pid), signal.SIGKILL if force else signal.SIGTERM)
             except Exception:
                 pass
         super().close(force=force)

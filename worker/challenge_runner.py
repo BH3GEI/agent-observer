@@ -182,6 +182,9 @@ def run_agent_package(agent_dir: Path, scenario_root: Path, out_dir: Path, *, wa
         for k, v in dotenv.items():
             if k not in ("PATH", "HOME", "TMPDIR", "LD_PRELOAD", "PYTHONPATH", "PYTHONSTARTUP"):
                 env[k] = v
+        note = agent_dir / "PLATFORM_NOTE.txt"
+        if note.is_file():
+            log.write("[platform] " + note.read_text().strip() + "\n")
         log.write(f"[platform] entry={entry.name} python={'venv' if env_stats['venv'] else 'platform'} dotenv_keys={sorted(dotenv)} network={s.agent_network} wallclock={wallclock_seconds}s\n")
         log.flush()
         if s.sandbox_mode == "docker":

@@ -6,9 +6,12 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import queue
 import random
 import select
 import subprocess
+import sys
+import threading
 import time
 from pathlib import Path
 
@@ -50,6 +53,12 @@ class JsonLineAgentProcess:
         self.initialization_timeout_seconds = initialization_timeout_seconds
         self.process: subprocess.Popen[bytes] | None = None
         self._stdout_buffer = b""
+        # Windows has no select() on pipes and no non-blocking pipe mode: a reader thread feeds a queue
+        # and writes run on a helper thread, so the same deadline semantics hold there (SAC_TRANSPORT=threads
+        # forces this path on other platforms, which is how it is tested).
+        self._threaded = sys.platform == "win32" or os.environ.get("SAC_TRANSPORT") == "threads"
+        self._chunks: "queue.Queue[bytes]" = queue.Queue()
+        self._reader: threading.Thread | None = None
 
     def _start(self) -> subprocess.Popen[bytes]:
         if self.process is None:
@@ -64,21 +73,56 @@ class JsonLineAgentProcess:
             self._configure_pipes(self.process)
         return self.process
 
-    @staticmethod
-    def _configure_pipes(process: subprocess.Popen[bytes]) -> None:
+    def _configure_pipes(self, process: subprocess.Popen[bytes]) -> None:
+        if self._threaded:
+            if process.stdout is not None:
+                self._reader = threading.Thread(target=self._pump_stdout, args=(process.stdout.fileno(),), daemon=True)
+                self._reader.start()
+            return
         # Non-blocking stdin: a blocking os.write() of a message larger than the pipe buffer (the first
         # decision snapshot can exceed 200 KB) would otherwise hang until the agent reads, defeating the
         # global wall-clock cutoff. With non-blocking writes, select() paces the transfer and the deadline holds.
         if process.stdin is not None:
             os.set_blocking(process.stdin.fileno(), False)
 
+    def _pump_stdout(self, fd: int) -> None:
+        while True:
+            try:
+                chunk = os.read(fd, 65536)
+            except OSError:
+                chunk = b""
+            self._chunks.put(chunk)
+            if not chunk:
+                return
+
+    def _write_threaded(self, process, data: bytes, deadline_monotonic: float) -> None:
+        failure: list[BaseException] = []
+
+        def _run() -> None:
+            try:
+                process.stdin.write(data)
+                process.stdin.flush()
+            except BaseException as exc:  # noqa: BLE001  (closed pipe when the agent exits)
+                failure.append(exc)
+
+        worker = threading.Thread(target=_run, daemon=True)
+        worker.start()
+        worker.join(max(0.0, deadline_monotonic - time.monotonic()))
+        if worker.is_alive():
+            self.close(force=True)
+            raise GlobalDeadlineExpired()
+        if failure:
+            raise RuntimeError(f"agent exited before reading the next message (code={process.poll()})")
+
     def _write_message(self, message, deadline_monotonic):
         process = self._start()
         if process.stdin is None:
             raise RuntimeError("agent process pipes are unavailable")
-        pending = memoryview(
-            (json.dumps(message, separators=(",", ":"), ensure_ascii=False) + "\n").encode("utf-8")
-        )
+        data = (json.dumps(message, separators=(",", ":"), ensure_ascii=False) + "\n").encode("utf-8")
+        if self._threaded:
+            self._write_threaded(process, data, deadline_monotonic)
+            return
+        pending = memoryview(data)
         while pending:
             remaining = deadline_monotonic - time.monotonic()
             if remaining <= 0 or not select.select([], [process.stdin], [], remaining)[1]:
@@ -116,10 +160,19 @@ class JsonLineAgentProcess:
         )
         while b"\n" not in self._stdout_buffer:
             remaining = deadline_monotonic - time.monotonic()
-            if remaining <= 0 or not select.select([process.stdout], [], [], remaining)[0]:
-                self.close(force=True)
-                raise GlobalDeadlineExpired()
-            chunk = os.read(process.stdout.fileno(), 65536)
+            if self._threaded:
+                try:
+                    chunk = self._chunks.get(timeout=max(0.0, remaining)) if remaining > 0 else None
+                except queue.Empty:
+                    chunk = None
+                if chunk is None:
+                    self.close(force=True)
+                    raise GlobalDeadlineExpired()
+            else:
+                if remaining <= 0 or not select.select([process.stdout], [], [], remaining)[0]:
+                    self.close(force=True)
+                    raise GlobalDeadlineExpired()
+                chunk = os.read(process.stdout.fileno(), 65536)
             if not chunk:
                 raise RuntimeError(f"agent exited before responding (code={process.poll()})")
             self._stdout_buffer += chunk

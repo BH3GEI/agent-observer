@@ -14,7 +14,8 @@
     "@supabase/supabase-js": "^2.57.4",
     "marked": "^15.0.7",
     "vue": "^3.5.30",
-    "vue-router": "^4.6.4"
+    "vue-router": "^4.6.4",
+    "fflate": "^0.8.2"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.2",
@@ -22,7 +23,6 @@
     "@vitejs/plugin-vue": "^6.0.5",
     "@vue/tsconfig": "^0.9.0",
     "axe-core": "^4.13.0",
-    "fflate": "^0.8.2",
     "tailwindcss": "^4.2.2",
     "typescript": "~5.9.3",
     "vite": "^8.0.1",
