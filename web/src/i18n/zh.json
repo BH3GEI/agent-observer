@@ -316,15 +316,15 @@
       "items": [
         {
           "title": "结果文件",
-          "desc": "在天气公开的练习场景上本地运行智能体，上传 decisions.csv（列：decision_id、slot_id、action、tile_id、program、request_id、reason），数秒内出分。"
+          "desc": "在自己电脑上跑过入门包？上传它生成的 decisions.csv（限天气公开的练习场景），几秒钟出分。"
         },
         {
           "title": "智能体程序包",
-          "desc": "上传根目录含 minimal_agent.py、agent.py 或 main.py 的 .zip，可选 requirements.txt 与存放模型密钥的 .env。平台通过 participant-agent-protocol-v1 对隐藏天气运行，并对提交的决策评分。"
+          "desc": "只改了 agent/my_strategy.py？直接拖这一个文件；或者把整个 agent 文件夹拖进来，网站替你打包、平台替你补齐标准文件。运行在我们的机器上，用隐藏天气评测。"
         },
         {
           "title": "限制",
-          "desc": "Python 3.12，允许联网，每个场景一个全局时钟（参考场景 7200 秒，无单次决策超时），初始化 30 秒，程序包最大 20 MB；线上比赛每队每天 10 次提交。"
+          "desc": "平台使用 Python 3.12，允许联网（调用模型 API），每个场景一个全局时钟（参考场景 7200 秒），30 秒内启动，单次上传 20 MB 以内；线上比赛每队每天 10 次。"
         }
       ],
       "link": "提交文档"

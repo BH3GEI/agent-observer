@@ -19,7 +19,7 @@ Sponsor API credits are handed out as redeem codes: once your team is registered
 2. Edit `agent/my_strategy.py`: its `choose_action(candidates, snapshot, memory)` receives the legal candidates ranked best-first and returns the one to observe, or `None` to wait. Run the launcher again to compare.
 3. On the Submit page choose *Agent run* and drop that single file. The platform wraps it with the rest of the starter agent; dropping the whole `agent` folder (packaged in the browser) or a `.zip` works too.
 
-`QUICKSTART.md` and `快速上手.md` in the kit repeat these three steps. Everything below is the engineer's version.
+`QUICKSTART.md` and `QUICKSTART_ZH.md` in the kit repeat these three steps. Everything below is the engineer's version.
 
 ### Contents and commands
 

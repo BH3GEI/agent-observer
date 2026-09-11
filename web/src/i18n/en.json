@@ -316,15 +316,15 @@
       "items": [
         {
           "title": "Results file",
-          "desc": "Run your agent locally on a practice scenario whose weather is public and upload decisions.csv (columns decision_id, slot_id, action, tile_id, program, request_id, reason). Scored within seconds."
+          "desc": "Ran the kit on your own computer? Upload the decisions.csv it produced (practice scenarios with public weather). Scored within seconds."
         },
         {
           "title": "Agent package",
-          "desc": "Upload a .zip with minimal_agent.py, agent.py or main.py at its root, an optional requirements.txt and an optional .env with your model keys. The platform runs it against hidden weather through participant-agent-protocol-v1 and scores the committed decisions."
+          "desc": "Changed only agent/my_strategy.py? Drop that single file, or drop your whole agent folder: the website packages it and the platform fills in the standard files. The run happens on our machines against hidden weather."
         },
         {
           "title": "Limits",
-          "desc": "Python 3.12, network allowed, one global wall clock per scenario (7200 s on the reference scenario, no per-decision timeout), 30 s to initialize, packages up to 20 MB; 10 submissions per team per day in the online competition."
+          "desc": "Python 3.12 on the platform, network allowed (model APIs), one global wall clock per scenario (7200 s on the reference scenario), 30 s to start, uploads up to 20 MB; 10 submissions per team per day in the online competition."
         }
       ],
       "link": "Submission docs"

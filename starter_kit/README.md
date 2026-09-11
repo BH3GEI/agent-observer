@@ -1,6 +1,6 @@
 # Agent Observer — starter kit (challenge v3)
 
-> New to this? Read **[QUICKSTART.md](QUICKSTART.md)** / **[快速上手.md](快速上手.md)**: double-click `run_baseline`, edit
+> New to this? Read **[QUICKSTART.md](QUICKSTART.md)** / **[QUICKSTART_ZH.md](QUICKSTART_ZH.md)**（中文）: double-click `run_baseline`, edit
 > `agent/my_strategy.py`, drop that one file on the website. This README is the detailed engineering version.
 
 Everything in this folder is what the evaluation platform runs: the same workflow, the same JSON-Lines

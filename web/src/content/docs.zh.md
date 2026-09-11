@@ -19,7 +19,7 @@
 2. 修改 `agent/my_strategy.py`：`choose_action(candidates, snapshot, memory)` 收到按估计收益排好序的合法候选，返回要观测的那个，或返回 `None` 等待。再双击一次比较分数。
 3. 在「提交」页选择「智能体运行」，把这一个文件拖进去即可，平台会自动补齐入门包其余文件；拖整个 `agent` 文件夹（浏览器内打包）或 `.zip` 也可以。
 
-入门包里的 `快速上手.md` / `QUICKSTART.md` 就是这三步。下面是给工程师看的完整版。
+入门包里的 `QUICKSTART_ZH.md` / `QUICKSTART.md` 就是这三步。下面是给工程师看的完整版。
 
 ### 内容与命令
 

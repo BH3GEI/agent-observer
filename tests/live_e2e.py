@@ -200,7 +200,7 @@ def register_and_submit(page: Page, base: str, email: str, results_csv: Path, zi
     page.click("[data-testid=submit-button]")
     expect(page).to_have_url(re.compile(r"/submissions/\d+"), timeout=30000)
     sid_results = int(page.url.rsplit("/", 1)[1])
-    expect(page.locator("[data-testid=sub-status]")).to_contain_text(re.compile("queued|Queued|排队"), timeout=20000)
+    expect(page.locator("[data-testid=sub-status]")).to_contain_text(re.compile("queued|running|scored|排队|运行中|已评分", re.I), timeout=20000)  # the evaluator may already have picked it up
     ok(True, f"results submission #{sid_results} queued")
     # agent package
     page.goto(base + "/submit", wait_until="domcontentloaded")
@@ -214,7 +214,7 @@ def register_and_submit(page: Page, base: str, email: str, results_csv: Path, zi
     page.click("[data-testid=submit-button]")
     expect(page).to_have_url(re.compile(r"/submissions/\d+"), timeout=30000)
     sid_agent = int(page.url.rsplit("/", 1)[1])
-    expect(page.locator("[data-testid=sub-status]")).to_contain_text(re.compile("queued|Queued|排队"), timeout=20000)
+    expect(page.locator("[data-testid=sub-status]")).to_contain_text(re.compile("queued|running|scored|排队|运行中|已评分", re.I), timeout=20000)  # the evaluator may already have picked it up
     ok(True, f"agent submission #{sid_agent} queued")
     # beginner path 1: a single my_strategy.py (the platform completes the package)
     strategy = SHOTS / "tmp" / "my_strategy.py"
@@ -346,10 +346,10 @@ def submission_pages(page: Page, base: str, token: str, sid_results: int, sid_ag
     shot(page, "23-submission-results-top", full=False)
     # submissions list
     page.goto(base + "/submissions", wait_until="domcontentloaded")
-    expect(page.locator("table tbody tr")).to_have_count(2, timeout=20000)
+    expect(page.locator("table tbody tr")).to_have_count(4, timeout=20000)
     head = page.locator("table thead").first
     expect(head).to_contain_text(re.compile("Base science|基础科学分"))
-    ok(True, "submissions list shows both rows with v3 columns")
+    ok(True, "submissions list shows all four rows with v3 columns")
     shot(page, "24-submissions-list", full=False)
     # dashboard, credits panel, Chinese
     page.goto(base + "/dashboard", wait_until="domcontentloaded")
