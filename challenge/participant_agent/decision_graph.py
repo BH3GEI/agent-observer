@@ -209,6 +209,9 @@ def _strategy_decision(previews: list[CandidatePreview], state: DecisionState) -
         import sys
         print(f"my_strategy returned a candidate that is not legal now ({key}); using the default ranking", file=sys.stderr, flush=True)
         return None
+    best = previews[0]
+    if key == (best.tile_id, best.program, best.request_id) and not choice.get("reason"):
+        return None  # the default strategy agrees with the public ranking: keep the deterministic decision as is
     reason = " ".join(str(choice.get("reason") or "my_strategy choice").split())[:240]
     return {"action": "observe", "tile_id": key[0], "program": key[1], "request_id": key[2], "reason": reason, "decision_source": "strategy"}
 
