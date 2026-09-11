@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Mapping, Sequence
 
-from .contracts import DECISION_COLUMNS, TARGET_COLUMNS, format_utc, read_exact_csv, sha256_file
+from .contracts import DECISION_COLUMNS, TARGET_COLUMNS, format_utc, read_exact_csv, sha256_file, write_text_lf
 from .observation_request_simulator import ObservationRequest, load_request_tiles, load_requests
 from .observing_calendar import Slot, load_slots
 from .tile_geometry_simulator import Tile, TileGeometrySimulator, load_tiles
@@ -408,5 +408,5 @@ def score_files(root: Path, decisions_path: Path, output_path: Path, termination
     report = scorer.finalize(termination_reason)
     report["input_sha256"] = {"decisions": sha256_file(decisions_path), "score_config": sha256_file(root / "config" / "score_config.json")}
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_text_lf(output_path, json.dumps(report, indent=2, sort_keys=True) + "\n")
     return report

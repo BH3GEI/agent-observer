@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Mapping, Sequence
 
 from .contracts import (
+    write_text_lf,
     EVENT_COLUMNS,
     FORECAST_COLUMNS,
     TILE_COLUMNS,
@@ -511,7 +512,7 @@ def generate(config_path: Path, nights_path: Path, slots_path: Path, tiles_path:
         "sha256": {"config": sha256_file(config_path), "slots": sha256_file(slots_path), "tiles": sha256_file(tiles_path), **{key: sha256_file(path) for key, path in paths.items()}},
         "participant_visible": ["weather.csv", "weather_forecasts.csv"], "organizer_internal": ["weather_events.csv"],
     }
-    (output_dir / "weather_metadata.json").write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_text_lf(output_dir / "weather_metadata.json", json.dumps(metadata, indent=2, sort_keys=True) + "\n")
     return metadata
 
 

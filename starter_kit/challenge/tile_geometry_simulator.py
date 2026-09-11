@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Mapping, Sequence
 
 from .contracts import (
+    write_text_lf,
     TARGET_COLUMNS,
     TILE_COLUMNS,
     TILE_WINDOW_COLUMNS,
@@ -420,9 +421,7 @@ def generate_catalog(
             "one when Moon altitude is non-positive"
         ),
     }
-    (output_dir / "catalog_metadata.json").write_text(
-        json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    write_text_lf(output_dir / "catalog_metadata.json", json.dumps(metadata, indent=2, sort_keys=True) + "\n")
     return metadata
 
 

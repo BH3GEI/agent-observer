@@ -15,7 +15,7 @@ from datetime import date
 from pathlib import Path
 
 from .build_scenario_manifest import CONFIG_FILES, DATA_FILES, csv_rows
-from .contracts import sha256_file
+from .contracts import sha256_file, write_text_lf
 from .project_paths import EXAMPLE3_ROOT
 from .scoring_core import ChallengeScorer
 
@@ -62,7 +62,7 @@ def build_manifest(root: Path) -> dict:
         files[f"outputs/reference/{name}"] = {"sha256": sha256_file(p), "rows": csv_rows(p)}
     manifest = {"schema_version": "example3-scenario-manifest-v2", "scenario_id": scenario["scenario_id"], "seed": scenario["seed"],
                 "global_wallclock_seconds": scenario["competition"]["global_wallclock_seconds"], "files": dict(sorted(files.items()))}
-    (data_dir(root) / "scenario_manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_text_lf(data_dir(root) / "scenario_manifest.json", json.dumps(manifest, indent=2, sort_keys=True) + "\n")
     return manifest
 
 
@@ -89,7 +89,7 @@ def generate_scenario(root: Path, *, scenario_id: str, seed: int, days: int = 18
         p = config_dir(root) / name
         cfg = json.loads(p.read_text(encoding="utf-8"))
         fn(cfg)
-        p.write_text(json.dumps(cfg, indent=2) + "\n", encoding="utf-8")
+        write_text_lf(p, json.dumps(cfg, indent=2) + "\n")
     def _scn(c):
         c["scenario_id"] = scenario_id; c["seed"] = seed; c["competition"]["global_wallclock_seconds"] = global_wallclock_seconds
     def _cal(c):

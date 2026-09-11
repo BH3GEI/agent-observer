@@ -69,7 +69,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Mapping, Sequence
 
-from .contracts import DECISION_COLUMNS, format_utc, parse_utc, read_exact_csv
+from .contracts import DECISION_COLUMNS, format_utc, parse_utc, read_exact_csv, write_text_lf
 from .scoring_core import ChallengeScorer
 from .tile_geometry_simulator import Tile
 from .weather_simulator import WeatherEvent, _azimuth_inside, _separation_deg
@@ -332,7 +332,7 @@ def write_replay_html(root: Path, report: dict, out_path: Path, *, title: str = 
     data = build_replay_data(root, report, title=title, agent_label=agent_label, decisions_path=decisions_path)
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(render_replay_html(data, title=title, agent_label=agent_label, template_path=template_path), encoding="utf-8")
+    write_text_lf(out_path, render_replay_html(data, title=title, agent_label=agent_label, template_path=template_path))
     return out_path
 
 

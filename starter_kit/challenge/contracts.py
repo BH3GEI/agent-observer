@@ -202,3 +202,9 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def write_text_lf(path: "Path", text: str) -> None:
+    """Write UTF-8 text with LF line endings on every platform, so generated files hash identically on Windows."""
+    with Path(path).open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(text)

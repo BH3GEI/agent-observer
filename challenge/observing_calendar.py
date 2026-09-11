@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Iterator, Mapping, Sequence
 
 from .contracts import (
+    write_text_lf,
     NIGHT_COLUMNS,
     SLOT_COLUMNS,
     format_utc,
@@ -371,9 +372,7 @@ def generate(config_path: Path, output_dir: Path) -> dict[str, object]:
         },
     }
     metadata_path = output_dir / "calendar_metadata.json"
-    metadata_path.write_text(
-        json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    write_text_lf(metadata_path, json.dumps(metadata, indent=2, sort_keys=True) + "\n")
     return metadata
 
 

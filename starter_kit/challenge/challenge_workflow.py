@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Callable, Mapping
 
 from .contracts import (
+    write_text_lf,
     DECISION_COLUMNS,
     DECISION_SNAPSHOT_VERSION,
     INITIAL_PUBLICATION_VERSION,
@@ -295,4 +296,4 @@ class ChallengeWorkflow:
     def write_outputs(self, output_dir: Path, result: Mapping[str, object]) -> None:
         output_dir.mkdir(parents=True, exist_ok=True)
         write_exact_csv(output_dir / "decisions.csv", DECISION_COLUMNS, (item.csv_row() for item in self.committed))
-        (output_dir / "workflow_result.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        write_text_lf(output_dir / "workflow_result.json", json.dumps(result, indent=2, sort_keys=True) + "\n")

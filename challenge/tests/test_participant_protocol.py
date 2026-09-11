@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
+from unittest import mock
 import time
 import unittest
 from pathlib import Path
@@ -85,10 +87,11 @@ class ParticipantProtocolTests(unittest.TestCase):
 
     def test_minimal_process_receives_initialization_then_one_request(self) -> None:
         workflow = ChallengeWorkflow(ROOT / "reference")
+        # platform note: `env KEY=VALUE cmd` does not exist on Windows; the variable is set in this process instead
+        env_patch = mock.patch.dict(os.environ, {"MODEL_PROVIDER": "deterministic"})
+        env_patch.start()
         provider = JsonLineAgentProcess(
             [
-                "env",
-                "MODEL_PROVIDER=deterministic",
                 sys.executable,
                 "-B",
                 str(ROOT / "participant_agent" / "minimal_agent.py"),
@@ -98,6 +101,7 @@ class ParticipantProtocolTests(unittest.TestCase):
             provider.publish_initial(workflow.initial_publication())
             response = provider(workflow.decision_snapshot(1), time.monotonic() + 10)
         finally:
+            env_patch.stop()
             provider.close(force=True)
         self.assertEqual(response["protocol_version"], "participant-agent-protocol-v1")
         self.assertEqual(response["message_type"], "decision_response")

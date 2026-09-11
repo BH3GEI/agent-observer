@@ -7,7 +7,7 @@ import argparse
 import json
 from pathlib import Path
 
-from .contracts import sha256_file
+from .contracts import sha256_file, write_text_lf
 from .project_paths import EXAMPLE3_ROOT, REFERENCE_OUTPUT_DIR
 from .scoring_core import ChallengeScorer, load_decisions
 
@@ -41,7 +41,7 @@ def score(
     report["input_sha256"] = {key: sha256_file(path) for key, path in governed.items()}
     report["actions"] = scorer.actions
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_text_lf(output_path, json.dumps(report, indent=2, sort_keys=True) + "\n")
     return report
 
 

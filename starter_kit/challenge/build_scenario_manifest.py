@@ -7,7 +7,7 @@ import csv
 import json
 from pathlib import Path
 
-from .contracts import sha256_file
+from .contracts import sha256_file, write_text_lf
 from .project_paths import CONFIG_DIR, REFERENCE_OUTPUT_DIR
 
 
@@ -59,7 +59,7 @@ def build(output: Path) -> dict[str, object]:
         "files": dict(sorted(files.items())),
     }
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_text_lf(output, json.dumps(manifest, indent=2, sort_keys=True) + "\n")
     return manifest
 
 

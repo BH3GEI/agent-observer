@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Mapping, Sequence
 
 from .contracts import (
+    write_text_lf,
     REQUEST_COLUMNS,
     REQUEST_TILE_COLUMNS,
     TILE_COLUMNS,
@@ -186,7 +187,7 @@ def generate(config_path: Path, nights_path: Path, tiles_path: Path, output_dir:
         "deadline_class_counts": dict(sorted(Counter(item.deadline_class for item in requests).items())),
         "sha256": {"config": sha256_file(config_path), "nights": sha256_file(nights_path), "tiles": sha256_file(tiles_path), **{key: sha256_file(path) for key, path in paths.items()}},
     }
-    (output_dir / "observation_request_metadata.json").write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_text_lf(output_dir / "observation_request_metadata.json", json.dumps(metadata, indent=2, sort_keys=True) + "\n")
     return metadata
 
 

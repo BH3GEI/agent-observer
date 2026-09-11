@@ -7,7 +7,7 @@ Everything in this folder is what the evaluation platform runs: the same workflo
 transport, the same scorer. A local run on a public scenario reproduces the platform's `score_report.json`
 for the same `decisions.csv`.
 
-Windows, macOS and Linux are supported (the runner uses a thread-based transport on Windows). Python 3.9 or newer and the standard library are enough: the `python3` that ships with macOS works as is; on Windows install Python 3.12 from python.org (tick "Add python.exe to PATH"). Only an LLM-backed agent needs the optional packages in
+Windows, macOS and Linux are supported (verified on Windows 11 with Python 3.12 from python.org: same scores, byte-identical generated scenarios; the runner uses a thread-based transport there). Python 3.9 or newer and the standard library are enough: the `python3` that ships with macOS works as is; on Windows install Python 3.12 from python.org (tick "Add python.exe to PATH"). Only an LLM-backed agent needs the optional packages in
 `agent/requirements.txt`.
 
 | Path | Purpose |
