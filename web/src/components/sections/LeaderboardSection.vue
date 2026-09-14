@@ -36,7 +36,9 @@ async function load() {
     error.value = false
     loading.value = false
     const { count, error: countError } = await supabase.from('teams').select('id', { count: 'exact', head: true })
-    teamCount.value = countError ? null : count
+    // Anonymous visitors cannot read the teams table (RLS), so count comes back as 0 rather than an error.
+    // Never show 0 for "registered teams"; fall back to the number of ranked teams instead.
+    teamCount.value = countError || !count ? null : count
   } catch { error.value = true }
   finally { loading.value = false; refreshing.value = false }
 }
@@ -59,7 +61,7 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
             {{ entries.length ? t('home.leaderboard.signal_live') : t('home.leaderboard.signal_waiting') }}
           </div>
           <div class="stats stats-2 mt-10">
-            <div class="stat"><b>{{ teamCount ?? entries.length }}</b><span>{{ t('home.stats_labels.teams') }}</span></div>
+            <div class="stat"><b>{{ teamCount ?? entries.length }}</b><span>{{ teamCount === null ? t('home.stats_labels.teams_on_board') : t('home.stats_labels.teams') }}</span></div>
             <div class="stat"><b>{{ scoredRuns }}</b><span>{{ t('home.stats_labels.submissions') }}</span></div>
           </div>
         </div>

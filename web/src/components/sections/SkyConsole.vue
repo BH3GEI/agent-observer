@@ -56,7 +56,10 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
   <div class="sky-console" data-testid="sky-console" @mouseenter="clock.setPaused(true)" @mouseleave="clock.setPaused(false)">
     <div class="sky-console-head">
       <span class="flex items-center gap-3"><span class="live-dot" :class="{ 'is-paused': paused || reduced }"></span>{{ t('hero.console.title') }}</span>
-      <span class="text-white/60">{{ paused ? t('hero.console.paused') : tf('hero.console.replay_note', { nights: replayTotals.nights, actions: replayActions.length }) }}</span>
+      <span class="flex items-center gap-4">
+        <span class="text-white/60">{{ paused ? t('hero.console.paused') : tf('hero.console.replay_note', { nights: replayTotals.nights, actions: replayActions.length }) }} · dev-fortnight</span>
+        <button type="button" class="replay-toggle" :aria-pressed="paused" :disabled="reduced" @click="clock.setPaused(!paused)">{{ paused ? t('hero.console.resume') : t('hero.console.pause') }}</button>
+      </span>
     </div>
     <canvas ref="canvas" class="sky-canvas" role="img" :aria-label="t('hero.console.aria')"></canvas>
     <div class="sky-legend" aria-hidden="true">
@@ -100,6 +103,19 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
   font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: #a8a8a8;
 }
 .live-dot.is-paused { animation: none; opacity: .5; }
+.replay-toggle {
+  border: 1px solid rgba(255,255,255,.28);
+  padding: 2px 10px;
+  font: inherit;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: rgba(255,255,255,.75);
+  background: transparent;
+  cursor: pointer;
+}
+.replay-toggle:hover:not(:disabled) { border-color: #315efb; color: #78a6ff; }
+.replay-toggle:disabled { opacity: .4; cursor: default; }
 .sky-canvas { display: block; width: 100%; aspect-ratio: 3 / 2; min-height: 200px; }
 .sky-legend {
   display: flex; flex-wrap: wrap; gap: .4rem 1rem;

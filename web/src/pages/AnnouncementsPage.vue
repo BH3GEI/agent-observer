@@ -21,7 +21,10 @@ onMounted(async () => {
     <PageHead :kicker="t('ann.kicker')" :title="t('ann.title')" />
     <section class="section"><div class="wrap-narrow">
       <p v-if="loading" class="text3 text-sm">{{ t('common.loading') }}</p>
-      <p v-else-if="!rows.length" class="text2">{{ t('ann.empty') }}</p>
+      <div v-else-if="!rows.length">
+        <p class="text2">{{ t('ann.empty') }}</p>
+        <p class="text3 mt-4 text-sm">{{ t('ann.empty_hint') }} <router-link class="accent-l underline underline-offset-2" to="/resources">{{ t('nav.resources') }} →</router-link></p>
+      </div>
       <article v-for="a in rows" :key="a.id" class="rule-t py-8">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <span class="label">{{ fmtUtc(a.created_at) }} UTC <template v-if="a.is_pinned">· <span class="accent-l">{{ t('ann.pinned') }}</span></template></span>
