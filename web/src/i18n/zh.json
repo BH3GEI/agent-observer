@@ -1485,6 +1485,7 @@
     "slots": "时隙",
     "tiles_n": "天区",
     "seed": "种子",
+    "seed_hidden": "种子不公开（防止重建隐藏天气）",
     "checksum_label": "校验和",
     "cli": "命令行",
     "kit_file": "agent-observer-starter-kit.zip",

@@ -1485,6 +1485,7 @@
     "slots": "slots",
     "tiles_n": "tiles",
     "seed": "seed",
+    "seed_hidden": "seed not published (prevents reconstructing hidden weather)",
     "checksum_label": "checksum",
     "cli": "Command line",
     "kit_file": "agent-observer-starter-kit.zip",
