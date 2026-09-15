@@ -377,7 +377,7 @@
         {
           "role": "科学背景",
           "name": "DESI 式巡天",
-          "desc": "台址纬度 31.96°，180 晚太阳历上的 900 秒时隙，DARK / BRIGHT / BACKUP 项目，REQUIRED / 可选天区，LRG / ELG / QSO / BGS 目标类别。"
+          "desc": "台址纬度 31.96°，180 晚太阳历上的 900 秒时隙，DARK / BRIGHT / BACKUP 三种观测项目，必做 / 可选两类天区，LRG / ELG / QSO / BGS 四种目标类别。"
         }
       ]
     },
