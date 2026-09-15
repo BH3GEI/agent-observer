@@ -259,8 +259,20 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.dropzone { border: 1px dashed #4a4a4a; padding: 1rem 1.1rem; background: #0b0b0b; transition: border-color .15s, background .15s; }
-.dropzone.dragging { border-color: #315efb; background: rgba(49,94,251,.08); }
+.dropzone { position: relative; overflow: hidden; border: 1px dashed #4a4a4a; padding: 1rem 1.1rem; background: #0b0b0b; transition: border-color .15s, background .15s, transform .18s ease; }
+.dropzone.dragging { border-color: #315efb; background: rgba(49,94,251,.08); transform: scale(1.01); }
+/* while a file is over the zone, a light sweeps across it so the drop target is unmistakable */
+.dropzone.dragging::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(49,94,251,.22) 50%, transparent 65%);
+  animation: dropzone-sweep 1.1s linear infinite;
+  pointer-events: none;
+}
+@keyframes dropzone-sweep { from { transform: translateX(-60%); } to { transform: translateX(60%); } }
+@media (prefers-reduced-motion: reduce) {
+  .dropzone.dragging { transform: none; }
+  .dropzone.dragging::after { animation: none; }
+}
 .dropzone-title { margin: 0 0 .6rem; color: #bdbdbd; font-size: .9rem; }
 .scenario-facts { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: -.5rem; }
 .scenario-facts .help { margin-top: 0; }

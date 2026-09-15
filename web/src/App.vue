@@ -5,6 +5,7 @@ import AppHeader from './components/layout/AppHeader.vue'
 import AppFooter from './components/layout/AppFooter.vue'
 import AnnouncementBanner from './components/layout/AnnouncementBanner.vue'
 import FlashContainer from './components/layout/FlashContainer.vue'
+import ScrollProgress from './components/layout/ScrollProgress.vue'
 
 const { t } = provideI18n()
 provideTheme()
@@ -12,10 +13,16 @@ provideTheme()
 
 <template>
   <a href="#main-content" class="skip-link">{{ t('a11y.skip') }}</a>
+  <ScrollProgress />
   <AppHeader />
   <AnnouncementBanner />
   <div id="main-content" tabindex="-1">
-    <router-view />
+    <!-- a short cross-fade between routes, so a navigation reads as a change of place rather than a flash -->
+    <router-view v-slot="{ Component, route }">
+      <transition name="page" mode="out-in">
+        <component :is="Component" :key="route.path" />
+      </transition>
+    </router-view>
   </div>
   <AppFooter />
   <FlashContainer />

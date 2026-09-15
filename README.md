@@ -62,10 +62,26 @@ legacy/fastapi/      first self-hosted version (reference only)
 .venv/bin/pytest challenge/tests tests/test_challenge_runner.py tests/test_starter_kit.py   # environment, sandbox, kit
 SAC_POSTGREST_BIN=/path/to/postgrest .venv/bin/pytest tests/supabase                        # RLS/RPC/worker on embedded Postgres + PostgREST
 cd web && npm ci && npm run build && cd .. && .venv/bin/pytest tests/e2e_web                # browser e2e against the harness
+
 SUPABASE_URL=… SUPABASE_ANON_KEY=… SUPABASE_SERVICE_ROLE_KEY=… python tests/hosted_smoke.py # live project, self-cleaning
 python tests/hosted_agent_smoke.py --dispatch                                                # queue a minimal-agent zip on the hosted project and run it through the GitHub Actions worker
 python tests/live_e2e.py                                                                     # browser walk-through of the production site (public pages, storage policy, submit, replay, admin)
 python tests/live_cli_participant.py                                                         # command-line participant journey with the downloaded kit (fetch, run, score, pack, submit, mistakes)
+```
+
+`tests/e2e_web/` is four files: `test_site.py` walks the happy path (register → team → results file → agent
+package → leaderboard → admin), `test_site_v2.py` / `test_site_v3.py` cover the console, replay and v3 report,
+and `test_site_v4.py` runs five rounds over the same loop from other angles — sign-up validation and duplicate
+e-mail, team membership gating a submission, what each phase accepts (kind, scenario visibility, extension,
+daily limit), a package with no entry script plus the hidden-scenario file list, and both languages, mobile
+navigation and `prefers-reduced-motion`.
+
+The harness needs `pgserver`, `psycopg`, `playwright` (plus `playwright install chromium`) and a `postgrest`
+binary. On macOS the release binary links against Homebrew's `libpq`; the copy inside `pgserver` works instead:
+
+```bash
+export SAC_POSTGREST_BIN=/path/to/postgrest SAC_NODE_BIN=$(dirname "$(command -v node)")
+export DYLD_LIBRARY_PATH=$PWD/.venv/lib/python3.12/site-packages/pgserver/pginstall/lib
 ```
 
 ## Known deviations from the science team's package

@@ -33,8 +33,9 @@ def seeded(hs, service):
     wm.seed(wm.client())
     rows = service.select("scenarios", "select=slug,weather_public,events_public,n_nights,global_wallclock_seconds")[1]
     by = {r["slug"]: r for r in rows}
-    assert set(by) == {"dev-reference", "dev-fortnight", "eval-a", "eval-b"}
+    assert set(by) == {"demo-week", "dev-reference", "dev-fortnight", "eval-a", "eval-b"}
     assert by["dev-fortnight"]["n_nights"] == 14 and by["eval-a"]["events_public"] is False and by["dev-reference"]["events_public"] is True
+    assert by["demo-week"]["n_nights"] == 7 and by["demo-week"]["events_public"] is True
     hs.sql("update public.phases set starts_at = now() - interval '1 hour', ends_at = now() + interval '1 day' where slug = 'online'")
     hs.sql("update public.scenarios set global_wallclock_seconds = 120")  # keep tests fast
     return by

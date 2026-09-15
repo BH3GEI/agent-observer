@@ -27,7 +27,12 @@ def test_hero_console_and_meta(page: Page, site):
     expect(page.locator("[data-testid=phase-strip]")).to_be_visible()
     expect(page.locator("[data-testid=phase-pill]")).to_be_visible()
     expect(page.locator("[data-testid=slot-ticker]")).to_contain_text(re.compile(r"N\d{8}-S\d{3}"))
-    assert page.locator("video").count() == 0
+    # the hero backdrop is one looping, muted, inline video with a still poster for slow connections
+    video = page.locator("video")
+    assert video.count() == 1
+    assert page.evaluate("""() => {
+      const v = document.querySelector('video');
+      return Boolean(v.muted && v.loop && v.playsInline && v.poster && v.querySelector('source[type="video/mp4"]')); }""")
     assert page.evaluate("Array.from(document.querySelectorAll('canvas')).some(c => c.width > 0)")
     # the canvas is actually being drawn on (not blank)
     assert page.evaluate("""() => {
