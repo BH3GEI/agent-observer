@@ -57,7 +57,7 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
     <div class="sky-console-head">
       <span class="flex items-center gap-3"><span class="live-dot" :class="{ 'is-paused': paused || reduced }"></span>{{ t('hero.console.title') }}</span>
       <span class="flex items-center gap-4">
-        <span class="text-white/60">{{ paused ? t('hero.console.paused') : tf('hero.console.replay_note', { nights: replayTotals.nights, actions: replayActions.length }) }} · dev-fortnight</span>
+        <span class="text-white/60">{{ paused ? t('hero.console.paused') : tf('hero.console.replay_note', { nights: replayTotals.nights, actions: replayActions.length }) }}</span>
         <button type="button" class="replay-toggle" :aria-pressed="paused" :disabled="reduced" @click="clock.setPaused(!paused)">{{ paused ? t('hero.console.resume') : t('hero.console.pause') }}</button>
       </span>
     </div>

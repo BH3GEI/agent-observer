@@ -147,8 +147,8 @@
     ],
     "side_note": "Human judgment / machine speed / one shared sky",
     "console": {
-      "title": "Observatory console",
-      "replay_note": "Replay · minimal agent · {nights} nights · {actions} actions",
+      "title": "Live survey replay",
+      "replay_note": "public practice set · {nights} nights · {actions} actions",
       "paused": "Paused",
       "pause": "Pause",
       "resume": "Resume",
@@ -165,7 +165,8 @@
       "legend_flexible": "FLEXIBLE",
       "legend_completed": "Completed",
       "legend_interrupted": "Interrupted"
-    }
+    },
+    "pipeline_intro": "Milestones"
   },
   "home": {
     "vision": {
