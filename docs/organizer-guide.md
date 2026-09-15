@@ -1,118 +1,102 @@
 # 主办方操作指南
 
-所有命令都在仓库根目录 `survey-agent-challenge/` 下执行。密钥已在 `.secrets/supabase.env`，每条命令前先执行：
+**日常运维全部在网页上点，不需要命令行。**
 
-```bash
-source .secrets/supabase.env
-source .venv/bin/activate
-export SUPABASE_URL="$SUPABASE_URL"
-export SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY"
-```
+管理后台：https://bh3gei.github.io/agent-observer/admin
+（用管理员账号登录后，顶部导航最右边会出现「管理」入口。）
 
-> `supabase.env` 里已经包含 `SUPABASE_URL` 和 `SUPABASE_SERVICE_ROLE_KEY`（service role）。如果哪天 key 换了，去 Supabase 控制台 → Project Settings → API，把新的 service_role 值贴回去。
+后台有 9 个标签页：概览 · 阶段 · 场景 · 提交 · 队伍 · 用户 · 公告 · 额度 · 设置。
+
+---
 
 ## 1 · 比赛现在能不能报名？开关在哪
 
-练习赛（practice）常开，学员随时能提交。正式比赛（online）只在 10 月 4–7 日窗口内接受智能体提交，由 `phases` 表的 `starts_at` / `ends_at` 控制。
+练习赛（practice）常开，学员随时能提交。正式比赛（online）只在 10 月 4–7 日窗口内接受智能体提交。
 
-**查看当前状态**（无需登录数据库）：
+**「管理」→「阶段」** 页上每个阶段一张表单，直接改：
 
-```bash
-curl -s "$SUPABASE_URL/rest/v1/phases?select=slug,is_active,starts_at,ends_at,allow_results,allow_agents,daily_limit" \
-  -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" | python3 -m json.tool
-```
-
-**手动开关**（把 `practice` 换成 `online` 即操作正式赛）：
-
-```bash
-# 关闭练习赛
-curl -s -X PATCH "$SUPABASE_URL/rest/v1/phases?slug=eq.practice" \
-  -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-  -H "Content-Type: application/json" -H "Prefer: return=minimal" \
-  -d '{"is_active": false}'
-
-# 重新开启：同上，把 false 改成 true
-```
+| 想做的事 | 改哪个 |
+|---|---|
+| 临时关掉某个阶段 | 取消勾选「启用」，点保存 |
+| 改比赛起止时间 | 「开始时间 (UTC)」「结束时间 (UTC)」 |
+| 改每天提交次数 | 「每日上限」 |
+| 只允许传结果文件 / 只允许传智能体 | 「允许结果文件」「允许智能体运行」 |
+| 藏起排行榜 | 「榜单模式」改成 `hidden` 或 `frozen` |
+| 重算这个阶段的所有分数 | 「重新评分」按钮 |
 
 关闭后学员仍然能看到页面和历史成绩，只是不能再提交。
 
 ## 2 · 查看排队 / 评测 / 分数
 
-**一次看全**：浏览器打开 https://supabase.com/dashboard/project/vdiemcofukuxglqsmlyz/editor ，点 `submissions` 表。
+**「管理」→「概览」** 一眼看全：用户数、队伍数、提交数、排队中、已评分、失败，下面是最近 15 条提交和审计日志。
 
-**只想看有多少人在排队**：
+**「管理」→「提交」** 可以按状态筛选，每条能重新评分、作废、排除出排行榜。
 
-```bash
-curl -s "$SUPABASE_URL/rest/v1/submissions?select=id,status,created_at&status=eq.queued&order=created_at.asc" \
-  -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" | python3 -m json.tool
-```
-
-`status` 取值：`queued` → `running` → `scored` / `invalid` / `failed`。分数在 `evaluations` 表（通过 `submission_id` 关联）。
+`status` 取值：`queued`（排队）→ `running`（评测中）→ `scored` / `invalid` / `failed`。
 
 ## 3 · 比赛期间的 worker（谁在跑学员的程序）
 
-worker 在 GitHub Actions 上自动运行（`.github/workflows/worker.yml`）：每个 worker 最多在线 5.5 小时，结束前自动拉起下一个，形成"接力链"，你不用管。
+**「管理」→「概览」** 页上的「评测 Worker」面板直接显示：在线 / 离线、当前排队数、本次已处理数、距上次心跳多少秒。每 15 秒自动刷新。
 
-**当前有几个 worker 在跑**：
+worker 在 GitHub Actions 上自动接力运行（`.github/workflows/worker.yml`），每个最多在线 5.5 小时，结束前自动拉起下一个，正常情况下你不用管。
 
-```bash
-gh run list --repo BH3GEI/agent-observer --workflow "Evaluation worker" --limit 5
-```
+**如果面板显示「离线」超过 30 分钟**：到 GitHub Actions 手动运行一次 "Evaluation worker" 工作流即可。
 
-**正常情况**：恰好一条 `in_progress`，偶尔多一条 `pending`（正在交接）。**如果长时间（超过 30 分钟）没有任何 `in_progress`**，手动拉起一个：
+> 一个 worker 处理一个场景最多 1 小时（eval-a/b 的全局时钟 3600 秒）。10 支队伍同时提交会排队约 10 小时。想缩短排队：在「场景」页把 wallclock 临时调小，或临时改 `worker.yml` 里的 `concurrency` 组名多开一个 worker。
 
-```bash
-gh workflow run worker.yml --repo BH3GEI/agent-observer --ref main
-```
+## 4 · 换正式比赛的场景种子
 
-**想临时开第二个 worker**（比如比赛期间排队堆积）：workflow 里有 `concurrency` 组限制，同一个仓库名下永远只跑 1 个。想多开，临时把 `.github/workflows/worker.yml` 里的 `group: evaluation-worker` 改成别的名字（例如 `evaluation-worker-2`），提交后手动 `workflow_dispatch` 一次即可；比完改回来。
+**为什么要换**：知道种子就能在本地重建出完整的"隐藏天气"，把最优解提前算好。**每次正式开赛前都应该换一次新种子。**
 
-> 一个 worker 处理一个场景需要最多 1 小时（eval-a/b 的 `global_wallclock_seconds = 3600`）。10 支队伍同时提交会排队约 10 小时。想缩短排队：开第二个 worker，或临时把场景的 wallclock 降到 1800。
+**「管理」→「场景」** → 找到 `eval-a` / `eval-b` → 点「**轮换种子**」。
 
-## 4 · 换正式比赛的场景（种子）
+点下去之后：系统生成一个新的随机种子，交给正在运行的 worker 重建场景并上传，页面上显示「排队中 → 生成中 → 已完成」，通常一分钟内完成。种子只写进数据库，不会出现在代码仓库里，学员也读不到。
 
-> 已经换过一次（2026-09-15）：eval-a 种子 90210 → **771233**，eval-b 41207 → **330841**。下次重置只需照下面三步。
+**必须在该场景所属阶段开放之前操作。** 比赛进行中轮换会让正在评测的提交对不上。
 
-**为什么要换**：种子写在公开仓库里，任何人都能本地重建"隐藏天气"。每次正式开赛前都应换新种子。
+> 种子不再写在仓库里，也不再通过网站 API 暴露给学员。想查当前种子，只能在这个页面上看（管理员可见）。
 
-```bash
-# 第 1 步：生成新场景并直接上传到 Supabase（会覆盖同名场景）
-python -m worker.main gen-scenario --slug eval-a \
-  --name "Competition scenario A (hidden weather)" \
-  --description "Online competition replay A: 30 nights from 2026-10-05. Weather, forecasts and events are hidden; agents see only the published snapshots." \
-  --seed 999111 --days 30 --start-date 2026-10-05 --wallclock 3600 \
-  --hidden-weather --hidden-forecasts
+## 5 · 给同事开权限
 
-# 第 2 步：同 eval-b（--seed 换一个，--start-date 2026-11-01）
+**比赛站管理员**（能看所有队伍、重跑评测、发公告、换种子）：
+「管理」→「用户」→ 找到这个人 → 点「设为管理员」。
 
-# 第 3 步：把 worker/main.py 的 DEFAULT_SCENARIOS 里对应种子同步成上面的新值，
-#         git commit + push，保证仓库和线上一致
-```
+> 对方要先在比赛站注册过账号才能在这里找到。另外「管理」→「设置」里有一份管理员邮箱白名单，写进去的邮箱注册时会自动带管理员权限。
 
-`--seed` 建议用 6 位数随机数（`python3 -c "import random;print(random.randint(100000,999999))"`），**只在比赛开始前才生成和推送**，不要提前公开。
-
-## 5 · 给同事开管理员权限
-
-Supabase 组织邀请（dashboard 手动）：https://supabase.com/dashboard/org/cosmos/team → Invite。
-
-比赛站的管理员（能看所有队伍、重跑评测、发布公告）：
-
-```bash
-python -m worker.main promote-admin someone@example.com
-```
+**Supabase 控制台权限**（能看数据库、改配置）：
+https://supabase.com/dashboard/org/cosmos/team → Invite member。
 
 ## 6 · 学员端在哪
 
 - **网址**：https://bh3gei.github.io/agent-observer/
-- **入门包**：站点首页 → "下载入门包"，或直接分享 GitHub 仓库里的 `starter_kit/` 目录
-- **说明文档**：站点"文档"页；三步上手指南在 `starter_kit/QUICKSTART_ZH.md`
+- **新手教程**：站点「新手上路」页（顶部导航第一个）
+- **入门包**：站点「资源」页 →「下载入门包」
+- **完整文档**：站点「文档」页
 
 ## 7 · 常见故障
 
 | 现象 | 原因 | 处理 |
 |---|---|---|
-| 学员上传后一直 `queued` | worker 没在跑 | `gh run list` 查看；`gh workflow run worker.yml` 拉起 |
-| 提交立刻 `invalid` | zip 根目录没有 `minimal_agent.py` / `agent.py` / `main.py` | 让学员按 QUICKSTART 第 3 步重新打包 |
+| 学员上传后一直 `queued` | worker 没在跑 | 「概览」页看 Worker 面板；离线就去 GitHub Actions 跑一次 "Evaluation worker" |
+| 提交立刻 `invalid` | zip 根目录没有 `minimal_agent.py` / `agent.py` / `main.py` | 让学员按「新手上路」重新打包，或直接传 `my_strategy.py` 单文件 |
 | 练习赛场景加载慢 | `dev-reference` 有 180 个观测夜，文件较大 | 正常，首次下载后 worker 会缓存 |
-| 排行榜不更新 | 前端缓存 | 强制刷新（⌘⇧R），排行榜本身读的是 `leaderboard` Edge Function，通常实时 |
-| 学员说没收到确认邮件 | 邮箱进垃圾箱；或 Supabase Auth 免费额度限流 | 让学员换邮箱重试；或在 dashboard → Auth → Users 手动确认 |
+| 排行榜不更新 | 前端缓存 | 强制刷新（⌘⇧R） |
+| 学员收不到密码重置邮件 | 项目用的是 Supabase 内置邮件，限流 2 封/小时（全站） | 在「管理」→「用户」里帮他改；长期方案是接一个自建 SMTP |
+
+---
+
+## 附：命令行兜底
+
+网页覆盖不到的只有"新建一个场景"。需要时在仓库根目录执行：
+
+```bash
+source .secrets/supabase.env
+source .venv/bin/activate
+
+# 新建场景（不带 --seed 就是随机种子，推荐）
+python -m worker.main gen-scenario --slug eval-c \
+  --name "Competition scenario C" --days 30 --start-date 2026-12-01 \
+  --wallclock 3600 --hidden-weather --hidden-forecasts
+```
+
+`.secrets/supabase.env` 里已经有 `SUPABASE_URL` 和 `SUPABASE_SERVICE_ROLE_KEY`。key 换了的话，去 Supabase 控制台 → Project Settings → API 取新的 service_role 值贴回去。

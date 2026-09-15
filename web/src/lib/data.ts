@@ -7,9 +7,17 @@ export interface Scenario {
   id: string; slug: string; name: string; description: string | null
   weather_public: boolean; tiles_public: boolean; forecasts_public: boolean; events_public: boolean; is_active: boolean
   n_slots: number | null; n_nights: number | null; n_tiles: number | null; n_targets: number | null; n_requests: number | null
-  global_wallclock_seconds: number | null; contract: string | null; manifest: Record<string, unknown> | null
-  seed: number | null; checksum: string | null; created_at: string
+  global_wallclock_seconds: number | null; contract: string | null; created_at: string
+  /** Withheld from participants: `seed`, `checksum` and `manifest` would let anyone rebuild a hidden-weather
+   *  scenario locally, so anon/authenticated have no column privilege on them. Only `admin_scenarios()` fills
+   *  these in — everywhere else they are undefined. */
+  seed?: number | null; checksum?: string | null; manifest?: Record<string, unknown> | null
 }
+
+/** The scenario columns participants are allowed to read (see migration 20260915000100_hide_scenario_seeds). */
+export const SCENARIO_PUBLIC_COLUMNS =
+  'id, slug, name, description, weather_public, forecasts_public, events_public, tiles_public, is_active, ' +
+  'n_slots, n_nights, n_tiles, n_targets, n_requests, global_wallclock_seconds, contract, created_at'
 
 /** Files of a scenario directory in the `scenarios` bucket (`<slug>/config/<file>` and `<slug>/outputs/reference/<file>`). */
 export type ScenarioFileGroup = 'config' | 'data' | 'weather' | 'forecasts' | 'events'
@@ -91,7 +99,7 @@ export function phaseStatus(p: { is_active: boolean; starts_at: string | null; e
 export async function loadPhases(): Promise<Phase[]> {
   const { data, error } = await supabase
     .from('phases')
-    .select('*, phase_scenarios(scenario_id, scenarios(*))')
+    .select(`*, phase_scenarios(scenario_id, scenarios(${SCENARIO_PUBLIC_COLUMNS}))`)
     .order('sort_order', { ascending: true })
   if (error) throw error
   return ((data ?? []) as any[]).map(row => {
@@ -110,7 +118,14 @@ export function mainPhase(phases: Phase[]): Phase | null {
 }
 
 export async function loadScenarios(): Promise<Scenario[]> {
-  const { data, error } = await supabase.from('scenarios').select('*').order('slug')
+  const { data, error } = await supabase.from('scenarios').select(SCENARIO_PUBLIC_COLUMNS).order('slug')
+  if (error) throw error
+  return (data ?? []) as unknown as Scenario[]
+}
+
+/** Admin-only view of the same rows, including the withheld seed/checksum/manifest. */
+export async function loadScenariosAsAdmin(): Promise<Scenario[]> {
+  const { data, error } = await supabase.rpc('admin_scenarios')
   if (error) throw error
   return (data ?? []) as Scenario[]
 }

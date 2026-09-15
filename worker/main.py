@@ -15,6 +15,7 @@ import argparse
 import json
 import re
 import logging
+import secrets
 import shutil
 import sys
 import tempfile
@@ -283,6 +284,47 @@ def process_one(sb: Supa) -> bool:
     return True
 
 
+def process_scenario_job(sb: Supa) -> bool:
+    """Regenerate a scenario on request from the admin console (`scenario_jobs`).
+
+    Rotating a competition seed has to happen somewhere that can actually build a scenario, so the console queues
+    a row and the worker does the work here. A job without an explicit seed draws a fresh random one; the seed is
+    only ever written to the database, never to the repository. register_scenario upserts on slug, so the scenario
+    id — and therefore every phase_scenarios link — survives the rotation."""
+    s = get_settings()
+    job = sb.rpc("claim_scenario_job", {"p_worker": s.worker_id})
+    if not job or not job.get("id"):
+        return False
+    slug = job["slug"]
+    seed = job.get("seed")
+    if seed is None:
+        seed = secrets.randbelow(900_000) + 100_000
+    log.info("rotating scenario %s with seed %s (job %s)", slug, seed, job["id"])
+    root = Path(tempfile.mkdtemp(prefix="sac-rotate-"))
+    try:
+        scenario_builder.generate_scenario(
+            root, scenario_id=slug, seed=int(seed), days=job.get("days") or 30,
+            start_date=job.get("start_date"), global_wallclock_seconds=job.get("wallclock") or 3600,
+        )
+        existing = sb.select("scenarios", filters={"slug": f"eq.{slug}"}, columns="name, description")
+        meta = existing[0] if existing else {"name": slug, "description": ""}
+        register_scenario(
+            sb, slug=slug, name=meta.get("name") or slug, description=meta.get("description") or "", root=root,
+            weather_public=bool(job.get("weather_public")), forecasts_public=bool(job.get("forecasts_public")),
+            events_public=bool(job.get("events_public")), wallclock=job.get("wallclock"),
+        )
+        sb.update("scenario_jobs", {"id": f"eq.{job['id']}"},
+                  {"status": "done", "result_seed": int(seed), "finished_at": now_iso()})
+        log.info("scenario %s rotated", slug)
+    except Exception as exc:  # noqa: BLE001
+        log.exception("scenario job %s failed", job["id"])
+        sb.update("scenario_jobs", {"id": f"eq.{job['id']}"},
+                  {"status": "failed", "error": f"{exc}"[:2000], "finished_at": now_iso()})
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+    return True
+
+
 def heartbeat(sb: Supa, *, busy: bool, processed: int) -> None:
     """Publish the worker's liveness (site_settings.worker_heartbeat, readable by everyone) so the site can tell
     participants whether an evaluator is online and how long the queue is."""
@@ -317,7 +359,8 @@ def run_loop(once: bool = False, max_seconds: Optional[float] = None) -> int:
             heartbeat(sb, busy=False, processed=n)
             last_beat = time.monotonic()
         try:
-            did = process_one(sb)
+            # scenario rotations are rare but block a phase opening, so they go ahead of the submission queue
+            did = process_scenario_job(sb) or process_one(sb)
         except SupabaseError as exc:
             log.warning("supabase error: %s", exc)
             did = False
@@ -339,14 +382,20 @@ def run_loop(once: bool = False, max_seconds: Optional[float] = None) -> int:
 # seeding / admin
 # ---------------------------------------------------------------------------
 
+# A seed of RANDOM_SEED means "draw one at registration time and keep it in the database only". The hidden-weather
+# competition scenarios must use it: this file is public, and a published seed lets anyone rebuild the hidden
+# weather locally. Rotate them from the admin console (Scenarios -> Rotate seed) before each competition phase.
+RANDOM_SEED = "random"
+EXAMPLE3_SEED = None  # use the shipped example3 reference directory rather than generating
+
 DEFAULT_SCENARIOS = [
     # slug, name, description, seed, days, start, wallclock, weather_public, forecasts_public, events_public
-    ("dev-reference", "Development reference (180 nights, seed 20260909)", "The published example3 reference scenario. Everything public, including weather events, so local scoring reproduces the platform.", None, 180, None, 7200, True, True, True),
+    ("dev-reference", "Development reference (180 nights, seed 20260909)", "The published example3 reference scenario. Everything public, including weather events, so local scoring reproduces the platform.", EXAMPLE3_SEED, 180, None, 7200, True, True, True),
     ("dev-fortnight", "Development fortnight (14 nights, seed 2026)", "A short public scenario for quick iteration: 14 nights from 2026-10-05, all files public.", 2026, 14, "2026-10-05", 1800, True, True, True),
     # same parameters as starter_kit/scenarios/demo-week, so the shipped copy and the published one are the same scenario
     ("demo-week", "One-week demo (7 nights, seed 20261005)", "The seven-night demo shipped in the starter kit: 7 nights from 2026-10-05, all files public. Runs in seconds and the replay is short enough to read night by night.", 20261005, 7, "2026-10-05", 900, True, True, True),
-    ("eval-a", "Competition scenario A (hidden weather)", "Online competition replay A: 30 nights from 2026-10-05. Weather, forecasts and events are hidden; agents see only the published snapshots.", 771233, 30, "2026-10-05", 3600, False, False, False),
-    ("eval-b", "Competition scenario B (hidden weather)", "Online competition replay B: 30 nights from 2026-11-01, different seed.", 330841, 30, "2026-11-01", 3600, False, False, False),
+    ("eval-a", "Competition scenario A (hidden weather)", "Online competition replay A: 30 nights from 2026-10-05. Weather, forecasts and events are hidden; agents see only the published snapshots.", RANDOM_SEED, 30, "2026-10-05", 3600, False, False, False),
+    ("eval-b", "Competition scenario B (hidden weather)", "Online competition replay B: 30 nights from 2026-11-01, different seed.", RANDOM_SEED, 30, "2026-11-01", 3600, False, False, False),
 ]
 
 
@@ -355,13 +404,15 @@ def seed(sb: Supa) -> None:
     for slug, name, desc, sd, days, start, wallclock, wp, fp, ep in DEFAULT_SCENARIOS:
         if slug in existing:
             continue
-        if sd is None:
+        if sd is EXAMPLE3_SEED:
             root = scenario_builder.EXAMPLE3_ROOT
         else:
+            if sd == RANDOM_SEED:
+                sd = secrets.randbelow(900_000) + 100_000
             root = Path(tempfile.mkdtemp(prefix="sac-gen-"))
-            scenario_builder.generate_scenario(root, scenario_id=slug, seed=sd, days=days, start_date=start, global_wallclock_seconds=wallclock)
+            scenario_builder.generate_scenario(root, scenario_id=slug, seed=int(sd), days=days, start_date=start, global_wallclock_seconds=wallclock)
         register_scenario(sb, slug=slug, name=name, description=desc, root=root, weather_public=wp, forecasts_public=fp, events_public=ep, wallclock=wallclock)
-        if sd is not None:
+        if sd is not EXAMPLE3_SEED:  # generated into a temp dir; the example3 reference dir is shipped and stays
             shutil.rmtree(root, ignore_errors=True)
         print("scenario", slug, "registered")
     scn = {r["slug"]: r["id"] for r in sb.select("scenarios", columns="id, slug")}

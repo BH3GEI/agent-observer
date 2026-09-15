@@ -1692,7 +1692,18 @@
       "active": "active",
       "saved": "Scenario saved.",
       "cli_title": "Creating scenarios",
-      "cli_note": "Scenarios are no longer uploaded from the browser. Generate or register a scenario directory with the worker CLI (service role); it uploads config/ and outputs/reference/ to the scenarios bucket, computes the counts and the checksum, and inserts the row. Flags and the wall clock can be edited here."
+      "cli_note": "Scenarios are no longer uploaded from the browser. Generate or register a scenario directory with the worker CLI (service role); it uploads config/ and outputs/reference/ to the scenarios bucket, computes the counts and the checksum, and inserts the row. Flags and the wall clock can be edited here.",
+      "rotate": "Rotate seed",
+      "rotate_confirm": "Generate a fresh random seed for {slug} and rebuild the scenario?\n\nThe old seed stops being valid immediately. Only do this while the phase using it is not open — rotating mid-competition invalidates evaluations already in flight.",
+      "rotate_queued": "Queued. The worker rebuilds the scenario within a minute.",
+      "job_status": {
+        "queued": "Queued…",
+        "running": "Generating…",
+        "done": "Done",
+        "failed": "Failed"
+      },
+      "job_already_pending": "A rotation is already in progress for this scenario.",
+      "unknown_scenario": "No such scenario."
     },
     "submissions": {
       "any_status": "any status",
@@ -1799,6 +1810,18 @@
       "credits_note_hint": "Shown at the top of the dashboard credits panel. Leave empty to hide.",
       "credits_note_en": "note (en)",
       "credits_note_zh": "note (zh)"
+    },
+    "worker": {
+      "title": "Evaluation worker",
+      "online": "Online",
+      "offline": "Offline",
+      "never": "No worker heartbeat recorded yet.",
+      "queued": "Queued",
+      "processed": "Processed this run",
+      "last_beat": "Since last beat",
+      "busy": "Evaluating",
+      "idle": "Idle",
+      "offline_hint": "If no worker is online for more than {minutes} minutes, run the “Evaluation worker” workflow once from GitHub Actions to start a new one."
     }
   },
   "construction": {

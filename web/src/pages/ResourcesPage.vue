@@ -108,7 +108,9 @@ onMounted(async () => {
               </template>
             </div>
           </div>
-          <p class="text3 mt-3 text-xs m">{{ t('resources.contract') }}: {{ s.contract ?? 'challenge-score-v3' }} · {{ t('resources.checksum_label') }} {{ (s.checksum ?? '').slice(0, 12) || '—' }}<template v-if="!s.weather_public"> · {{ t('resources.seed_hidden') }}</template></p>
+          <!-- No checksum here: for a hidden-weather scenario the per-file hashes make a six-digit seed
+               brute-forceable offline. Public scenarios still carry it inside scenario_manifest.json. -->
+          <p class="text3 mt-3 text-xs m">{{ t('resources.contract') }}: {{ s.contract ?? 'challenge-score-v3' }}<template v-if="!s.weather_public"> · {{ t('resources.seed_hidden') }}</template></p>
         </article>
       </div>
 

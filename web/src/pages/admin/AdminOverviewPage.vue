@@ -3,11 +3,14 @@ import { onMounted, ref } from 'vue'
 import { supabase } from '../../lib/supabase'
 import { fmtUtc, num } from '../../lib/format'
 import { useAdmin } from '../../composables/useAdmin'
+import { useWorkerStatus } from '../../composables/useWorkerStatus'
 import DashShell from '../../components/layout/DashShell.vue'
 import SkeletonRows from '../../components/layout/SkeletonRows.vue'
 import StatusPill from '../../components/layout/StatusPill.vue'
 
-const { t, rpc, report } = useAdmin()
+const { t, tf, rpc, report } = useAdmin()
+// Whether an evaluator is alive, so "nothing is being scored" does not require a trip to GitHub Actions.
+const { heartbeat, ageSeconds, online, start: startWorkerWatch } = useWorkerStatus()
 const stats = ref<Record<string, number>>({})
 const recent = ref<any[]>([])
 const audit = ref<any[]>([])
@@ -15,6 +18,7 @@ const loading = ref(true)
 const keys = ['users', 'teams', 'submissions', 'queued', 'scored', 'failed']
 
 onMounted(async () => {
+  startWorkerWatch(null, 15000)
   try {
     const [s, r, a] = await Promise.all([
       rpc<Record<string, number>>('admin_stats'),
@@ -33,6 +37,24 @@ onMounted(async () => {
   <DashShell admin :kicker="t('admin.kicker')" :title="t('admin.nav.overview')">
     <div class="stats stats-6">
       <div v-for="k in keys" :key="k" class="stat"><b>{{ stats[k] ?? '—' }}</b><span>{{ t(`admin.stats.${k}`) }}</span></div>
+    </div>
+
+    <div class="panel mt-8" data-testid="admin-worker">
+      <div class="hd">
+        <h2>{{ t('admin.worker.title') }}</h2>
+        <span class="pill" :class="online ? 'accent' : 'failed'">{{ online ? t('admin.worker.online') : t('admin.worker.offline') }}</span>
+      </div>
+      <p v-if="!heartbeat" class="text3 text-sm">{{ t('admin.worker.never') }}</p>
+      <template v-else>
+        <div class="stats stats-4">
+          <div class="stat"><b>{{ heartbeat.queued ?? '—' }}</b><span>{{ t('admin.worker.queued') }}</span></div>
+          <div class="stat"><b>{{ heartbeat.processed >= 0 ? heartbeat.processed : '—' }}</b><span>{{ t('admin.worker.processed') }}</span></div>
+          <div class="stat"><b>{{ ageSeconds ?? '—' }}s</b><span>{{ t('admin.worker.last_beat') }}</span></div>
+          <div class="stat"><b>{{ heartbeat.busy ? t('admin.worker.busy') : t('admin.worker.idle') }}</b><span>{{ t('common.status') }}</span></div>
+        </div>
+        <p class="help mt-3 m xs">{{ heartbeat.worker_id }} · {{ (heartbeat.kinds ?? []).join(', ') }}</p>
+      </template>
+      <p v-if="!online" class="help mt-3">{{ tf('admin.worker.offline_hint', { minutes: 30 }) }}</p>
     </div>
     <div class="dash-grid mt-10">
       <div class="panel">

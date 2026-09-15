@@ -1692,7 +1692,18 @@
       "active": "启用",
       "saved": "场景已保存。",
       "cli_title": "创建场景",
-      "cli_note": "场景不再从浏览器上传。用 worker CLI（service role）生成或注册场景目录；它会把 config/ 与 outputs/reference/ 上传到 scenarios 存储桶、计算计数与校验和并插入记录。标记与全局时钟可在此编辑。"
+      "cli_note": "场景不再从浏览器上传。用 worker CLI（service role）生成或注册场景目录；它会把 config/ 与 outputs/reference/ 上传到 scenarios 存储桶、计算计数与校验和并插入记录。标记与全局时钟可在此编辑。",
+      "rotate": "轮换种子",
+      "rotate_confirm": "为 {slug} 生成一个新的随机种子并重建场景？\n\n旧种子立即作废。请只在该场景所属阶段尚未开放时操作——比赛进行中轮换会让已在评测的提交对不上。",
+      "rotate_queued": "已排队，worker 会在一分钟内重建场景。",
+      "job_status": {
+        "queued": "排队中…",
+        "running": "生成中…",
+        "done": "已完成",
+        "failed": "失败"
+      },
+      "job_already_pending": "该场景已有一个轮换任务在进行中。",
+      "unknown_scenario": "找不到这个场景。"
     },
     "submissions": {
       "any_status": "任意状态",
@@ -1799,6 +1810,18 @@
       "credits_note_hint": "显示在控制台 API 额度面板顶部，留空则不显示。",
       "credits_note_en": "说明（英文）",
       "credits_note_zh": "说明（中文）"
+    },
+    "worker": {
+      "title": "评测 Worker",
+      "online": "在线",
+      "offline": "离线",
+      "never": "还没有收到过 worker 心跳。",
+      "queued": "排队中",
+      "processed": "本次已处理",
+      "last_beat": "距上次心跳",
+      "busy": "评测中",
+      "idle": "空闲",
+      "offline_hint": "超过 {minutes} 分钟没有 worker 在线时，到 GitHub Actions 手动运行一次 “Evaluation worker” 工作流即可拉起。"
     }
   },
   "construction": {

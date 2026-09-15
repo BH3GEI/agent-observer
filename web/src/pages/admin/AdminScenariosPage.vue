@@ -1,15 +1,49 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { supabase } from '../../lib/supabase'
-import { loadScenarios, type Scenario } from '../../lib/data'
+import { loadScenariosAsAdmin, type Scenario } from '../../lib/data'
 import { downloadObject } from '../../lib/storage'
 import { useAdmin } from '../../composables/useAdmin'
 import DashShell from '../../components/layout/DashShell.vue'
 
-const { t, busy, run, flash } = useAdmin()
-const rows = ref<Scenario[]>([])
+interface ScenarioJob {
+  id: number; slug: string; status: string; seed: number | null; result_seed: number | null
+  error: string; created_at: string; finished_at: string | null
+}
 
-async function load() { rows.value = await loadScenarios() }
+const { t, tf, busy, rpc, run, flash } = useAdmin()
+const rows = ref<Scenario[]>([])
+const jobs = ref<Record<string, ScenarioJob>>({})
+let poll: number | undefined
+
+// seed/checksum are withheld from the participant-facing columns, so the console reads them through the RPC
+async function load() { rows.value = await loadScenariosAsAdmin() }
+
+/** Latest rotation job per scenario, so each row can show "generating / done / failed". */
+async function loadJobs() {
+  const { data } = await supabase.from('scenario_jobs').select('*').order('created_at', { ascending: false }).limit(50)
+  const latest: Record<string, ScenarioJob> = {}
+  for (const j of (data ?? []) as ScenarioJob[]) if (!latest[j.slug]) latest[j.slug] = j
+  jobs.value = latest
+  return Object.values(latest).some(j => j.status === 'queued' || j.status === 'running')
+}
+
+async function refreshJobs() {
+  const pending = await loadJobs()
+  if (!pending) { stopPolling(); await load() }
+}
+function startPolling() { stopPolling(); poll = window.setInterval(() => { void refreshJobs() }, 5000) }
+function stopPolling() { if (poll) { window.clearInterval(poll); poll = undefined } }
+onUnmounted(stopPolling)
+
+/** Queue a fresh random seed for a scenario. The worker regenerates and re-uploads it; the scenario id is
+ *  preserved (register_scenario upserts on slug) so phase links survive. */
+async function rotate(s: Scenario) {
+  if (!window.confirm(tf('admin.scenarios.rotate_confirm', { slug: s.slug }))) return
+  const ok = await run(async () => { await rpc('admin_queue_scenario_job', { p_slug: s.slug }) },
+                       t('admin.scenarios.rotate_queued'), ['admin.scenarios'])
+  if (ok) { await loadJobs(); startPolling() }
+}
 
 async function save(s: Scenario) {
   const wallclock = Math.max(60, Math.round(Number(s.global_wallclock_seconds) || 0))
@@ -25,10 +59,10 @@ async function save(s: Scenario) {
 async function download(s: Scenario, file: string) {
   try { await downloadObject('scenarios', `${s.slug}/${file}`, `${s.slug}-${file.split('/').pop()}`) } catch { flash.error(t('subs.download_failed')) }
 }
-const cli = `# scenarios are directories (config/*.json + outputs/reference/*.csv); create and register them with the worker CLI
-python -m worker.main gen-scenario --slug eval-c --seed 4242 --days 30 --start-date 2026-12-01 --wallclock 3600 --hidden-weather --hidden-forecasts
+const cli = `# rotating a seed is the "轮换种子 / Rotate seed" button above; these are for creating a brand-new scenario
+python -m worker.main gen-scenario --slug eval-c --days 30 --start-date 2026-12-01 --wallclock 3600 --hidden-weather --hidden-forecasts
 python -m worker.main add-scenario --slug my-scenario --root /path/to/scenario_dir --wallclock 7200 [--hidden-weather] [--hidden-forecasts] [--public-events]`
-onMounted(load)
+onMounted(async () => { await load(); if (await loadJobs()) startPolling() })
 </script>
 
 <template>
@@ -42,7 +76,16 @@ onMounted(load)
             <td style="min-width: 15rem"><input v-model="s.name" type="text" class="input mb-1"><input v-model="s.description" type="text" class="input text-xs" :placeholder="t('admin.scenarios.description')"></td>
             <td class="r m">{{ s.n_nights ?? '—' }}</td><td class="r m">{{ s.n_slots ?? '—' }}</td><td class="r m">{{ s.n_tiles ?? '—' }}</td><td class="r m">{{ s.n_targets ?? '—' }}</td><td class="r m">{{ s.n_requests ?? '—' }}</td>
             <td class="whitespace-nowrap" style="min-width: 8rem"><input v-model.number="s.global_wallclock_seconds" type="number" min="60" step="60" class="input m" style="width: 6rem" :data-testid="`wallclock-${s.slug}`"> s</td>
-            <td class="m">{{ s.seed ?? '—' }}<div class="text3 xs">{{ (s.checksum ?? '').slice(0, 10) }}</div></td>
+            <td class="m" style="min-width: 9rem">
+              {{ s.seed ?? '—' }}
+              <div class="text3 xs">{{ (s.checksum ?? '').slice(0, 10) }}</div>
+              <button type="button" class="copy-btn mt-1" :disabled="busy || jobs[s.slug]?.status === 'queued' || jobs[s.slug]?.status === 'running'"
+                      :data-testid="`rotate-${s.slug}`" @click="rotate(s)">{{ t('admin.scenarios.rotate') }}</button>
+              <div v-if="jobs[s.slug]" class="xs mt-1" :class="jobs[s.slug]!.status === 'failed' ? 'text-[#ff6b6b]' : 'text3'">
+                {{ t(`admin.scenarios.job_status.${jobs[s.slug]!.status}`) }}
+                <span v-if="jobs[s.slug]!.status === 'failed'" :title="jobs[s.slug]!.error">⚠</span>
+              </div>
+            </td>
             <td class="m xs">{{ s.contract ?? '—' }}</td>
             <td class="whitespace-nowrap">
               <div class="flex flex-col gap-1">
