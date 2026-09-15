@@ -158,7 +158,7 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
     <dl class="sky-hud" aria-live="off">
       <div class="sky-hud-slot"><dt>{{ t('hero.console.slot') }}</dt><dd data-testid="sky-slot">{{ hud.slot }}</dd></div>
       <div><dt>UTC {{ hud.date }} · {{ hud.nightNo }}/{{ replayTotals.nights }}</dt><dd>{{ hud.utc }}</dd></div>
-      <div class="sky-hud-weather">
+      <div class="sky-hud-weather" :title="t('hero.console.weather_help')">
         <dt>{{ t('hero.console.weather') }}</dt>
         <dd v-if="hud.open">{{ num(hud.seeing, 2) }}″ · {{ num(hud.transp, 2) }} · {{ num(hud.sky, 2) }} · {{ num(hud.eff, 2) }}</dd>
         <dd v-else class="text-[#ff6b6b]">{{ t('hero.console.dome_closed') }}</dd>

@@ -1,13 +1,13 @@
 {
   "meta": {
     "title": "Agent Observer · GOSIM Hackathon",
-    "description": "A GOSIM hackathon for intelligent survey operations: build an agent observer that reads the published sky state, plans around hidden weather, forecasts and requests, and commits the next observation slot by slot.",
+    "description": "The GOSIM survey-agent hackathon: write an observing agent for a telescope that sees the published sky but not the real weather, and decides what to point at next every 15 minutes.",
     "wordmark_note": "AGENT HACKATHON",
     "brand": "Agent Observer",
     "pages": {
       "home": {
         "title": "Home",
-        "description": "A GOSIM hackathon for intelligent survey operations: build an agent observer that reads the published sky state, plans around hidden weather, forecasts and requests, and commits the next observation slot by slot."
+        "description": "The GOSIM survey-agent hackathon: write an observing agent for a telescope that sees the published sky but not the real weather, and decides what to point at next every 15 minutes."
       },
       "brief": {
         "title": "Event brief",
@@ -31,7 +31,7 @@
       },
       "leaderboard": {
         "title": "Leaderboard",
-        "description": "Live standings per phase: total score, base science, program bonus, request reward, penalties, tiles completed and REQUIRED tiles missed."
+        "description": "Live standing per phase: total, base science, programme bonus, request reward, penalties, finished patches and must-do patches still missing."
       },
       "announcements": {
         "title": "Announcements",
@@ -109,7 +109,7 @@
     "eyebrow": "GOSIM Hackathon · Intelligent Survey Operations",
     "system": "Agent Observer",
     "subtitle": "巡天智能体",
-    "lede": "Build an agent observer for survey nights: read the published sky state, plan around hidden weather, uncertain forecasts and temporary requests, and commit the next observation slot by slot.",
+    "lede": "Write an observing agent for a telescope. It can see the published state of the sky but not the real weather; forecasts shift and new observation requests arrive mid-night. Every 15 minutes it has to choose what to point at next.",
     "pipeline": [
       {
         "label": "Online Training",
@@ -150,24 +150,24 @@
         "label": "worldwide · solo or team"
       }
     ],
-    "side_note": "31.96°N site / 900 s per slot / one global clock",
+    "side_note": "Site 31.96°N / a decision every 15 minutes / one time budget for the whole run",
     "console": {
       "title": "Live survey replay",
-      "replay_note": "public practice set · {nights} nights · {actions} actions",
+      "replay_note": "Public practice field · {nights} nights · {actions} decisions",
       "paused": "Paused",
       "pause": "Pause",
       "resume": "Resume",
-      "aria": "Replay sky map of the minimal agent: REQUIRED and FLEXIBLE patches fill in as exposures complete",
+      "aria": "Replay sky map: required and optional patches light up as exposures complete",
       "slot": "Slot",
-      "weather": "See·trp·sky·eff",
+      "weather": "Seeing · Transparency · Sky · Instrument",
       "dome_closed": "Dome closed",
       "score": "Score",
       "tiles": "Tiles",
-      "legend_visible": "Above 30°",
-      "legend_meridian": "Meridian (LST)",
+      "legend_visible": "Reachable now",
+      "legend_meridian": "Overhead now",
       "night": "Night",
-      "legend_required": "REQUIRED",
-      "legend_flexible": "FLEXIBLE",
+      "legend_required": "Must do",
+      "legend_flexible": "Optional",
       "legend_completed": "Completed",
       "legend_interrupted": "Interrupted",
       "explainer": "This is the whole observable sky. Every mark is a patch waiting to be imaged; a filled one is done. Every 15 minutes the agent picks one to shoot — or waits for better weather.",
@@ -178,20 +178,21 @@
       "tour_skip": "Skip",
       "tour": {
         "axes": "The horizontal axis is right ascension — the sky's longitude — going all the way round from 0° to 360°. The vertical axis is declination, its latitude. R00–R07 across the top are the eight regions the sky is split into.",
-        "tiles": "Each mark is a patch to image: ◇ is a REQUIRED one that must be finished, □ is an optional FLEXIBLE one. A ring around it means it is high enough to shoot right now; filled in means it is already done.",
+        "tiles": "Each mark is a patch to image: ◇ must be finished (REQUIRED), □ is optional (FLEXIBLE). A ring means it is high enough to shoot right now; filled in means it is already done.",
         "meridian": "The dashed blue line is where the telescope is pointing at this instant, drifting right as the Earth turns. When the replay moves to the next night the line jumps across: a whole daytime has been skipped.",
-        "hud": "The row underneath is the current slot, the live weather and the progress. The score climbs as patches light up — that is the number competitors are trying to maximise."
+        "hud": "The row underneath is the current slot, the weather at that moment and the progress. The four weather figures are seeing, transparency, sky brightness and instrument efficiency — hover them for an explanation. The score climbs as patches light up, and that is the number competitors are trying to maximise."
       },
       "beat": {
         "observe": "Imaging a patch in region {region}",
-        "observe_required": "Taking a REQUIRED patch that must be finished (region {region})",
+        "observe_required": "Taking a must-do patch (region {region})",
         "interrupted": "Weather cut this exposure short — it has to be redone",
         "dome_closed": "Dome closed — too much cloud to observe this slot",
         "waiting": "Nothing worth shooting is high enough yet; waiting for the next slot",
         "fast_forward": "Fast-forwarding: the rest of this night is spent waiting",
         "night_change": "Night {night} of {nights} — daytime skipped, the sky has come back round",
         "idle": "Starting up"
-      }
+      },
+      "weather_help": "Seeing: how blurred stars are, lower is sharper (arcseconds). Transparency: how clear the atmosphere is, higher is better. Sky: how bright the night sky itself is. Instrument: how much the equipment is delivering right now."
     },
     "pipeline_intro": "Milestones"
   },
@@ -310,7 +311,7 @@
     "evaluation": {
       "kicker": "05 / Evaluation",
       "title": "One frozen scorer, one public formula",
-      "lede": "The challenge-score-v3 score credits completed exposures by their atmospheric and lunar quality, rewards matching programs and completed requests, and charges six published penalty classes. The formula, the constants and the scorer source are published.",
+      "lede": "The scorer is public and frozen. What an exposure earns depends on the atmosphere and the moon at that moment; matching the night's programme and answering a request earn more on top; six kinds of violation cost you. Formula, constants and scorer source are all published, so the same score comes out on your own machine.",
       "formula": "total = base_science + program_bonus + request_reward\n      − unsafe_observation − invalid_action − avoidable_wait\n      − required_miss − flexible_shortfall − request_miss\nbase  = Σ_segments V_tile · (dt / t_nominal) · combined\ncombined = min(eff · transp · sky / (seeing · airmass), 3) · lunar",
       "criteria": [
         {
@@ -464,12 +465,12 @@
       },
       {
         "kicker": "03 / Challenge Format",
-        "title": "The Survey Mission Card and the challenge loop",
+        "title": "The Survey Mission Card and the decision loop",
         "paragraphs": [
           "Every challenge instance is a published evaluation scenario: science goal, tile catalogue, observing constraints, weather and forecasts, temporary requests, simulator and scoring rules. Public development scenarios (dev-reference, dev-fortnight) are already available on the Resources page; competition scenarios are provided by the platform when the competition starts.",
           "Every participant faces the same evaluation scenario: the overall survey plan, per-night seeing and weather replay, ad-hoc observing requests, predictable mid-term disruptions, simulator, and scoring rule are fixed. The agent receives the current state and returns the next observing action every 900 seconds."
         ],
-        "loopTitle": "The challenge loop",
+        "loopTitle": "The decision loop",
         "loop": [
           {
             "stage": "Fixed inputs",
@@ -535,7 +536,7 @@
         "kicker": "06 / Scoring",
         "title": "Scientific, reproducible, inspectable evaluation",
         "paragraphs": [
-          "The score credits completed exposures by atmospheric and lunar quality, rewards matching programs and completed requests, and charges unsafe observations, invalid actions, avoidable waits, missed REQUIRED tiles, FLEXIBLE shortfalls per region and expired requests. A good agent trades immediate yield against coverage, weather risk, the request deadlines and the global wall clock.",
+          "What a completed exposure earns depends on the atmosphere and the moon at the time; matching the night's programme and answering a request add more on top. Six things cost you: unsafe observations, invalid actions, avoidable waiting, unfinished must-do patches (REQUIRED), optional shortfall per region (FLEXIBLE), and expired requests. A good agent keeps trading immediate output against coverage, weather risk, request deadlines and the time budget.",
           "Evaluation follows open-science principles: fixed data and fixed scoring let every submitted observation result be evaluated consistently; readable result artifacts make outcomes inspectable; separate development and final-evaluation weather compare generalization instead of tuning to a known scenario.",
           "Visualization turns completed tile fractions into an observed-target map — a 3D spatial sample and a 2D butterfly plot of sky position plus simulated redshift, in the style DESI uses — so different strategies produce visibly different maps.",
           "The same observer interface can support future mission cards for real survey-log replay, z > 5 quasar planning, LBG planning, and target-of-opportunity inserts; the community can propose new fixed datasets for follow-up tracks."
@@ -591,9 +592,9 @@
   "about": {
     "kicker": "01 / Why",
     "title": "The observing plan is what shapes the final science sample",
-    "p1": "A survey telescope maps large areas of sky systematically. It does not spend a whole night on a single object; it visits thousands of tiles across many nights, building up statistically powerful samples of galaxies, quasars, and stars.",
-    "p2": "Cosmology runs on samples like these: large, uniform, well calibrated. Wide surveys reveal the large-scale structure of the universe, constrain its expansion history, underpin dark energy measurements, and tie galaxy evolution to cosmic time. Spectroscopic surveys add a third dimension — redshift. Position on the sky plus redshift gives you a three-dimensional map of cosmic structure.",
-    "p3": "DESI is one concrete, public example of exactly this: spectra for large samples of galaxies and quasars, used to map the expanding universe and study dark energy.",
+    "p1": "A survey telescope works by sweeping systematically across large areas of sky. Rather than spending a whole night on one object, it images thousands of patches over many nights, building a sample of galaxies, quasars and stars large enough to do statistics on.",
+    "p2": "Modern cosmology runs on samples like that: large, uniform and well calibrated. Wide surveys reveal the large-scale structure of the universe, constrain its expansion history, underpin dark-energy measurements and tie galaxy evolution to cosmic time. Spectroscopic surveys add one more dimension — redshift. Position on the sky plus redshift is enough to map cosmic structure in three dimensions.",
+    "p3": "DESI is a public example of this in progress: it measures spectra for large samples of galaxies and quasars to map the expanding universe and study dark energy.",
     "hardTitle": "Why survey operations are hard",
     "hardItems": [
       {
@@ -613,10 +614,10 @@
         "desc": "Has to be covered broadly and evenly for the science analysis to hold up."
       }
     ],
-    "hardClosing": "High-priority tiles, nearly finished tiles, and under-covered regions all compete for the same block of time. One bad tactical choice spends real observing time and changes every plan that follows. Night operations demand decisions that are both effective and explainable.",
+    "hardClosing": "High-priority patches, nearly finished patches and under-covered regions all compete for the same stretch of time. One bad call spends real observing time and changes the plan for the rest of the night. Decisions made at night have to work — and have to be explainable.",
     "whyNowTitle": "Why an observing agent, and why now",
-    "whyNow": "The long-term goal is an observing agent that can genuinely take part in real survey operations. A human lead observer translates science goals, weather, instrument state, tile completion, and candidate fields into a tactical decision, right now. Modern AI systems open a path: an assistant that reads state, calls computational tools, reasons under physical constraints, proposes a plan, monitors quality, and explains every choice.",
-    "whyNowClosing": "This hackathon narrows that long-term vision into one focused benchmark.",
+    "whyNow": "The long-term goal is an observing agent that genuinely takes part in running a survey. What a human night operator does is turn science goals, weather, instrument state, completion progress and candidate patches into a decision about what to point at now. Today's AI systems make that plausible: read the state, call computational tools, reason under physical constraints, propose a plan, watch the quality, and explain every choice.",
+    "whyNowClosing": "This hackathon narrows that long-term goal into one problem you can actually compete on.",
     "split": [
       {
         "side": "You build",
@@ -710,7 +711,7 @@
         "desc": "Every agent faces the same survey plan, weather replay, inserted requests, disruptions, simulator, and scoring rule."
       }
     ],
-    "loopTitle": "The challenge loop",
+    "loopTitle": "How one decision goes round",
     "loop": [
       {
         "stage": "Fixed inputs",
@@ -752,7 +753,7 @@
         ]
       }
     ],
-    "loopNote": "The only variable is agent strategy. The overall survey plan, weather replay, ad-hoc requests, predictable disruptions, simulator, and scoring rule are fixed for every participant."
+    "loopNote": "The only variable is the agent's strategy. The survey plan, the weather replay, the incoming requests, the foreseeable interruptions, the simulator and the scoring rules are identical for everyone."
   },
   "build": {
     "kicker": "04 / Participant Job",
@@ -844,7 +845,7 @@
   "scoring": {
     "kicker": "05 / Scoring",
     "title": "How the score works",
-    "intro": "The score credits completed exposures by atmospheric and lunar quality, rewards matching programs and completed requests, and charges unsafe observations, invalid actions, avoidable waits, missed REQUIRED tiles, FLEXIBLE shortfalls per region and expired requests. A good agent trades immediate yield against coverage, weather risk, the request deadlines and the global wall clock.",
+    "intro": "What a completed exposure earns depends on the atmosphere and the moon at the time; matching the night's programme and answering a request add more. Six things cost you: unsafe observations, invalid actions, avoidable waiting, missed must-do patches, optional shortfall per region, and expired requests. A good agent trades immediate gain against covering the whole survey.",
     "formula": "total = base_science + program_bonus + request_reward\n      - unsafe_observation - invalid_action - avoidable_wait\n      - required_miss - flexible_shortfall - request_miss",
     "principlesTitle": "Open-science design principles",
     "principles": [
@@ -877,7 +878,7 @@
       "A 3D view keeps the observed simulated universe as a spatial sample; a 2D butterfly plot folds sky position and simulated redshift together, in the style DESI uses.",
       "Different observing strategies produce visibly different maps of cosmic structure. The visualization helps a team explain its strategy, its footprint balance, and what it missed."
     ],
-    "vizNote": "The map is the benchmark’s visualization layer. The scored loop is still the planning task itself."
+    "vizNote": "This picture is the layer built for people to look at; what is actually scored is always the planning itself."
   },
   "glossary": {
     "kicker": "06 / Glossary",
@@ -917,8 +918,8 @@
         "desc": "Observing programs matched to dark, bright, and poor sky conditions."
       },
       {
-        "term": "REQUIRED / FLEXIBLE",
-        "desc": "A missed REQUIRED tile costs 1000 at the end of the run; FLEXIBLE tiles need four completions per region or cost 100 each."
+        "term": "Must-do / optional (REQUIRED / FLEXIBLE)",
+        "desc": "At the end of a run every unfinished must-do patch costs 1000; each region needs four optional patches finished, and every one short costs 100."
       },
       {
         "term": "lunar_quality_factor",
@@ -929,19 +930,19 @@
     "state": [
       {
         "field": "current_site_weather",
-        "desc": "The current slot's site weather: observability, seeing, transparency, sky quality, instrument efficiency and active events."
+        "desc": "Site weather for the current slot: whether it is observable, seeing, transparency, sky brightness, instrument efficiency, and any weather event in progress."
       },
       {
         "field": "forecasts",
-        "desc": "The uncertain, daily-revised forecasts issued so far — only revisions published before the current cursor."
+        "desc": "Every forecast published so far, revised daily and not guaranteed accurate — you only see revisions from before the current moment."
       },
       {
         "field": "progress",
-        "desc": "Completed tiles and FLEXIBLE completions per region."
+        "desc": "Patches already finished, and how many optional patches are done in each region."
       },
       {
         "field": "candidate_tiles",
-        "desc": "The legal candidates right now: geometry, airmass, lunar factor, effective weather, science value and window."
+        "desc": "The patches that are legal right now: geometry, airmass, lunar factor, effective weather, science value and observing window."
       }
     ],
     "actionCode": "return {\n    \"action\": \"observe\",\n    \"tile_id\": 100123,\n    \"plan\": \"DARK\",\n    \"reason\": \"good weather and highest useful gain\",\n}"
@@ -1025,7 +1026,7 @@
       "teams_on_board": "Teams on board",
       "scored_runs": "Scored runs",
       "last_update": "Last update",
-      "tooltip": "Total {score} · base {base} · bonus {bonus} · requests {requests} · penalties −{penalty} · {tiles} tiles · {missing} REQUIRED missing",
+      "tooltip": "Total {score} · base {base} · bonus {bonus} · requests {requests} · penalties −{penalty} · {tiles} patches · must-do missing {missing}",
       "legend_base": "base science",
       "legend_bonus": "program bonus",
       "legend_request": "requests",
@@ -1041,7 +1042,7 @@
   },
   "cta": {
     "title": "Hand the next move of the night sky to the agent you wrote",
-    "tagline": "Same survey plan, weather replay, inserted requests, simulator, and scoring rule. The only variable is strategy.",
+    "tagline": "Everyone gets the same survey plan, the same weather, the same incoming requests, the same simulator and the same scoring rules. The only variable is your strategy.",
     "location": "Online development and CosmosBench evaluation · October 17 at GOSIM Shenzhen",
     "button": "Register now",
     "tag": "2026 / GOSIM / AGENT OBSERVER"
@@ -1063,7 +1064,7 @@
       "slot": "Slot",
       "open": "dome open",
       "closed": "dome closed",
-      "per_slot": "per slot · one global clock"
+      "per_slot": "a decision every 15 minutes · one time budget for the whole run"
     }
   },
   "common": {
@@ -1316,7 +1317,7 @@
     "phase_closed": "closed",
     "phase_upcoming": "opens {date}",
     "help_results": "Score a decisions.csv you produced locally against a practice scenario whose weather is public.",
-    "help_agent": "The platform runs your package on every scenario of the phase (hidden weather included) under one global wall clock per scenario and averages the scores.",
+    "help_agent": "The platform runs your program on every scenario in this phase, hidden weather included, with one time budget per scenario, and averages the scores.",
     "errors": {
       "need_team": "Create or join a team first.",
       "bad_phase": "Unknown phase.",
@@ -1347,10 +1348,10 @@
       "Written your own agent from scratch? A .zip with minimal_agent.py, agent.py or main.py at its root, speaking participant-agent-protocol-v1 on stdin/stdout.",
       "Limits: 20 MB per upload, 2,000 files, 50 MB uncompressed, no symlinks. Caches, scratch/ and run_output/ are left out automatically."
     ],
-    "results_public_only": "Only scenarios with public weather are listed: the scorer needs the full weather truth to replay a results file.",
-    "wallclock": "wall clock",
-    "wallclock_note": "One global wall clock per scenario, started after the initialize message; no per-decision timeout. Actions committed before the cutoff are scored.",
-    "wallclock_results_note": "Results files are replayed offline; the wall clock only applies to platform runs of agent packages.",
+    "results_public_only": "Only scenarios with public weather are listed — the scorer needs the full weather to re-check what you produced locally.",
+    "wallclock": "Time budget",
+    "wallclock_note": "Each scenario gives you one time budget, counting down from the initialize message; no per-step timeout. Anything committed before it runs out still scores.",
+    "wallclock_results_note": "A results file is replayed offline and costs no budget; the budget only applies to agents running on the platform.",
     "weather_public": "weather public",
     "weather_hidden": "weather hidden",
     "drop_agent": "Drop your my_strategy.py, your whole agent folder, or a .zip here",
@@ -1395,7 +1396,7 @@
     "live": "live",
     "skymap": {
       "title": "Observed universe",
-      "hidden": "Tile catalogue hidden for this scenario",
+      "hidden": "The patch catalogue for this scenario is not public",
       "decision": "Decision",
       "play": "Play",
       "pause": "Pause",
@@ -1409,15 +1410,15 @@
     "program_bonus": "Program bonus",
     "request_reward": "Request reward",
     "penalties": "Penalties",
-    "required_missing": "REQUIRED missing",
-    "flexible_shortfall": "FLEXIBLE shortfall",
+    "required_missing": "Must-do patches missed",
+    "flexible_shortfall": "Optional patches short",
     "termination": "Termination",
     "tiles": "tiles",
     "completion_title": "Completion",
-    "none_missing": "none — every REQUIRED tile completed",
+    "none_missing": "None — every must-do patch finished",
     "exposures": "Completed exposures",
     "actions": "Actions",
-    "flexible_by_region": "FLEXIBLE tiles per region (quota 4)",
+    "flexible_by_region": "Optional patches per region (quota 4)",
     "requests_title": "Observation requests",
     "req_satisfied": "satisfied / required",
     "req_feasible": "feasible",
@@ -1433,32 +1434,32 @@
     "workflow": "workflow_result.json",
     "reading_title": "Reading the report",
     "reading_formula": "Every panel above is a term of the published formula:",
-    "reading_note": "Penalties for missed REQUIRED tiles, FLEXIBLE shortfalls and expired requests are applied at the end of every run, including runs cut short by the wall clock or an agent error. Hover the timeline for the per-segment quality of each exposure.",
+    "reading_note": "Missed must-do patches, optional shortfall and expired requests are all settled when the run ends — including runs cut short by the time budget or by an agent error. Hover the timeline to see the quality of each exposure segment.",
     "termination_reason": {
       "survey_complete": "survey complete",
       "global_wallclock_expired": "wall clock expired",
       "agent_error": "agent error",
       "agent_initialization_error": "initialization error",
-      "trace_complete": "trace complete"
+      "trace_complete": "Results file replayed"
     },
     "termination_help": {
-      "survey_complete": "The agent answered every decision request until the last slot of the calendar.",
-      "global_wallclock_expired": "The scenario's global wall clock ran out. The actions committed before the cutoff are scored; the rest of the calendar counts as unavailable time, and the terminal penalties apply.",
+      "survey_complete": "The agent answered every decision request through to the last slot on the calendar.",
+      "global_wallclock_expired": "This scenario's time budget ran out. Anything committed before then still scores; the rest of the calendar counts as unused time and the end-of-run penalties apply.",
       "agent_error": "The agent exited or answered with something other than a valid decision_response. The actions committed before the error are scored, with the terminal penalties applied.",
       "agent_initialization_error": "The agent did not start or did not read the initialize message within 30 seconds. No action was committed; the run carries the full terminal penalties.",
-      "trace_complete": "A decisions.csv was replayed to its last row."
+      "trace_complete": "A decisions.csv was replayed row by row to the end."
     },
     "penalty_kind": {
       "unsafe_observation": "unsafe observation",
       "invalid_action": "invalid action",
       "avoidable_wait": "avoidable wait",
-      "required_miss": "REQUIRED miss",
-      "flexible_shortfall": "FLEXIBLE shortfall",
+      "required_miss": "Must-do patches missed",
+      "flexible_shortfall": "Optional patches short",
       "request_miss": "request miss"
     },
     "wait_kind": {
       "explicit": "explicit waits",
-      "implicit": "implicit (skipped slots)",
+      "implicit": "Implicit wait (the whole slot was skipped)",
       "invalid": "consumed by invalid actions",
       "avoidable": "avoidable (penalised)",
       "unavailable": "unavailable (closed or nothing observable)"
@@ -1483,7 +1484,7 @@
       "title": "Decision replay",
       "open": "Load replay",
       "new_tab": "Open in new tab",
-      "note": "Self-contained ASTRA // SURVEY replay generated from the scored report; runs in a sandboxed frame.",
+      "note": "A self-contained replay page built from the score report, opened in an isolated sandbox.",
       "download": "decision_replay.html"
     }
   },
@@ -1522,7 +1523,7 @@
     "scenarios_note": "A scenario is a directory: config/*.json plus outputs/reference/*.csv. Configuration, calendar, catalogue and requests are always downloadable; weather, forecasts and events follow the scenario's visibility flags. Hidden files are shown crossed out. Competition seeds are not published, so hidden weather cannot be reconstructed from the public configuration.",
     "weather_public": "weather public",
     "weather_hidden": "weather hidden",
-    "wallclock": "wall clock",
+    "wallclock": "Time budget",
     "targets": "targets",
     "requests": "requests",
     "contract": "contract",
@@ -1708,7 +1709,7 @@
       "tiles": "tiles",
       "targets": "targets",
       "requests": "requests",
-      "wallclock": "wall clock",
+      "wallclock": "Time budget",
       "contract": "contract",
       "flags": "flags",
       "files": "files",

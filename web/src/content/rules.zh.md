@@ -38,10 +38,10 @@
    `A = min(instrument_efficiency · transparency · sky_quality / (seeing_arcsec · airmass), 3.0)`，`combined = A · lunar_quality_factor`，
    `base = V_tile · (segment_seconds / nominal_exptime_seconds) · combined`，其中 `V_tile` 为天区目标的 `science_weight` 之和；
    `bonus = base · B[program]`，`B = {DARK 0.25, BRIGHT 0.15, BACKUP 0.08}`，仅当决策项目等于 `combined` 所对应的区间（DARK ≥ 0.65，BRIGHT ≥ 0.40，否则 BACKUP）时支付。
-3. `total = base_science + program_bonus + request_reward − unsafe_observation − invalid_action − avoidable_wait − required_miss − flexible_shortfall − request_miss`：每次不安全观测（圆顶关闭时观测）2000；每次无效动作（未知天区/时隙/项目、重复天区、窗口之外、错误请求标注、在天区落下或夜晚结束前无法完成的曝光、过期决策）100；每秒可避免等待 0.001；每个未完成的 REQUIRED 天区 1000；每个分区少于配额 4 个的 FLEXIBLE 天区每个 100；到期请求每个所需天区 190（完成则每个所需天区奖励 140）。
+3. `total = base_science + program_bonus + request_reward − unsafe_observation − invalid_action − avoidable_wait − required_miss − flexible_shortfall − request_miss`：每次不安全观测（圆顶关闭时观测）2000；每次无效动作（未知天区/时隙/项目、重复天区、窗口之外、错误请求标注、在天区落下或夜晚结束前无法完成的曝光、过期决策）100；每秒可避免等待 0.001；每块未完成的必做天区（REQUIRED）1000；每个分区的可选天区（FLEXIBLE）不足 4 块的，每缺一块 100；到期请求每个所需天区 190（完成则每个所需天区奖励 140）。
 4. 只有完成的曝光计分。被关闭天气中断的曝光不计分也不受罚；被几何或夜晚结束中断的曝光不计分并记为无效动作。每个天区只获得一次普通分；带请求标注的复访只计入请求。
 5. 终局惩罚适用于每次运行，包括被时钟或智能体错误截断的运行。可行机会少于所需天区数的到期请求予以免责。
-6. 完成度（已完成天区 ÷ 天区数）与各分区 FLEXIBLE 缺额显示在榜单上；它们通过终局惩罚进入得分。
+6. 完成度（已完成天区 ÷ 天区数）与各分区可选天区缺额显示在榜单上；它们通过终局惩罚进入得分。
 7. 阶段含多个场景时，提交得分为各场景得分的算术平均。只有所有场景都完成评分的提交才计入。
 
 ## 6. 排名、同分与核验
