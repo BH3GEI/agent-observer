@@ -145,6 +145,7 @@ def describe_scenario(root: Path) -> dict:
         return csv_rows(data_dir(root) / name)
     nights = rows("night_calendar.csv")
     scenario_cfg = json.loads((config_dir(root) / "scenario_config.json").read_text(encoding="utf-8"))
+    calendar_cfg = json.loads((config_dir(root) / "calendar_config.json").read_text(encoding="utf-8"))
     return {
         "scenario_id": scenario_cfg["scenario_id"], "seed": scenario_cfg["seed"],
         "global_wallclock_seconds": int(scenario_cfg["competition"]["global_wallclock_seconds"]),
@@ -152,6 +153,8 @@ def describe_scenario(root: Path) -> dict:
         "n_requests": rows("observation_requests.csv"), "n_events": rows("weather_events.csv"), "manifest": manifest,
         "checksum": sha256_file(manifest_path) if manifest_path.exists() else "",
         "contract": "challenge-score-v3",
+        # first observing night, so a rotation can rebuild the scenario on the same calendar
+        "start_date": calendar_cfg.get("survey", {}).get("start_date"),
     }
 
 
