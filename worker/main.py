@@ -87,6 +87,7 @@ def register_scenario(sb: Supa, *, slug: str, name: str, description: str, root:
            "events_public": events_public, "tiles_public": tiles_public, "is_active": True, "n_slots": info["n_slots"], "n_nights": info["n_nights"],
            "n_tiles": info["n_tiles"], "n_targets": info["n_targets"], "n_requests": info["n_requests"], "seed": info["seed"],
            "checksum": info["checksum"], "manifest": info["manifest"], "contract": info["contract"],
+           "start_date": info.get("start_date"),
            "global_wallclock_seconds": int(wallclock or info["global_wallclock_seconds"])}
     rows = sb.insert("scenarios", row, upsert=True, on_conflict="slug")
     return rows[0] if rows else row
