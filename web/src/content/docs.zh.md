@@ -15,7 +15,7 @@
 
 ### 最短路径（不需要任何工具）
 
-1. 在「资源」页下载[入门包 agent-observer-starter-kit.zip](/resources)并解压，双击 `run_baseline.command`（macOS）、`run_baseline.bat`（Windows，先从 python.org 安装 Python 3.12）或运行 `./run_baseline.sh`（Linux）。基线在自带场景上约 12287 分，回放会在浏览器里打开。
+1. 在「资源」页下载[入门包 agent-observer-starter-kit.zip](/resources)并解压，双击 `run_baseline.command`（macOS）、`run_baseline.bat`（Windows，先从 python.org 安装 Python 3.12）或运行 `./run_baseline.sh`（Linux）。基线在自带场景上约 12287 分，回放会在浏览器里打开。想先快速看一遍，把文件名换成 `run_demo_week`：7 晚的演示场景，约 2 秒跑完，同一套流程和评分器，结果写在 `demo_week_output/`。
 2. 修改 `agent/my_strategy.py`：`choose_action(candidates, snapshot, memory)` 收到按估计收益排好序的合法候选，返回要观测的那个，或返回 `None` 等待。再双击一次比较分数。
 3. 在「提交」页选择「智能体运行」，把这一个文件拖进去即可，平台会自动补齐入门包其余文件；拖整个 `agent` 文件夹（浏览器内打包）或 `.zip` 也可以。
 
@@ -24,7 +24,7 @@
 ### 内容与命令
 
 
-在「资源」页下载 `agent-observer-starter-kit.zip`。目录结构：`agent/`（要提交的智能体：`minimal_agent.py`、`decision_graph.py`、`model_factory.py`、`protocol.py`、`state.py`、`scoring_preview.py`、`requirements.txt`、`.env.example`）、`challenge/`（公开环境：契约、历法、瓦片几何、天气、请求、workflow、评分器、回放渲染器）、`scenarios/dev-reference/`（公开的 180 晚场景）、`local_runner.py`、`score_decisions.py`、`make_scenario.py`、`fetch_scenario.py`、`pack_agent.py`、`sac_submit.py`、`SKILL.md` 与 `README.md`。Python 3.9 及以上加标准库即可运行（macOS 自带的 `python3` 直接可用；Windows 请从 python.org 安装 Python 3.12）。
+在「资源」页下载 `agent-observer-starter-kit.zip`。目录结构：`agent/`（要提交的智能体：`minimal_agent.py`、`decision_graph.py`、`model_factory.py`、`protocol.py`、`state.py`、`scoring_preview.py`、`requirements.txt`、`.env.example`）、`challenge/`（公开环境：契约、历法、瓦片几何、天气、请求、workflow、评分器、回放渲染器）、`scenarios/dev-reference/`（公开的 180 晚场景）、`scenarios/demo-week/`（公开的 7 晚演示场景）、`local_runner.py`、`score_decisions.py`、`make_scenario.py`、`fetch_scenario.py`、`pack_agent.py`、`sac_submit.py`、`SKILL.md` 与 `README.md`。Python 3.9 及以上加标准库即可运行（macOS 自带的 `python3` 直接可用；Windows 请从 python.org 安装 Python 3.12）。
 
 ```
 python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py --wallclock 600 --out run_output
@@ -214,11 +214,18 @@ python3 sac_submit.py --phase online --kind agent --file my_agent.zip --wait
 
 | | 练习赛 | 线上比赛 |
 |---|---|---|
-| 场景 | `dev-reference`（180 晚，公开示例）与 `dev-fortnight`（14 晚）；天气、预报、事件全部公开 | `eval-a`、`eval-b`（各 30 晚）；天气、预报、事件隐藏 |
+| 场景 | `demo-week`（7 晚演示）、`dev-fortnight`（14 晚）与 `dev-reference`（180 晚，公开示例）；天气、预报、事件全部公开 | `eval-a`、`eval-b`（各 30 晚）；天气、预报、事件隐藏 |
 | 提交 | 结果文件或智能体程序包，每队每天 50 次 | 仅智能体程序包，每队每天 10 次 |
 | 得分 | 榜单仅供参考 | 两个场景的平均值；决定奖项 |
 
 练习场景公开了 `weather_events.csv`，因此本地运行 `score_decisions.py` 能逐字节复现平台报告。比赛场景只能由平台评分，且只能通过协议。
+
+两种提交方式对应两种用途，平台都支持：
+
+- **结果文件（`decisions.csv`）**：你在本地用模拟器回放天气跑完整场，把决策序列交给评分器。天气公开时这是最短的闭环，本地分数与平台分数一致，所以练习赛接受这种方式。
+- **智能体程序包**：你上传程序和依赖，平台在隐藏天气的场景上运行它，每次只交给它当前时隙能看到的快照。参赛者拿不到未来天气，也就无法按整段天气做全局优化，所以线上比赛只接受这种方式。
+
+两种方式经过同一个评分器和同一份 `score_config.json`，报告格式相同，因此练习赛调出来的策略可以直接进比赛。
 
 ## 9. 策略提示
 

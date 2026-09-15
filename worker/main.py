@@ -343,6 +343,8 @@ DEFAULT_SCENARIOS = [
     # slug, name, description, seed, days, start, wallclock, weather_public, forecasts_public, events_public
     ("dev-reference", "Development reference (180 nights, seed 20260909)", "The published example3 reference scenario. Everything public, including weather events, so local scoring reproduces the platform.", None, 180, None, 7200, True, True, True),
     ("dev-fortnight", "Development fortnight (14 nights, seed 2026)", "A short public scenario for quick iteration: 14 nights from 2026-10-05, all files public.", 2026, 14, "2026-10-05", 1800, True, True, True),
+    # same parameters as starter_kit/scenarios/demo-week, so the shipped copy and the published one are the same scenario
+    ("demo-week", "One-week demo (7 nights, seed 20261005)", "The seven-night demo shipped in the starter kit: 7 nights from 2026-10-05, all files public. Runs in seconds and the replay is short enough to read night by night.", 20261005, 7, "2026-10-05", 900, True, True, True),
     ("eval-a", "Competition scenario A (hidden weather)", "Online competition replay A: 30 nights from 2026-10-05. Weather, forecasts and events are hidden; agents see only the published snapshots.", 90210, 30, "2026-10-05", 3600, False, False, False),
     ("eval-b", "Competition scenario B (hidden weather)", "Online competition replay B: 30 nights from 2026-11-01, different seed.", 41207, 30, "2026-11-01", 3600, False, False, False),
 ]
@@ -368,7 +370,7 @@ def seed(sb: Supa) -> None:
         {"slug": "practice", "name_en": "Practice", "name_zh": "练习赛", "sort_order": 1,
          "description_en": "Open now. Practice with public development scenarios; practice standings are informational.",
          "description_zh": "现已开放。可使用公开开发场景练习；练习榜仅供参考。",
-         "allow_results": True, "allow_agents": True, "daily_limit": 50, "leaderboard_mode": "live", "counts_for_final": False, "is_active": True, "_scn": ["dev-reference", "dev-fortnight"]},
+         "allow_results": True, "allow_agents": True, "daily_limit": 50, "leaderboard_mode": "live", "counts_for_final": False, "is_active": True, "_scn": ["demo-week", "dev-fortnight", "dev-reference"]},
         {"slug": "online", "name_en": "Online Competition", "name_zh": "线上比赛", "sort_order": 2,
          "description_en": "October 5–7. Agents run on the platform against hidden weather replays A and B (one global wall clock per scenario); the score is the mean over both.",
          "description_zh": "10 月 5–7 日。智能体在平台上对隐藏天气回放 A、B 运行（每个场景一个全局时钟），得分为两个场景的平均值。",

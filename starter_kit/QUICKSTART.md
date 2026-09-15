@@ -13,6 +13,10 @@ Three steps: run it → edit one file → upload it. No command line and no thir
 After about 15 seconds a web page opens: the replay of the baseline agent over 180 nights of the public scenario.
 The terminal ends with the score, about **12287** for the unmodified kit, with `termination_reason = survey_complete`.
 
+For a first look, use `run_demo_week` (`.command` / `.bat` / `.sh`) instead: same pipeline and same scorer over a
+seven-night scenario. It finishes in about two seconds and the replay is short enough to follow night by night.
+Its results go to `demo_week_output/`.
+
 ## Step 2 · Edit one file
 
 Open `agent/my_strategy.py`. The whole competition fits in its `choose_action` function:

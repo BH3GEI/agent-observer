@@ -175,8 +175,45 @@ def test_kit_environment_matches_vendored_modules():
         assert (KIT / "scenarios" / "dev-reference" / rel).read_bytes() == (ROOT / "challenge" / "reference" / rel).read_bytes(), rel
 
 
+def test_demo_week_runs_and_renders_a_replay(tmp_path):
+    """The seven-night demo: same pipeline and scorer as the reference run, short enough to open and read."""
+    out = tmp_path / "demo_week_output"
+    proc = run("local_runner.py", "--scenario", "scenarios/demo-week", "--agent", "agent/minimal_agent.py",
+               "--wallclock", "900", "--out", str(out), "--quiet")
+    summary = summary_of(proc)
+    assert summary["termination_reason"] == "survey_complete"
+    assert summary["wall_seconds"] < 60  # ~2 s in practice; the point of the demo is that it is quick
+    report = json.loads((out / "score_report.json").read_text(encoding="utf-8"))
+    assert report["schema_version"] == "score-report-v3"
+    assert report["score"]["total"] == summary["total"]
+    nights = (KIT / "scenarios" / "demo-week" / "outputs" / "reference" / "night_calendar.csv").read_text(encoding="utf-8").strip().splitlines()
+    assert len(nights) - 1 == 7, "the demo scenario is the one-week one"
+    html = out / "decision_replay.html"
+    assert html.is_file() and html.stat().st_size > 10_000, "participants get the replay visualization from a demo run"
+
+
+def test_demo_week_matches_the_scenario_the_platform_seeds(tmp_path):
+    """worker.main seeds demo-week from the same parameters, so the kit copy and the published copy are one scenario."""
+    sys.path.insert(0, str(ROOT))
+    from challenge import scenario_builder  # noqa: PLC0415 - import here to keep the kit tests standalone
+
+    from worker.main import DEFAULT_SCENARIOS  # noqa: PLC0415
+
+    row = next(r for r in DEFAULT_SCENARIOS if r[0] == "demo-week")
+    _slug, _name, _desc, seed, days, start, wallclock, *_flags = row
+    generated = tmp_path / "demo-week"
+    scenario_builder.generate_scenario(generated, scenario_id="demo-week", seed=seed, days=days,
+                                       start_date=start, global_wallclock_seconds=wallclock)
+    shipped = KIT / "scenarios" / "demo-week"
+    for path in sorted(p for p in generated.rglob("*") if p.is_file()):
+        rel = path.relative_to(generated)
+        assert (shipped / rel).is_file(), f"missing from the shipped kit: {rel}"
+        assert (shipped / rel).read_bytes() == path.read_bytes(), rel
+
+
 def test_kit_docs_and_layout():
-    for name in ("README.md", "SKILL.md", "local_runner.py", "score_decisions.py", "make_scenario.py", "pack_agent.py", "sac_submit.py"):
+    for name in ("README.md", "SKILL.md", "local_runner.py", "score_decisions.py", "make_scenario.py", "pack_agent.py", "sac_submit.py",
+                 "run_demo_week.sh", "run_demo_week.command", "run_demo_week.bat"):
         assert (KIT / name).is_file(), name
     skill = (KIT / "SKILL.md").read_text(encoding="utf-8")
     for placeholder in ("{{BASE_URL}}", "{{SUPABASE_URL}}", "{{SUPABASE_ANON_KEY}}"):

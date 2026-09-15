@@ -7,6 +7,7 @@ import { useAuth } from '../../stores/auth'
 import { fmtUtc, num } from '../../lib/format'
 import ScoreBars from '../leaderboard/ScoreBars.vue'
 import SkeletonRows from '../layout/SkeletonRows.vue'
+import CountUp from '../layout/CountUp.vue'
 
 const { t, pick } = useI18n()
 const { team } = useAuth()
@@ -61,9 +62,9 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
             <span class="live-strip-text">{{ entries.length ? t('home.leaderboard.signal_live') : t('home.leaderboard.signal_waiting') }}</span>
             <span v-if="updatedAt" class="live-strip-time">{{ fmtUtc(updatedAt.toISOString(), { seconds: true }) }} UTC</span>
           </div>
-          <div class="stats stats-2 mt-10">
-            <div class="stat"><b>{{ teamCount ?? entries.length }}</b><span>{{ teamCount === null ? t('home.stats_labels.teams_on_board') : t('home.stats_labels.teams') }}</span></div>
-            <div class="stat"><b>{{ scoredRuns }}</b><span>{{ t('home.stats_labels.submissions') }}</span></div>
+          <div class="stats stats-2 reveal-stagger mt-10">
+            <div class="stat"><b><CountUp :value="teamCount ?? entries.length" /></b><span>{{ teamCount === null ? t('home.stats_labels.teams_on_board') : t('home.stats_labels.teams') }}</span></div>
+            <div class="stat"><b><CountUp :value="scoredRuns" /></b><span>{{ t('home.stats_labels.submissions') }}</span></div>
           </div>
         </div>
 
@@ -96,7 +97,7 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
               <table class="data-table min-w-[900px]">
                 <thead><tr><th>#</th><th>{{ t('leaderboard.team') }}</th><th class="r">{{ t('leaderboard.score') }}</th><th class="r">{{ t('leaderboard.base_science') }}</th><th class="r">{{ t('leaderboard.bonus') }}</th><th class="r">{{ t('leaderboard.requests') }}</th><th class="r">{{ t('leaderboard.penalties') }}</th><th class="r">{{ t('leaderboard.tiles') }}</th><th class="r">{{ t('leaderboard.required_missing') }}</th><th class="r">{{ t('leaderboard.submissions') }}</th></tr></thead>
                 <tbody>
-                  <tr v-for="row in top" :key="row.team_id" data-testid="lb-row" :class="{ me: team && team.id === row.team_id }">
+                  <tr v-for="row in top" :key="row.team_id" data-testid="lb-row" class="lb-row" :class="{ me: team && team.id === row.team_id }">
                     <td class="m text-[#315efb]">{{ row.rank }}</td>
                     <td class="font-medium text-text-primary">{{ row.team_name }}</td>
                     <td class="r m" :class="{ 'text-[#ff6b6b]': row.total_score < 0 }">{{ num(row.total_score) }}</td>
@@ -119,6 +120,10 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
 </template>
 
 <style scoped>
+/* rows brighten and shift a hair under the pointer, so scanning a long board stays anchored */
+.lb-row { transition: background-color .2s ease, transform .2s ease; }
+.lb-row:hover { background: rgba(49,94,251,.08); transform: translateX(2px); }
+@media (prefers-reduced-motion: reduce) { .lb-row:hover { transform: none; } }
 .leaderboard-panel { position: relative; background: linear-gradient(180deg, rgba(49,94,251,.04), transparent 30%); }
 .live-strip {
   display: flex; align-items: center; gap: .75rem;

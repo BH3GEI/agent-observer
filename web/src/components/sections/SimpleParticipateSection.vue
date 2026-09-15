@@ -30,8 +30,8 @@ const timeline = computed(() => t('home.participate.timeline') as TimelineItem[]
             <p class="mt-7 max-w-md text-base leading-relaxed text-[#404040] md:text-lg">{{ t('home.participate.lede') }}</p>
           </div>
 
-          <div>
-            <article v-for="(step, index) in steps" :key="step.n" class="grid grid-cols-[3.5rem_1fr] gap-4 border-t border-black/35 py-7 md:grid-cols-[5rem_1fr] md:py-9" :class="index === steps.length - 1 ? 'border-b' : ''">
+          <div class="reveal-stagger">
+            <article v-for="(step, index) in steps" :key="step.n" class="row-sweep grid grid-cols-[3.5rem_1fr] gap-4 border-t border-black/35 py-7 pl-3 md:grid-cols-[5rem_1fr] md:py-9" :class="index === steps.length - 1 ? 'border-b' : ''">
               <span class="font-mono text-xs tracking-[.15em] text-[#315efb]">{{ step.n }}</span>
               <div>
                 <h3 class="text-xl font-semibold leading-tight tracking-[-.03em] text-[#09090a] md:text-2xl">{{ step.title }}</h3>
@@ -39,7 +39,7 @@ const timeline = computed(() => t('home.participate.timeline') as TimelineItem[]
               </div>
             </article>
 
-            <div class="mt-10 grid grid-cols-3 border-y border-black/30">
+            <div class="reveal-stagger mt-10 grid grid-cols-3 border-y border-black/30">
               <div v-for="item in timeline" :key="item.label" class="border-r border-black/25 py-5 pr-3 last:border-r-0 md:px-5 md:first:pl-0">
                 <div class="text-lg font-semibold text-[#315efb] md:text-xl">{{ item.label }}</div>
                 <div class="mt-2 font-mono text-xs uppercase leading-relaxed tracking-[.08em] text-[#5f5f5f]">{{ item.desc }}</div>

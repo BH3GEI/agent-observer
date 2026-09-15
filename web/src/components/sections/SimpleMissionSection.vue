@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import instrumentImage from '../../assets/images/cosmos-instrument.jpg'
+import CountUp from '../layout/CountUp.vue'
 
 const { t, pick } = useI18n()
 type Card = { title: string; desc: string }
@@ -22,7 +23,7 @@ const cards = computed(() => t('home.mission.cards') as Card[])
           <p class="mt-7 max-w-xl text-base leading-relaxed text-text-secondary md:text-lg">{{ t('home.mission.lede') }}</p>
 
           <div class="mission-900 mt-14 border-y poster-rule py-8">
-            <div class="text-[clamp(3rem,6.5vw,6.75rem)] font-semibold leading-[1.02] tracking-[-.055em] text-[#f5f5f5]">900</div>
+            <div class="text-[clamp(3rem,6.5vw,6.75rem)] font-semibold leading-[1.02] tracking-[-.055em] text-[#f5f5f5]"><CountUp :value="900" :duration="1100" /></div>
             <div class="mt-7 flex justify-between font-mono text-xs uppercase tracking-[.1em] text-[#315efb]">
               <span>{{ pick('seconds', '秒') }}</span>
               <span>{{ pick('per slot · one global clock', '每时隙 · 一个全局时钟') }}</span>
@@ -35,7 +36,7 @@ const cards = computed(() => t('home.mission.cards') as Card[])
             <img :src="instrumentImage" alt="" loading="lazy" width="1881" height="836">
             <span>{{ pick('INSTRUMENT CALIBRATION / HUMAN OVERSIGHT', '仪器标定 / 人类监督') }}</span>
           </div>
-          <article v-for="(card, index) in cards" :key="card.title" class="poster-card reveal py-9 md:grid md:grid-cols-[5rem_1fr] md:gap-8 md:py-12" :class="`reveal-delay-${index + 1}`">
+          <article v-for="(card, index) in cards" :key="card.title" class="poster-card row-sweep reveal py-9 pl-3 md:grid md:grid-cols-[5rem_1fr] md:gap-8 md:py-12" :class="`reveal-delay-${index + 1}`">
             <span class="font-mono text-xs text-[#315efb]">0{{ index + 1 }}</span>
             <div class="mt-5 md:mt-0">
               <h3 class="max-w-[18ch] text-xl font-semibold leading-tight tracking-[-.03em] text-[#f5f5f5] md:text-2xl">{{ card.title }}</h3>
@@ -62,6 +63,7 @@ const cards = computed(() => t('home.mission.cards') as Card[])
 .mission-900 { position: relative; }
 .mission-900::after {
   position: absolute;
+  animation: mission-ring 6s ease-in-out infinite;
   top: 27%;
   right: 4%;
   width: 7rem;
@@ -71,4 +73,9 @@ const cards = computed(() => t('home.mission.cards') as Card[])
   content: '';
   box-shadow: 0 0 0 1.4rem rgba(49,94,251,.1), 0 0 0 2.8rem rgba(49,94,251,.05);
 }
+@keyframes mission-ring {
+  0%, 100% { box-shadow: 0 0 0 1.4rem rgba(49,94,251,.1), 0 0 0 2.8rem rgba(49,94,251,.05); }
+  50% { box-shadow: 0 0 0 1.9rem rgba(49,94,251,.14), 0 0 0 3.6rem rgba(49,94,251,.03); }
+}
+@media (prefers-reduced-motion: reduce) { .mission-900::after { animation: none; } }
 </style>

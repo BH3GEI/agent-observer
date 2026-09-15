@@ -38,7 +38,7 @@ const stats = computed(() => t('home.vision.stats') as Stat[])
         </div>
       </div>
 
-      <div class="reveal mt-20 grid border-y poster-rule md:grid-cols-3">
+      <div class="reveal-stagger mt-20 grid border-y poster-rule md:grid-cols-3">
         <div v-for="(stat, index) in stats" :key="stat.label" class="grid grid-cols-[auto_1fr] items-end gap-5 border-b poster-rule px-2 py-8 last:border-b-0 md:border-r md:border-b-0 md:px-8 md:first:pl-0 md:last:border-r-0">
           <span class="text-3xl font-semibold tracking-[-.04em] text-[#315efb] md:text-4xl">{{ stat.value }}</span>
           <span class="mb-2 font-mono text-xs uppercase tracking-[.1em] text-text-tertiary">{{ stat.label }}</span>

@@ -13,8 +13,8 @@ const items = computed(() => t('home.submission.items') as Item[])
         <span class="poster-kicker">{{ t('home.submission.kicker') }}</span>
         <h2 class="section-title distressed-type mt-8">{{ t('home.submission.title') }}</h2>
       </div>
-      <div class="cards cards-3 reveal reveal-delay-1 mt-14">
-        <article v-for="(item, index) in items" :key="item.title" class="card">
+      <div class="cards cards-3 reveal-stagger mt-14">
+        <article v-for="(item, index) in items" :key="item.title" class="card card-lift">
           <span class="num">0{{ index + 1 }}</span>
           <h3 class="mt-3">{{ item.title }}</h3>
           <p>{{ item.desc }}</p>

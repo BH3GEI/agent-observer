@@ -18,7 +18,7 @@ const criteria = computed(() => t('home.evaluation.criteria') as Criterion[])
         </div>
         <div class="reveal reveal-delay-1 min-w-0">
           <pre class="code-block" tabindex="0">{{ t('home.evaluation.formula') }}</pre>
-          <dl class="dl dl-2 mt-10">
+          <dl class="dl dl-2 reveal-stagger mt-10">
             <div v-for="item in criteria" :key="item.term"><dt>{{ item.term }}</dt><dd>{{ item.desc }}</dd></div>
           </dl>
         </div>
