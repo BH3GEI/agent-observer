@@ -27,23 +27,24 @@ const parts = computed(() => [
 
 <template>
   <section id="top" class="hero-section cosmos-hero poster-canvas">
-    <div class="hero-wash" aria-hidden="true" :style="{ backgroundImage: `url(${assetUrl('/media/survey-milky-way.jpg')})` }"></div>
+    <div class="hero-wash parallax-bg" aria-hidden="true" :style="{ backgroundImage: `url(${assetUrl('/media/survey-milky-way.jpg')})` }"></div>
+    <div class="hero-grid-lines" aria-hidden="true"></div>
 
     <div class="relative z-10 mx-auto max-w-[1600px] px-5 md:px-10 xl:px-14">
       <div class="hero-grid">
         <div class="hero-copy">
-          <div class="hero-kicker mb-6 flex items-center gap-4 font-mono text-xs uppercase leading-relaxed tracking-[.12em] text-[#78a6ff] md:text-sm">
+          <div class="hero-kicker mb-6 flex items-center gap-4 font-mono text-xs uppercase leading-relaxed tracking-[.12em] text-[#78a6ff] md:text-sm reveal">
             <span class="live-dot h-2 w-2 bg-[#78a6ff]"></span>
             {{ t('hero.eyebrow') }}
           </div>
 
-          <h1 class="hero-title" :class="{ 'hero-title-zh': locale === 'zh' }" :aria-label="t('hero.system')">
+          <h1 class="hero-title reveal reveal-delay-1" :class="{ 'hero-title-zh': locale === 'zh' }" :aria-label="t('hero.system')">
             <span v-for="line in heroTitleLines" :key="line" class="hero-title-line">{{ line }}</span>
           </h1>
-          <p class="hero-subtitle mt-3 font-mono text-sm uppercase tracking-[.22em] text-[#78a6ff]">{{ t('hero.subtitle') }}</p>
+          <p class="hero-subtitle mt-3 font-mono text-sm uppercase tracking-[.22em] text-[#78a6ff] reveal reveal-delay-2">{{ t('hero.subtitle') }}</p>
 
-          <p class="mt-7 max-w-xl text-base leading-[1.75] text-white/82 md:text-lg">{{ t('hero.lede') }}</p>
-          <div class="mt-7 flex flex-wrap gap-3">
+          <p class="mt-7 max-w-xl text-base leading-[1.75] text-white/82 md:text-lg reveal reveal-delay-3">{{ t('hero.lede') }}</p>
+          <div class="mt-7 flex flex-wrap gap-3 reveal reveal-delay-4">
             <router-link v-if="isLoggedIn" to="/dashboard" class="hero-action hero-action-primary">
               {{ t('hero.cta_dashboard') }} <span>→</span>
             </router-link>
@@ -58,7 +59,7 @@ const parts = computed(() => [
             </router-link>
           </div>
 
-          <div class="phase-strip mt-9" data-testid="phase-strip">
+          <div class="phase-strip mt-9 reveal reveal-delay-5" data-testid="phase-strip">
             <div class="phase-strip-now">
               <span class="phase-strip-label">{{ t('phase_clock.now') }}</span>
               <span v-if="current" class="pill open">{{ pick(current.name_en, current.name_zh) }} · {{ t('leaderboard.status.open') }}</span>
@@ -74,12 +75,12 @@ const parts = computed(() => [
           </div>
         </div>
 
-        <div class="hero-console">
+        <div class="hero-console reveal reveal-delay-2">
           <SkyConsole />
         </div>
       </div>
 
-      <div class="hero-metrics grid grid-cols-2 border-t border-white/22 md:grid-cols-4">
+      <div class="hero-metrics grid grid-cols-2 border-t border-white/22 md:grid-cols-4 reveal reveal-delay-3">
         <div v-for="(metric, index) in metrics" :key="metric.label" class="hero-metric border-white/16 py-5 md:py-6" :class="{ 'border-r': index % 2 === 0 || index < 3, 'md:border-r-0': index === 3 }">
           <b class="block text-[clamp(1.35rem,2vw,1.9rem)] font-semibold leading-[1.1] tracking-[-.04em]">{{ metric.value }}</b>
           <span class="mt-2 block font-mono text-[.7rem] uppercase leading-snug tracking-[.06em] text-white/50">{{ metric.label }}</span>
@@ -92,13 +93,15 @@ const parts = computed(() => [
 </template>
 
 <style scoped>
-.cosmos-hero { color: #f7f9ff; background: #02050c; }
+.cosmos-hero { color: #f7f9ff; background: radial-gradient(circle at 18% 20%, rgba(49,94,251,.16), transparent 28%), radial-gradient(circle at 82% 12%, rgba(120,166,255,.1), transparent 22%), #02050c; }
 .hero-wash {
   position: absolute; z-index: 0; inset: 0 40% 0 0;
-  opacity: .3;
+  opacity: .36;
   background-position: center; background-size: cover;
-  filter: grayscale(.4) contrast(1.1);
-  -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,.9), transparent 95%), linear-gradient(0deg, transparent, #000 25%, #000 80%, transparent);
+  filter: grayscale(.35) contrast(1.16) brightness(1.05);
+  transform: translate3d(0, var(--parallax-y, 0px), 0) scale(1.04);
+  transition: transform .18s linear;
+  -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,.92), transparent 96%), linear-gradient(0deg, transparent, #000 22%, #000 82%, transparent);
   -webkit-mask-composite: source-in;
   mask-image: linear-gradient(90deg, rgba(0,0,0,.9), transparent 95%), linear-gradient(0deg, transparent, #000 25%, #000 80%, transparent);
   mask-composite: intersect;
@@ -124,6 +127,8 @@ const parts = computed(() => [
 .hero-title-zh { font-size: clamp(3.2rem, 5.6vw, 5.8rem); line-height: 1.04; }
 
 .hero-action {
+  position: relative;
+  overflow: hidden;
   display: inline-flex; min-width: 11.5rem; min-height: 48px; align-items: center; justify-content: space-between;
   border: 1px solid rgba(217,229,255,.48); padding: .8rem 1rem; color: #f7f9ff; background: rgba(2,8,20,.46);
   font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .75rem; letter-spacing: .11em; text-transform: uppercase;
@@ -131,6 +136,15 @@ const parts = computed(() => [
 }
 .hero-action:hover { color: #06102a; border-color: #f7f9ff; background: #f7f9ff; }
 .hero-action-primary { color: #ffffff; border-color: #315efb; background: #315efb; }
+
+.hero-grid-lines {
+  position: absolute; z-index: 0; inset: 0; pointer-events: none; opacity: .16;
+  background-image:
+    linear-gradient(rgba(120,166,255,.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120,166,255,.08) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(180deg, transparent, #000 12%, #000 84%, transparent);
+}
 
 .phase-strip {
   display: grid; gap: 0; border-top: 1px solid rgba(255,255,255,.25); border-bottom: 1px solid rgba(255,255,255,.25);
@@ -167,6 +181,11 @@ const parts = computed(() => [
   .hero-wash { inset: 0; opacity: .22; }
   .hero-grid { min-height: 0; }
 }
+@media (prefers-reduced-motion: reduce) {
+  .hero-wash { transform: none; transition: none; }
+  .hero-action::after { display: none; }
+}
+
 @media (max-width: 720px) {
   .hero-title { font-size: clamp(3rem, 15vw, 4.5rem); }
   .hero-title-zh { font-size: clamp(2.8rem, 14vw, 4rem); }

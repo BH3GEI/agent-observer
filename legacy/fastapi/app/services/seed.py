@@ -67,13 +67,13 @@ def ensure_default_phases(db: Session) -> None:
     ids = lambda *slugs: [by_slug[s].id for s in slugs if s in by_slug]  # noqa: E731
     db.add_all([
         Phase(slug="practice", name_en="Practice", name_zh="练习赛", order=1,
-              description_en="Open now. Score decisions.csv files or run your agent on the public development scenarios. Unlimited practice; the practice board is informational.",
-              description_zh="现已开放。可对公开开发场景提交 decisions.csv 或直接运行智能体。练习不限次数，练习榜仅供参考。",
+              description_en="Open now. Practice with public development scenarios; the practice board is informational.",
+              description_zh="现已开放。可使用公开开发场景练习；练习榜仅供参考。",
               allow_results=True, allow_agents=True, daily_limit=50, leaderboard_mode="live", scenario_ids=ids("dev-example", "dev-week"),
               starts_at=None, ends_at=None),
         Phase(slug="online", name_en="Online Competition", name_zh="线上比赛", order=2,
-              description_en="October 5–7. Agents run on the platform against hidden weather replays A and B; the score is the mean over both scenarios. Ten submissions per team per day.",
-              description_zh="10 月 5–7 日。智能体在平台上对隐藏天气回放 A、B 运行，得分为两个场景的平均值。每队每天 10 次提交。",
+              description_en="October 5–7. Agents run on the platform against hidden weather replays A and B; the score is the mean over both scenarios.",
+              description_zh="10 月 5–7 日。智能体在平台上对隐藏天气回放 A、B 运行，得分为两个场景的平均值。",
               allow_results=False, allow_agents=True, daily_limit=10, leaderboard_mode="live", counts_for_final=True,
               scenario_ids=ids("eval-a", "eval-b"), starts_at=datetime(2026, 10, 4, 16, 0), ends_at=datetime(2026, 10, 7, 15, 59, 59)),
     ])

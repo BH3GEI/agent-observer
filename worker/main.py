@@ -366,12 +366,12 @@ def seed(sb: Supa) -> None:
     phases = {r["slug"]: r for r in sb.select("phases", columns="id, slug")}
     defaults = [
         {"slug": "practice", "name_en": "Practice", "name_zh": "练习赛", "sort_order": 1,
-         "description_en": "Open now. Score a decisions.csv or run your agent on the public development scenarios. Practice standings are informational.",
-         "description_zh": "现已开放。可对公开开发场景提交 decisions.csv 或直接运行智能体。练习榜仅供参考。",
+         "description_en": "Open now. Practice with public development scenarios; practice standings are informational.",
+         "description_zh": "现已开放。可使用公开开发场景练习；练习榜仅供参考。",
          "allow_results": True, "allow_agents": True, "daily_limit": 50, "leaderboard_mode": "live", "counts_for_final": False, "is_active": True, "_scn": ["dev-reference", "dev-fortnight"]},
         {"slug": "online", "name_en": "Online Competition", "name_zh": "线上比赛", "sort_order": 2,
-         "description_en": "October 5–7. Agents run on the platform against hidden weather replays A and B (one global wall clock per scenario); the score is the mean over both. Ten submissions per team per day.",
-         "description_zh": "10 月 5–7 日。智能体在平台上对隐藏天气回放 A、B 运行（每个场景一个全局时钟），得分为两个场景的平均值。每队每天 10 次提交。",
+         "description_en": "October 5–7. Agents run on the platform against hidden weather replays A and B (one global wall clock per scenario); the score is the mean over both.",
+         "description_zh": "10 月 5–7 日。智能体在平台上对隐藏天气回放 A、B 运行（每个场景一个全局时钟），得分为两个场景的平均值。",
          "allow_results": False, "allow_agents": True, "daily_limit": 10, "leaderboard_mode": "live", "counts_for_final": True, "is_active": True,
          "starts_at": "2026-10-04T16:00:00Z", "ends_at": "2026-10-07T15:59:59Z", "_scn": ["eval-a", "eval-b"]},
     ]

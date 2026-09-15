@@ -56,9 +56,10 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
           <h2 class="section-title distressed-type mt-9">{{ t('home.leaderboard.title') }}</h2>
           <p class="mt-8 max-w-lg text-base leading-relaxed text-text-secondary md:text-lg">{{ t('home.leaderboard.lede') }}</p>
 
-          <div class="mt-12 flex items-center gap-4 font-mono text-xs uppercase tracking-[.1em] text-[#315efb]">
-            <span class="signal-dot"></span>
-            {{ entries.length ? t('home.leaderboard.signal_live') : t('home.leaderboard.signal_waiting') }}
+          <div class="live-strip mt-12" :class="{ 'is-live': entries.length && !error }">
+            <span class="live-strip-dot" aria-hidden="true"></span>
+            <span class="live-strip-text">{{ entries.length ? t('home.leaderboard.signal_live') : t('home.leaderboard.signal_waiting') }}</span>
+            <span v-if="updatedAt" class="live-strip-time">{{ fmtUtc(updatedAt.toISOString(), { seconds: true }) }} UTC</span>
           </div>
           <div class="stats stats-2 mt-10">
             <div class="stat"><b>{{ teamCount ?? entries.length }}</b><span>{{ teamCount === null ? t('home.stats_labels.teams_on_board') : t('home.stats_labels.teams') }}</span></div>
@@ -66,7 +67,7 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
           </div>
         </div>
 
-        <div class="reveal reveal-delay-1 border-y poster-rule min-w-0">
+        <div class="reveal reveal-delay-1 border-y poster-rule min-w-0 leaderboard-panel">
           <div class="flex flex-wrap items-center justify-between gap-4 border-b poster-rule py-5">
             <span class="font-mono text-xs uppercase tracking-[.1em] text-text-muted">
               <template v-if="phase">{{ pick(phase.name_en, phase.name_zh) }} · {{ t(`leaderboard.status.${phase.status}`) }}</template>
@@ -118,5 +119,27 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
 </template>
 
 <style scoped>
-.signal-dot { width: .55rem; height: .55rem; background: #315efb; box-shadow: 1rem 0 0 rgba(255,255,255,.8); }
+.leaderboard-panel { position: relative; background: linear-gradient(180deg, rgba(49,94,251,.04), transparent 30%); }
+.live-strip {
+  display: flex; align-items: center; gap: .75rem;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .72rem; text-transform: uppercase; letter-spacing: .12em;
+  color: rgba(255,255,255,.55);
+}
+.live-strip-dot {
+  width: .55rem; height: .55rem; border-radius: 999px; background: rgba(255,255,255,.22);
+  box-shadow: 0 0 0 0 rgba(120,166,255,0); transition: background .2s ease, box-shadow .2s ease;
+}
+.live-strip.is-live .live-strip-dot {
+  background: #78a6ff; box-shadow: 0 0 0 0 rgba(120,166,255,.35); animation: live-pulse 2s infinite;
+}
+.live-strip-text { color: #78a6ff; }
+.live-strip-time { margin-left: auto; color: rgba(255,255,255,.38); font-size: .68rem; }
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(120,166,255,.35); }
+  70% { box-shadow: 0 0 0 8px rgba(120,166,255,0); }
+  100% { box-shadow: 0 0 0 0 rgba(120,166,255,0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-strip.is-live .live-strip-dot { animation: none; }
+}
 </style>
