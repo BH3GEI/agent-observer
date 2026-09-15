@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from '../composables/useI18n'
 import { usePhases } from '../composables/usePhases'
-import { loadLeaderboard, type LeaderboardEntry, type Phase } from '../lib/data'
+import { loadLeaderboard, phaseCopy, type LeaderboardEntry, type Phase } from '../lib/data'
 import { useAuth } from '../stores/auth'
 import { fmtUtc, num } from '../lib/format'
 import PageHead from '../components/layout/PageHead.vue'
@@ -11,7 +11,7 @@ import StatusPill from '../components/layout/StatusPill.vue'
 import ScoreBars from '../components/leaderboard/ScoreBars.vue'
 import SkeletonRows from '../components/layout/SkeletonRows.vue'
 
-const { t, tf, pick } = useI18n()
+const { t, tf, pick, locale } = useI18n()
 const route = useRoute()
 const { team } = useAuth()
 const { phases, loading: phasesLoading, reload } = usePhases(false)
@@ -57,7 +57,8 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
 
       <div v-else class="mt-12 grid gap-12 lg:grid-cols-[.72fr_1.28fr] lg:gap-20">
         <div>
-          <p class="text2">{{ pick(phase.description_en, phase.description_zh) }}</p>
+          <p class="text2">{{ phaseCopy(phase, locale).description }}</p>
+          <p class="text3 mt-3 text-sm">{{ phaseCopy(phase, locale).facts.join(' · ') }}</p>
           <dl class="kv mt-8">
             <dt>{{ t('common.status') }}</dt>
             <dd class="flex flex-wrap gap-2"><StatusPill :status="phase.status" ns="leaderboard.status" /><span class="pill" :class="phase.leaderboard_mode">{{ phase.leaderboard_mode }}</span></dd>

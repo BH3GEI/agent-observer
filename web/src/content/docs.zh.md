@@ -15,7 +15,7 @@
 
 ### 最短路径（不需要任何工具）
 
-1. 下载入门包并解压，双击 `run_baseline.command`（macOS）、`run_baseline.bat`（Windows，先从 python.org 安装 Python 3.12）或运行 `./run_baseline.sh`（Linux）。基线在自带场景上约 12287 分，回放会在浏览器里打开。
+1. 在「资源」页下载[入门包 agent-observer-starter-kit.zip](/resources)并解压，双击 `run_baseline.command`（macOS）、`run_baseline.bat`（Windows，先从 python.org 安装 Python 3.12）或运行 `./run_baseline.sh`（Linux）。基线在自带场景上约 12287 分，回放会在浏览器里打开。
 2. 修改 `agent/my_strategy.py`：`choose_action(candidates, snapshot, memory)` 收到按估计收益排好序的合法候选，返回要观测的那个，或返回 `None` 等待。再双击一次比较分数。
 3. 在「提交」页选择「智能体运行」，把这一个文件拖进去即可，平台会自动补齐入门包其余文件；拖整个 `agent` 文件夹（浏览器内打包）或 `.zip` 也可以。
 
@@ -186,7 +186,7 @@ bonus      = program == band 时 base · {DARK: 0.25, BRIGHT: 0.15, BACKUP: 0.08
 | 解释器 | Python 3.12，`python -B <entry>`，工作目录为程序包目录 |
 | 入口脚本 | 程序包根目录（或唯一顶层文件夹）中的 `minimal_agent.py`、`agent.py` 或 `main.py` |
 | 依赖 | 可选 `requirements.txt`，在时钟开始前用 pip 装进每次运行独立的虚拟环境（最多 15 分钟） |
-| 密钥 | 可选 `.env`（`KEY=VALUE` 行），只注入智能体环境；不记录、不上传 |
+| 密钥 | 可选 `.env`（`KEY=VALUE` 行），随程序包一起上传，只注入智能体环境、不写入日志；按规则保存至颁奖日后 90 天，提交队伍与主办方可见 |
 | 网络 | 允许（模型 API）；主办方可配置出口代理 |
 | 初始化 | 启动并读取 `initialize` 有 30 秒；失败记为 `agent_initialization_error` |
 | 时钟 | 场景的 `global_wallclock_seconds`；无单次决策限制 |
@@ -204,7 +204,7 @@ bonus      = program == band 时 base · {DARK: 0.25, BRIGHT: 0.15, BACKUP: 0.08
 ### 命令行
 
 ```
-python3 sac_submit.py --phase practice --kind results --scenario dev-fortnight --file run_output/decisions.csv --wait
+python3 sac_submit.py --phase practice --kind results --scenario dev-reference --file run_output/decisions.csv --wait
 python3 sac_submit.py --phase online --kind agent --file my_agent.zip --wait
 ```
 

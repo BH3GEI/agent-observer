@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '../composables/useI18n'
 import { publicSiteUrl } from '../composables/api'
@@ -28,6 +28,15 @@ const forgot = ref({ email: '' })
 type Metric = { value: string; label: string }
 const metrics = computed(() => t('hero.metrics') as Metric[])
 const steps = computed(() => t('auth.steps') as string[])
+const errorPanel = ref<HTMLElement | null>(null)
+async function revealErrors() {
+  await nextTick()
+  const panel = errorPanel.value
+  if (panel) {
+    panel.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    panel.focus?.()
+  }
+}
 const nextPath = computed(() => {
   const next = typeof route.query.next === 'string' ? route.query.next : ''
   return next.startsWith('/') && !next.startsWith('//') ? next : '/dashboard'
@@ -56,7 +65,7 @@ async function submitRegister() {
   if (!reg.value.agree) errors.value.push(t('auth.errors.agree_required'))
   if (!registrationOpen.value) errors.value.push(t('auth.errors.registration_closed'))
   if (!isSupabaseConfigured) errors.value.push(t('errors.not_configured'))
-  if (errors.value.length) return
+  if (errors.value.length) { void revealErrors(); return }
   busy.value = true
   try {
     const { data, error } = await supabase.auth.signUp({
@@ -89,6 +98,7 @@ async function submitRegister() {
     }
   } catch (e) {
     errors.value = [describeError(e, i18n, ['auth.errors'])]
+    void revealErrors()
   } finally { busy.value = false }
 }
 
@@ -109,6 +119,7 @@ async function submitLogin() {
     router.replace(nextPath.value)
   } catch (e) {
     errors.value = [describeError(e, i18n, ['auth.errors'])]
+    void revealErrors()
   } finally { busy.value = false }
 }
 
@@ -123,6 +134,7 @@ async function submitForgot() {
     flash.success(t('auth.forgot_sent'))
   } catch (e) {
     errors.value = [describeError(e, i18n, ['auth.errors'])]
+    void revealErrors()
   } finally { busy.value = false }
 }
 </script>
@@ -135,7 +147,7 @@ async function submitForgot() {
           <span class="poster-kicker">{{ mode === 'register' ? t('nav.register') : mode === 'login' ? t('nav.login') : t('auth.forgot_title') }}</span>
           <h1 class="section-title mt-6">{{ mode === 'register' ? t('auth.register_title') : mode === 'login' ? t('auth.login_title') : t('auth.forgot_title') }}</h1>
           <p class="lede mt-6">{{ mode === 'register' ? t('auth.register_lede') : mode === 'login' ? t('auth.login_lede') : t('auth.forgot_lede') }}</p>
-          <div class="mt-10 border-t poster-rule">
+          <div v-if="mode === 'register'" class="mt-10 border-t poster-rule">
             <div v-for="(step, index) in steps" :key="index" class="grid grid-cols-[3rem_1fr] border-b poster-rule py-4">
               <span class="num">0{{ index + 1 }}</span><span class="text-sm text-text-secondary">{{ step }}</span>
             </div>
@@ -151,7 +163,7 @@ async function submitForgot() {
             <button type="button" role="tab" :class="{ active: mode === 'register' }" :aria-selected="mode === 'register'" @click="setMode('register')">{{ t('auth.tab_register') }}</button>
             <button type="button" role="tab" :class="{ active: mode === 'login' }" :aria-selected="mode === 'login'" @click="setMode('login')">{{ t('auth.tab_login') }}</button>
           </div>
-          <div v-if="errors.length" class="errors" role="alert"><ul class="list-disc pl-5"><li v-for="e in errors" :key="e">{{ e }}</li></ul></div>
+          <div v-if="errors.length" ref="errorPanel" class="errors" role="alert" tabindex="-1"><ul class="list-disc pl-5"><li v-for="e in errors" :key="e">{{ e }}</li></ul></div>
 
           <form v-if="mode === 'register'" @submit.prevent="submitRegister" novalidate>
             <div v-if="!registrationOpen" class="errors">{{ t('auth.closed_notice') }}</div>

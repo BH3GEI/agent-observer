@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from '../composables/useI18n'
 import PageHead from '../components/layout/PageHead.vue'
 import MarkdownArticle, { type TocItem } from '../components/content/MarkdownArticle.vue'
@@ -7,7 +7,7 @@ import ProtocolExplorer from '../components/docs/ProtocolExplorer.vue'
 import docsEn from '../content/docs.en.md?raw'
 import docsZh from '../content/docs.zh.md?raw'
 
-const { t, pick } = useI18n()
+const { t, pick, locale } = useI18n()
 const source = computed(() => pick(docsEn, docsZh))
 const toc = ref<TocItem[]>([])
 const chips = computed(() => toc.value.filter(item => item.level === 2))
@@ -27,6 +27,13 @@ function observe(items: TocItem[]) {
   for (const item of items) { const el = document.getElementById(item.id); if (el) observer.observe(el) }
 }
 watch(toc, items => observe(items))
+// Heading ids are localized, so a hash copied in one language does not exist after switching.
+// Clear it and jump back to the top of the document instead of landing mid-page.
+watch(locale, async () => {
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search)
+  await nextTick()
+  window.scrollTo({ top: 0 })
+})
 onUnmounted(() => observer?.disconnect())
 </script>
 

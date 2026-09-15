@@ -44,6 +44,43 @@ export interface LeaderboardEntry {
   submission_count: number; best_submission_id: number | null; kind: string | null; scored_at: string | null
 }
 
+export interface PhaseCopy {
+  /** Human-facing summary without operational numbers baked in. */
+  description: string
+  /** Operational facts rendered separately from the description. */
+  facts: string[]
+}
+
+/**
+ * Keep user-facing phase copy consistent with the database row.
+ *
+ * The description fields are prose only; submission limits, result/package support,
+ * and leaderboard visibility are derived from structured columns so future changes
+ * only need to happen in one place.
+ */
+export function phaseCopy(
+  phase: Pick<Phase, 'description_en' | 'description_zh' | 'allow_results' | 'allow_agents' | 'daily_limit' | 'leaderboard_mode'>,
+  locale: 'en' | 'zh',
+): PhaseCopy {
+  const description = (locale === 'zh' ? phase.description_zh : phase.description_en)
+    ?? (locale === 'zh' ? phase.description_en : phase.description_zh)
+    ?? ''
+  const facts = locale === 'zh'
+    ? [
+        `结果文件 ${phase.allow_results ? '允许' : '不允许'}`,
+        `智能体程序包 ${phase.allow_agents ? '允许' : '不允许'}`,
+        `每队每天 ${phase.daily_limit} 次`,
+        `榜单 ${phase.leaderboard_mode}`,
+      ]
+    : [
+        `results files ${phase.allow_results ? 'allowed' : 'not allowed'}`,
+        `agent packages ${phase.allow_agents ? 'allowed' : 'not allowed'}`,
+        `${phase.daily_limit} submissions per team per day`,
+        `leaderboard ${phase.leaderboard_mode}`,
+      ]
+  return { description, facts }
+}
+
 export function phaseStatus(p: { is_active: boolean; starts_at: string | null; ends_at: string | null }, now = Date.now()): PhaseStatus {
   if (!p.is_active) return 'disabled'
   if (p.starts_at && now < new Date(p.starts_at).getTime()) return 'upcoming'

@@ -15,7 +15,7 @@ Sponsor API credits are handed out as redeem codes: once your team is registered
 
 ### The short path (no tooling)
 
-1. Download the kit, unzip it, and double-click `run_baseline.command` (macOS), `run_baseline.bat` (Windows, after installing Python 3.12 from python.org) or run `./run_baseline.sh` (Linux). The baseline scores about 12287 on the bundled scenario and the replay opens in your browser.
+1. Download the [starter kit agent-observer-starter-kit.zip](/resources), unzip it, and double-click `run_baseline.command` (macOS), `run_baseline.bat` (Windows, after installing Python 3.12 from python.org) or run `./run_baseline.sh` (Linux). The baseline scores about 12287 on the bundled scenario and the replay opens in your browser.
 2. Edit `agent/my_strategy.py`: its `choose_action(candidates, snapshot, memory)` receives the legal candidates ranked best-first and returns the one to observe, or `None` to wait. Run the launcher again to compare.
 3. On the Submit page choose *Agent run* and drop that single file. The platform wraps it with the rest of the starter agent; dropping the whole `agent` folder (packaged in the browser) or a `.zip` works too.
 
@@ -186,7 +186,7 @@ Only completed exposures score. An exposure whose later segment meets closed wea
 | Interpreter | Python 3.12, `python -B <entry>`, `cwd` = your package directory |
 | Entry script | `minimal_agent.py`, `agent.py` or `main.py` at the package root (or in its single top-level folder) |
 | Dependencies | optional `requirements.txt`, installed with pip into a per-run virtual environment before the clock starts (15 minutes maximum) |
-| Secrets | optional `.env` (`KEY=VALUE` lines) loaded into the agent's environment only; never logged or uploaded |
+| Secrets | optional `.env` (`KEY=VALUE` lines) uploaded with the package, injected into the agent's environment only and never written to logs; stored until 90 days after Awards Day, visible to the submitting team and to organizers |
 | Network | allowed (model APIs); an egress proxy may be configured by the organizers |
 | Initialization | 30 s to start and read `initialize`; failure is `agent_initialization_error` |
 | Wall clock | the scenario's `global_wallclock_seconds`; no per-decision limit |
@@ -204,7 +204,7 @@ Dashboard → Submit. Choose the phase, the submission type, the scenario (resul
 ### From the command line
 
 ```
-python3 sac_submit.py --phase practice --kind results --scenario dev-fortnight --file run_output/decisions.csv --wait
+python3 sac_submit.py --phase practice --kind results --scenario dev-reference --file run_output/decisions.csv --wait
 python3 sac_submit.py --phase online --kind agent --file my_agent.zip --wait
 ```
 

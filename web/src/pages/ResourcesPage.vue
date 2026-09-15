@@ -108,7 +108,7 @@ onMounted(async () => {
               </template>
             </div>
           </div>
-          <p class="text3 mt-3 text-xs m">{{ t('resources.contract') }}: {{ s.contract ?? 'challenge-score-v3' }} · {{ t('resources.seed') }} {{ s.seed ?? '—' }} · {{ (s.checksum ?? '').slice(0, 12) }}</p>
+          <p class="text3 mt-3 text-xs m">{{ t('resources.contract') }}: {{ s.contract ?? 'challenge-score-v3' }} · {{ t('resources.checksum_label') }} {{ (s.checksum ?? '').slice(0, 12) || '—' }}<template v-if="!s.weather_public"> · {{ t('resources.seed_hidden') }}</template></p>
         </article>
       </div>
 
