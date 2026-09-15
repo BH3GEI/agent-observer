@@ -147,8 +147,8 @@
     ],
     "side_note": "Human judgment / machine speed / one shared sky",
     "console": {
-      "title": "观测站控制台",
-      "replay_note": "回放 · 最小智能体 · {nights} 晚 · {actions} 次动作",
+      "title": "实时巡天回放",
+      "replay_note": "公开练习场 {nights} 夜 · {actions} 次操作",
       "paused": "已暂停",
       "pause": "暂停",
       "resume": "继续",
@@ -165,7 +165,8 @@
       "legend_flexible": "FLEXIBLE",
       "legend_completed": "已完成",
       "legend_interrupted": "被中断"
-    }
+    },
+    "pipeline_intro": "赛事节点"
   },
   "home": {
     "vision": {
