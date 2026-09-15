@@ -83,7 +83,20 @@ const tooltip = (e: LeaderboardEntry) => tf('leaderboard.chart.tooltip', { score
 .meta { grid-area: meta; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .6rem; letter-spacing: .06em; text-transform: uppercase; color: #858585; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tag { flex-shrink: 0; border: 1px solid #315efb; padding: .05rem .35rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .56rem; letter-spacing: .1em; text-transform: uppercase; color: #78a6ff; }
 .track { grid-area: track; position: relative; height: 10px; background: rgba(255,255,255,.06); overflow: hidden; }
-.track i { position: absolute; top: 0; bottom: 0; }
+.track i { position: absolute; top: 0; bottom: 0; transition: width .6s cubic-bezier(.16,1,.3,1), left .6s cubic-bezier(.16,1,.3,1); }
+/* a new score rearranges the bars instead of snapping; the leader's bar keeps a slow highlight travelling over it */
+.score-bar-row:first-child .track i.base::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
+  animation: bar-sheen 3.4s ease-in-out infinite;
+}
+@keyframes bar-sheen { 0% { transform: translateX(-100%); } 55%, 100% { transform: translateX(100%); } }
+.score-bar-row { transition: background-color .25s ease; }
+.score-bar-row:hover { background: rgba(255,255,255,.04); }
+@media (prefers-reduced-motion: reduce) {
+  .track i { transition: none; }
+  .score-bar-row:first-child .track i.base::after { animation: none; display: none; }
+}
 i.base { left: 0; background: #315efb; }
 i.bonus { background: #78a6ff; }
 i.request { background: #59d78d; }

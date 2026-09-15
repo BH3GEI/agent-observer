@@ -1,5 +1,7 @@
 import { onMounted, onUnmounted } from 'vue'
 
+const REVEAL_SELECTOR = '.reveal, .reveal-left, .reveal-right, .reveal-blur, .reveal-scale, .reveal-stagger, .rule-draw'
+
 export function useScrollReveal() {
   let observer: IntersectionObserver
   let rafId: number
@@ -25,12 +27,12 @@ export function useScrollReveal() {
       { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
     )
 
-    document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-blur, .reveal-scale').forEach((el) => {
+    document.querySelectorAll(REVEAL_SELECTOR).forEach((el) => {
       observer.observe(el)
     })
 
     // safety net: never leave content hidden (printing, screenshots, observers that never fire)
-    window.setTimeout(() => document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-blur, .reveal-scale').forEach((el) => el.classList.add('visible')), 2500)
+    window.setTimeout(() => document.querySelectorAll(REVEAL_SELECTOR).forEach((el) => el.classList.add('visible')), 2500)
 
     // Start parallax
     rafId = requestAnimationFrame(updateParallax)

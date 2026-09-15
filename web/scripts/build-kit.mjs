@@ -2,7 +2,7 @@
 //   public/downloads/agent-observer-starter-kit.zip  (whole kit under agent-observer-starter-kit/)
 //   public/downloads/scoring_core.py, contracts.py, score_config.json  (public scorer + contracts + weights)
 //   public/skill.md
-// Excluded from the zip: __pycache__, .venv, run_output, scratch, *.pyc, *.zip, any .env (except .env.example).
+// Excluded from the zip: __pycache__, .venv, run_output, demo_week_output, scratch, *.pyc, *.zip, any .env (except .env.example).
 // {{BASE_URL}} / {{SUPABASE_URL}} / {{SUPABASE_ANON_KEY}} in README.md and SKILL.md are filled from the build environment.
 import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, readdirSync, rmSync, statSync } from 'node:fs'
 import { dirname, resolve, relative, sep } from 'node:path'
@@ -15,7 +15,7 @@ const kitDir = process.env.STARTER_KIT_DIR || resolve(root, '..', 'starter_kit')
 const outDir = resolve(root, 'public', 'downloads')
 const zipFolder = 'agent-observer-starter-kit'
 
-const EXCLUDED_DIRS = new Set(['__pycache__', '.venv', 'venv', 'run_output', 'scratch', '.pytest_cache', '.mypy_cache', '.ruff_cache', '.git', '.idea', '.vscode'])
+const EXCLUDED_DIRS = new Set(['__pycache__', '.venv', 'venv', 'run_output', 'demo_week_output', 'scratch', '.pytest_cache', '.mypy_cache', '.ruff_cache', '.git', '.idea', '.vscode'])
 const EXCLUDED_FILES = new Set(['.DS_Store', 'Thumbs.db'])
 const excludeFile = (name) => EXCLUDED_FILES.has(name) || name.endsWith('.pyc') || name.endsWith('.pyo') || name.endsWith('.zip')
   || (name === '.env') || (name.startsWith('.env.') && name !== '.env.example')
@@ -24,7 +24,8 @@ if (!existsSync(kitDir)) {
   console.warn(`[build-kit] starter kit not found at ${kitDir}; skipping download bundle.`)
   process.exit(0)
 }
-for (const required of ['README.md', 'SKILL.md', 'local_runner.py', 'agent/minimal_agent.py', 'challenge/scoring_core.py', 'scenarios/dev-reference/config/score_config.json']) {
+for (const required of ['README.md', 'SKILL.md', 'local_runner.py', 'agent/minimal_agent.py', 'challenge/scoring_core.py', 'scenarios/dev-reference/config/score_config.json',
+                        'scenarios/demo-week/config/scenario_config.json', 'run_demo_week.sh']) {
   if (!existsSync(resolve(kitDir, required))) { console.error(`[build-kit] starter kit is incomplete: missing ${required}`); process.exit(1) }
 }
 mkdirSync(outDir, { recursive: true })

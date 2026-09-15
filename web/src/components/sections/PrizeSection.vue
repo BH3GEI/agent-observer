@@ -17,8 +17,8 @@ const prizes = computed(() => t('home.prizes.tiers') as Prize[])
           <p class="mt-7 max-w-lg text-base leading-relaxed text-text-secondary md:text-lg">{{ t('home.prizes.lede') }}</p>
         </div>
 
-        <div>
-          <article v-for="(prize, index) in prizes" :key="prize.place" class="grid grid-cols-[2.5rem_1fr_auto] items-center gap-4 border-t border-white/25 py-7 md:grid-cols-[4rem_1fr_auto] md:py-9" :class="index === prizes.length - 1 ? 'border-b' : ''">
+        <div class="reveal-stagger">
+          <article v-for="(prize, index) in prizes" :key="prize.place" class="row-sweep grid grid-cols-[2.5rem_1fr_auto] items-center gap-4 border-t border-white/25 py-7 pl-3 md:grid-cols-[4rem_1fr_auto] md:py-9" :class="index === prizes.length - 1 ? 'border-b' : ''">
             <span class="font-mono text-xs text-[#315efb]">0{{ index + 1 }}</span>
             <div>
               <h3 class="text-lg font-semibold tracking-[-.025em] text-text-primary md:text-2xl">{{ prize.place }}</h3>

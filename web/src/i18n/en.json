@@ -104,7 +104,7 @@
     "eyebrow": "GOSIM Hackathon · Intelligent Survey Operations",
     "system": "Agent Observer",
     "subtitle": "巡天智能体",
-    "lede": "Build a future agent observer for survey nights: read the published sky state, plan around hidden weather, uncertain forecasts and temporary requests, and commit the next observation slot by slot.",
+    "lede": "Build an agent observer for survey nights: read the published sky state, plan around hidden weather, uncertain forecasts and temporary requests, and commit the next observation slot by slot.",
     "pipeline": [
       {
         "label": "Online Training",
@@ -138,14 +138,14 @@
       },
       {
         "value": "1 clock",
-        "label": "global wall clock per scenario"
+        "label": "per scenario, no per-decision limit"
       },
       {
         "value": "Open",
         "label": "worldwide · solo or team"
       }
     ],
-    "side_note": "Human judgment / machine speed / one shared sky",
+    "side_note": "31.96°N site / 900 s per slot / one global clock",
     "console": {
       "title": "Live survey replay",
       "replay_note": "public practice set · {nights} nights · {actions} actions",
@@ -172,7 +172,7 @@
     "vision": {
       "kicker": "01 / Vision",
       "title": "Hand the night sky to an agent",
-      "lede": "The night sky is too vast and too precious to leave to chance.",
+      "lede": "The sky is too large and observing time too precious to point the telescope by chance.",
       "paragraphs": [
         "Every night a survey telescope faces dozens of tiles that are only visible for a few hours. Weather closes the dome, directional clouds and smog spoil one part of the sky, the moon brightens another, and a science request with a deadline appears in the middle of the week. Every decision a human observer makes shapes the quality of the final cosmic sample.",
         "We are building an open benchmark: an agent receives the published sky state, reasons like a seasoned observer, and commits the next action slot by slot. Every participant receives the same calendar, catalogue, forecasts, requests, simulator and scoring rule — the only variables are strategy and how the global wall clock is spent."
@@ -188,8 +188,8 @@
           "label": "global wall clock"
         },
         {
-          "value": "∞",
-          "label": "possible strategies"
+          "value": "180",
+          "label": "nights in the reference scenario"
         }
       ]
     },
@@ -216,7 +216,7 @@
     "participate": {
       "kicker": "03 / How to participate",
       "title": "Three steps to compete",
-      "lede": "From training to awards, the path is clear.",
+      "lede": "Registration, teams, submissions and scores all live on this site.",
       "steps": [
         {
           "n": "01",
@@ -253,7 +253,7 @@
     "prizes": {
       "kicker": "04 / Awards",
       "title": "$5,500 in prizes",
-      "lede": "Three award tiers recognize the strongest observing agents.",
+      "lede": "Awarded on the online ranking: the mean score over both competition scenarios.",
       "tiers": [
         {
           "place": "First Prize",
@@ -786,7 +786,7 @@
     ],
     "archCode": "AgentObserver\n  -> WeatherInterpreter\n  -> ProgramSelector\n  -> CandidateFilter\n  -> TileRanker\n  -> FootprintBalancer\n  -> CompletionManager\n  -> SupportObserver / RiskChecker\n  -> ReasonLogger",
     "scenariosTitle": "Situations you will meet",
-    "scenariosIntro": "A strong agent handles a handful of recurring situations.",
+    "scenariosIntro": "These situations come up again and again.",
     "scenarios": [
       {
         "when": "Excellent dark night",

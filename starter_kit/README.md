@@ -14,8 +14,10 @@ Windows, macOS and Linux are supported (verified on Windows 11 with Python 3.12 
 |---|---|
 | `agent/` | Your agent. `my_strategy.py` is the one file most teams edit (`choose_action`); `minimal_agent.py` is the entry script; `decision_graph.py` holds the full pipeline for those who want more. |
 | `run_baseline.command` / `.bat` / `.sh` | Double-click launchers: run the baseline on the bundled scenario and open the replay. |
+| `run_demo_week.command` / `.bat` / `.sh` | Same launchers on the seven-night demo scenario: about two seconds, replay short enough to read night by night. |
 | `challenge/` | The public environment: contracts, calendar, tile geometry, weather, requests, workflow, scorer, replay renderer. Do not edit. |
 | `scenarios/dev-reference/` | Public reference scenario: 180 nights, 7,928 slots, 64 tiles, weather truth included. |
+| `scenarios/demo-week/` | Public one-week demo scenario: 7 nights, 294 slots, 64 tiles, 1 observation request, weather truth included. |
 | `local_runner.py` | Runs an agent through the platform transport on a scenario and scores it. |
 | `score_decisions.py` | Re-scores a `decisions.csv` (public scenarios only). |
 | `make_scenario.py` | Generates new public practice scenarios from a seed. |
@@ -28,7 +30,8 @@ Windows, macOS and Linux are supported (verified on Windows 11 with Python 3.12 
 
 ```bash
 unzip agent-observer-starter-kit.zip && cd agent-observer-starter-kit
-python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py --wallclock 600 --out run_output
+python3 local_runner.py --scenario scenarios/demo-week --agent agent/minimal_agent.py --wallclock 900 --out demo_week_output   # 7 nights, ~2 s
+python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py --wallclock 600 --out run_output      # 180 nights, ~15 s
 ```
 
 Standard output ends with a JSON summary (with `--quiet` it is the only output); on the reference scenario the shipped deterministic agent completes

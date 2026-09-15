@@ -15,7 +15,7 @@ Sponsor API credits are handed out as redeem codes: once your team is registered
 
 ### The short path (no tooling)
 
-1. Download the [starter kit agent-observer-starter-kit.zip](/resources), unzip it, and double-click `run_baseline.command` (macOS), `run_baseline.bat` (Windows, after installing Python 3.12 from python.org) or run `./run_baseline.sh` (Linux). The baseline scores about 12287 on the bundled scenario and the replay opens in your browser.
+1. Download the [starter kit agent-observer-starter-kit.zip](/resources), unzip it, and double-click `run_baseline.command` (macOS), `run_baseline.bat` (Windows, after installing Python 3.12 from python.org) or run `./run_baseline.sh` (Linux). The baseline scores about 12287 on the bundled scenario and the replay opens in your browser. For a faster first look use `run_demo_week` instead: a seven-night demo scenario, about two seconds, same pipeline and same scorer, results in `demo_week_output/`.
 2. Edit `agent/my_strategy.py`: its `choose_action(candidates, snapshot, memory)` receives the legal candidates ranked best-first and returns the one to observe, or `None` to wait. Run the launcher again to compare.
 3. On the Submit page choose *Agent run* and drop that single file. The platform wraps it with the rest of the starter agent; dropping the whole `agent` folder (packaged in the browser) or a `.zip` works too.
 
@@ -24,7 +24,7 @@ Sponsor API credits are handed out as redeem codes: once your team is registered
 ### Contents and commands
 
 
-Download `agent-observer-starter-kit.zip` from the Resources page. Layout: `agent/` (the submission: `minimal_agent.py`, `decision_graph.py`, `model_factory.py`, `protocol.py`, `state.py`, `scoring_preview.py`, `requirements.txt`, `.env.example`), `challenge/` (the public environment: contracts, calendar, tile geometry, weather, requests, workflow, scorer, replay renderer), `scenarios/dev-reference/` (the public 180-night scenario), `local_runner.py`, `score_decisions.py`, `make_scenario.py`, `fetch_scenario.py`, `pack_agent.py`, `sac_submit.py`, `SKILL.md` and `README.md`. Python 3.9 or newer and the standard library are enough (the macOS system `python3` works; on Windows install Python 3.12 from python.org).
+Download `agent-observer-starter-kit.zip` from the Resources page. Layout: `agent/` (the submission: `minimal_agent.py`, `decision_graph.py`, `model_factory.py`, `protocol.py`, `state.py`, `scoring_preview.py`, `requirements.txt`, `.env.example`), `challenge/` (the public environment: contracts, calendar, tile geometry, weather, requests, workflow, scorer, replay renderer), `scenarios/dev-reference/` (the public 180-night scenario), `scenarios/demo-week/` (the public seven-night demo), `local_runner.py`, `score_decisions.py`, `make_scenario.py`, `fetch_scenario.py`, `pack_agent.py`, `sac_submit.py`, `SKILL.md` and `README.md`. Python 3.9 or newer and the standard library are enough (the macOS system `python3` works; on Windows install Python 3.12 from python.org).
 
 ```
 python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal_agent.py --wallclock 600 --out run_output
@@ -214,11 +214,18 @@ python3 sac_submit.py --phase online --kind agent --file my_agent.zip --wait
 
 | | Practice | Online competition |
 |---|---|---|
-| Scenarios | `dev-reference` (180 nights, the published example) and `dev-fortnight` (14 nights); weather, forecasts and events public | `eval-a`, `eval-b` (30 nights each); weather, forecasts and events hidden |
+| Scenarios | `demo-week` (7 nights), `dev-fortnight` (14 nights) and `dev-reference` (180 nights, the published example); weather, forecasts and events public | `eval-a`, `eval-b` (30 nights each); weather, forecasts and events hidden |
 | Submissions | results files or agent packages, 50 per team per day | agent packages only, 10 per team per day |
 | Score | informational board | mean over the two scenarios; decides the awards |
 
 Because the practice scenarios publish `weather_events.csv`, a local `score_decisions.py` run reproduces the platform report exactly. On the competition scenarios only the platform can score, and only through the protocol.
+
+The two submission types serve two different purposes and the platform supports both:
+
+- **Results file (`decisions.csv`)**: you replay the weather locally with the simulators, run the whole survey and hand the decision sequence to the scorer. With public weather this is the shortest loop and your local score equals the platform score, which is why practice accepts it.
+- **Agent package**: you upload the program and its dependencies, and the platform runs it against hidden weather, handing it only the snapshot visible at the current slot. Participants never see future weather, so no strategy can optimise over the whole weather sequence — which is why the online competition accepts only this.
+
+Both go through the same scorer and the same `score_config.json` and produce the same report format, so a strategy tuned in practice carries over to the competition.
 
 ## 9. Strategy notes
 

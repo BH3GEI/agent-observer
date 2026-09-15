@@ -194,6 +194,65 @@ select:focus {
 .reveal-delay-4 { transition-delay: .24s; }
 .reveal-delay-5 { transition-delay: .3s; }
 
+/* Rows of a list arrive one after another, in reading order, instead of the whole block at once.
+   Put .reveal-stagger on the container: each child inherits the reveal transition and its own delay. */
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity .55s ease, transform .55s cubic-bezier(.16,1,.3,1);
+}
+.reveal-stagger.visible > * { opacity: 1; transform: translateY(0); }
+.reveal-stagger.visible > *:nth-child(1) { transition-delay: .04s; }
+.reveal-stagger.visible > *:nth-child(2) { transition-delay: .1s; }
+.reveal-stagger.visible > *:nth-child(3) { transition-delay: .16s; }
+.reveal-stagger.visible > *:nth-child(4) { transition-delay: .22s; }
+.reveal-stagger.visible > *:nth-child(5) { transition-delay: .28s; }
+.reveal-stagger.visible > *:nth-child(6) { transition-delay: .34s; }
+.reveal-stagger.visible > *:nth-child(n+7) { transition-delay: .4s; }
+
+/* A rule that draws itself in from the left as the section arrives. */
+.rule-draw { position: relative; }
+.rule-draw::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+  background: var(--color-accent, #315efb); transform: scaleX(0); transform-origin: left;
+  transition: transform .9s cubic-bezier(.16,1,.3,1) .1s;
+}
+.rule-draw.visible::after { transform: scaleX(1); }
+
+/* Hover feedback on list rows: the accent bar grows from the left edge, the row lifts a hair. */
+.row-sweep { position: relative; transition: transform .25s ease, background-color .25s ease; }
+.row-sweep::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--color-accent, #315efb); transform: scaleY(0); transform-origin: bottom;
+  transition: transform .28s cubic-bezier(.16,1,.3,1);
+}
+.row-sweep:hover::before, .row-sweep:focus-within::before { transform: scaleY(1); transform-origin: top; }
+.row-sweep:hover, .row-sweep:focus-within { transform: translateX(4px); }
+
+/* Cards lift and pick up an accent hairline on hover. */
+.card-lift { transition: transform .28s cubic-bezier(.16,1,.3,1), box-shadow .28s ease; }
+.card-lift:hover, .card-lift:focus-within { transform: translateY(-4px); box-shadow: 0 14px 34px rgba(0,0,0,.45); }
+
+/* Route change: the outgoing page fades out, the incoming one rises a few pixels into place. */
+.page-enter-active { transition: opacity .3s ease, transform .3s cubic-bezier(.16,1,.3,1); }
+.page-leave-active { transition: opacity .16s ease; }
+.page-enter-from { opacity: 0; transform: translateY(10px); }
+.page-leave-to { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Reveal-on-scroll is an animation. With motion turned off, the content is simply there —
+     it must never depend on an IntersectionObserver firing to become readable. */
+  .reveal, .reveal-left, .reveal-right, .reveal-blur, .reveal-scale {
+    opacity: 1; transform: none; filter: none; transition: none; will-change: auto;
+  }
+  .reveal-stagger > * { opacity: 1; transform: none; transition: none; }
+  .rule-draw::after { transform: scaleX(1); transition: none; }
+  .row-sweep:hover, .row-sweep:focus-within { transform: none; }
+  .card-lift:hover, .card-lift:focus-within { transform: none; }
+  .page-enter-active, .page-leave-active { transition: none; }
+  .page-enter-from { opacity: 1; transform: none; }
+}
+
 .cosmos-header {
   color: #f5f5f5;
   background: rgba(6,6,7,.88);

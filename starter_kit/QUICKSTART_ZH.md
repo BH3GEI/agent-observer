@@ -13,6 +13,8 @@
 大约 15 秒后会弹出一个网页：这是基线智能体在公开场景上 180 个观测夜的回放。
 终端里最后一段是分数，基线约 **12287 分**，`termination_reason` 应为 `survey_complete`。
 
+只想先看一眼的话，把上面的文件名换成 `run_demo_week`（`.command` / `.bat` / `.sh`）：同样的流程、同样的评分器，场景只有 7 个观测夜，约 2 秒跑完，回放页也更容易逐夜看清楚。结果写在 `demo_week_output/`。
+
 ## 第 2 步 · 改一个文件
 
 打开 `agent/my_strategy.py`。整个比赛你只需要改这一个文件里的 `choose_action` 函数：

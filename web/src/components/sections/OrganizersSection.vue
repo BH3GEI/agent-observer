@@ -23,8 +23,8 @@ onMounted(async () => {
         <span class="poster-kicker">{{ t('home.credibility.kicker') }}</span>
         <h2 class="section-title distressed-type mt-8">{{ t('home.credibility.title') }}</h2>
       </div>
-      <div class="cards cards-3 reveal reveal-delay-1 mt-14">
-        <article v-for="item in items" :key="item.name" class="card">
+      <div class="cards cards-3 reveal-stagger mt-14">
+        <article v-for="item in items" :key="item.name" class="card card-lift">
           <span class="label accent">{{ item.role }}</span>
           <h3 class="mt-3">{{ item.name }}</h3>
           <p>{{ item.desc }}</p>
@@ -35,7 +35,7 @@ onMounted(async () => {
           <span class="label">{{ t('home.announcements.kicker') }}</span>
           <router-link to="/announcements" class="label accent">{{ t('home.announcements.all') }} →</router-link>
         </div>
-        <div v-for="a in announcements" :key="a.id" class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 py-4">
+        <div v-for="a in announcements" :key="a.id" class="row-sweep flex flex-wrap items-center justify-between gap-3 border-b border-white/10 py-4 pl-3">
           <span class="text-text-primary">{{ pick(a.title_en, a.title_zh) || a.title_en }}</span>
           <span class="label">{{ fmtUtc(a.created_at).slice(0, 10) }}</span>
         </div>
