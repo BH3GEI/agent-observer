@@ -7,6 +7,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', component: HomePage , meta: { page: 'home' }},
+    { path: '/start', component: () => import('./pages/StartPage.vue') , meta: { page: 'start' }},
     { path: '/brief', component: () => import('./pages/VisionPage.vue') , meta: { page: 'brief' }},
     { path: '/vision', redirect: '/brief' },
     { path: '/rules', component: () => import('./pages/RulesPage.vue') , meta: { page: 'rules' }},

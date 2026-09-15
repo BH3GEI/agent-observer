@@ -49,6 +49,7 @@ const timeline = computed(() => t('home.participate.timeline') as TimelineItem[]
             <div class="mt-10 flex flex-wrap gap-3">
               <router-link v-if="isLoggedIn" to="/submit" class="btn dark w-full md:w-auto md:min-w-60">{{ t('dash.new_submission') }} →</router-link>
               <router-link v-else-if="registrationOpen" to="/register" class="btn dark w-full md:w-auto md:min-w-60">{{ t('home.participate.cta') }} →</router-link>
+              <router-link to="/start" class="btn outline-dark w-full md:w-auto">{{ t('nav.start') }} →</router-link>
               <a :href="kitUrl" class="btn outline-dark w-full md:w-auto" download>{{ t('dash.quick.kit') }} ↓</a>
             </div>
           </div>

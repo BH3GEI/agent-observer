@@ -76,10 +76,15 @@
       "not_found": {
         "title": "Page not found",
         "description": "This page does not exist."
+      },
+      "start": {
+        "title": "Get started",
+        "description": "The participant walkthrough: register, create a team, run the starter kit and upload a first score."
       }
     }
   },
   "nav": {
+    "start": "Get started",
     "brief": "Event brief",
     "rules": "Rules",
     "docs": "Docs",
@@ -1851,5 +1856,14 @@
     "seconds": "s",
     "countdown_aria": "Countdown to the next phase",
     "none_scheduled": "No further phase scheduled"
+  },
+  "start_page": {
+    "kicker": "Get started",
+    "title": "From zero to your first score",
+    "lede": "No command line needed. Run it, change one function, upload — about twenty minutes.",
+    "cta_register": "Register first",
+    "cta_dashboard": "Go to my dashboard",
+    "cta_kit": "Download the kit",
+    "cta_docs": "Full docs"
   }
 }

@@ -1,0 +1,80 @@
+No command line required, and nothing to install beyond Python. Follow this once and you should have a score on the leaderboard in about twenty minutes.
+
+The whole thing is three moves: **run it → change one function → upload**.
+
+## Step 1 · Create an account
+
+Click **Register** in the top right, fill in your name, email and a password, tick the rules checkbox, and press **Create account →**.
+
+**No confirmation email to click** — you land straight in your dashboard. GitHub username and affiliation are optional; you can add them later under Profile.
+
+## Step 2 · Create a team
+
+The dashboard will tell you that you are not on a team yet. Click **Team →**, pick a name, press **Create team →**.
+
+**Create a team even if you are competing alone** — scores are recorded per team. You get an invite code (something like `E3SE6NE9`); teammates enter it on the Team page to join, up to eight people.
+
+## Step 3 · Download the starter kit and run it
+
+There is a **Download starter kit ↓** button on your dashboard (also on the Resources page). Unzip it and you get an `agent-observer-starter-kit` folder.
+
+Open the folder and double-click the file for your machine:
+
+| Your machine | Double-click |
+|---|---|
+| macOS | `run_baseline.command` (the system Python is enough; if it refuses to open, right-click → **Open**) |
+| Windows | `run_baseline.bat` (first install Python 3.12 from [python.org](https://www.python.org/downloads/) and **tick "Add python.exe to PATH"**) |
+| Linux | run `./run_baseline.sh` in a terminal |
+
+After about fifteen seconds a page opens in your browser: that is the baseline agent's replay over 180 observing nights. The last block in the terminal is the score — the baseline lands around **12287**, and `termination_reason` should read `survey_complete`.
+
+> **Want a faster first look?** Replace `run_baseline` with `run_demo_week` in the filename: a seven-night demo that finishes in about two seconds, with a replay short enough to read night by night.
+
+## Step 4 · Change one function
+
+Open `agent/my_strategy.py`. **The only thing you need to change all competition is the `choose_action` function in this file.**
+
+What it does:
+
+- the platform hands you the candidates observable in this slot, already ranked, with the highest estimated value first;
+- you return the one to observe, or `None` to wait out the slot.
+
+The file already contains several ideas you can enable by uncommenting: prioritise REQUIRED tiles, answer observation requests first, wait when conditions are poor, use `memory` to track what you have already done. The fields each candidate carries are documented at the top of the file.
+
+Save, double-click `run_baseline` again, and see whether the score went up. If it crashes, the terminal prints the last lines of `agent.log` for you.
+
+## Step 5 · Upload
+
+Back on the site, open **Submit**. There are two routes depending on the phase:
+
+**Practice — upload a results file**
+Choose **Results file**, drag in the `decisions.csv` your local run produced, press **Upload and queue →**. Scored within seconds. Practice uses scenarios with public weather, so the platform can re-check what you computed locally.
+
+**Online competition — upload an agent**
+Choose **Agent run** and drag in `agent/my_strategy.py` — **that one file**. The site completes the package with the starter kit's standard files; you never have to build a zip. (Bring the whole `agent` folder instead if you are wiring up a model.)
+
+The platform runs your program against hidden weather, where you cannot see what is coming. That is the part that actually counts.
+
+## Step 6 · Read the result
+
+After uploading you see your queue position and evaluation progress; a score usually arrives within a minute or two. Open the submission to find:
+
+- **Score breakdown** — base science, program bonus, request reward, and each penalty separately
+- **Night-by-night replay** — what actually got observed, which tiles completed and which never made it
+- **Run log** — your program's real output on the platform
+
+The leaderboard lives under **Leaderboard** in the top navigation and updates live.
+
+## Stuck?
+
+| Situation | What to do |
+|---|---|
+| Double-click does nothing / Python not found | On Windows install Python 3.12 with "Add to PATH" ticked; on macOS right-click → **Open** |
+| Submission sits in the queue | Normal — the evaluator works through submissions one at a time; large scenarios take a while |
+| Submission immediately goes `invalid` | Usually a packaging problem. Dragging the single `agent/my_strategy.py` file is the easy path |
+| Want more weather to test against locally | `python3 make_scenario.py --out scenarios/mine --seed 7 --days 30`, then `python3 local_runner.py --scenario scenarios/mine --agent agent/minimal_agent.py` |
+| Want an LLM in the loop | Copy `agent/.env.example` to `agent/.env`, fill in a key (sponsor credits are on your dashboard), and upload the whole `agent` folder |
+
+Data formats, the protocol and the scoring formula are on the **Docs** page; `README.md` inside the kit is the full engineer's version.
+
+Anything else, check the **FAQ**, or find the organizers' contact on the **Announcements** page.

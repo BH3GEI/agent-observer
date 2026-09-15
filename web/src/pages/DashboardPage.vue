@@ -117,6 +117,7 @@ onMounted(async () => {
         <div class="panel mt-8">
           <div class="hd"><h2>{{ t('resources.kicker') }}</h2></div>
           <div class="flex flex-col gap-2">
+            <router-link class="btn sm primary" to="/start">{{ t('nav.start') }} →</router-link>
             <a class="btn sm" :href="appUrl('/downloads/agent-observer-starter-kit.zip')" download>{{ t('dash.quick.kit') }} ↓</a>
             <router-link class="btn sm" to="/docs">{{ t('dash.quick.docs') }} →</router-link>
             <a class="btn sm" :href="appUrl('/skill.md')" target="_blank" rel="noopener">SKILL.md →</a>

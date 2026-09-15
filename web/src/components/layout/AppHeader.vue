@@ -25,6 +25,7 @@ const phasePill = computed(() => {
 })
 
 const items = [
+  { key: 'nav.start', to: '/start' },
   { key: 'nav.brief', to: '/brief' },
   { key: 'nav.rules', to: '/rules' },
   { key: 'nav.docs', to: '/docs' },
