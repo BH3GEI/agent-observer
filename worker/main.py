@@ -345,8 +345,8 @@ DEFAULT_SCENARIOS = [
     ("dev-fortnight", "Development fortnight (14 nights, seed 2026)", "A short public scenario for quick iteration: 14 nights from 2026-10-05, all files public.", 2026, 14, "2026-10-05", 1800, True, True, True),
     # same parameters as starter_kit/scenarios/demo-week, so the shipped copy and the published one are the same scenario
     ("demo-week", "One-week demo (7 nights, seed 20261005)", "The seven-night demo shipped in the starter kit: 7 nights from 2026-10-05, all files public. Runs in seconds and the replay is short enough to read night by night.", 20261005, 7, "2026-10-05", 900, True, True, True),
-    ("eval-a", "Competition scenario A (hidden weather)", "Online competition replay A: 30 nights from 2026-10-05. Weather, forecasts and events are hidden; agents see only the published snapshots.", 90210, 30, "2026-10-05", 3600, False, False, False),
-    ("eval-b", "Competition scenario B (hidden weather)", "Online competition replay B: 30 nights from 2026-11-01, different seed.", 41207, 30, "2026-11-01", 3600, False, False, False),
+    ("eval-a", "Competition scenario A (hidden weather)", "Online competition replay A: 30 nights from 2026-10-05. Weather, forecasts and events are hidden; agents see only the published snapshots.", 771233, 30, "2026-10-05", 3600, False, False, False),
+    ("eval-b", "Competition scenario B (hidden weather)", "Online competition replay B: 30 nights from 2026-11-01, different seed.", 330841, 30, "2026-11-01", 3600, False, False, False),
 ]
 
 
