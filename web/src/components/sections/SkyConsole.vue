@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from '../../composables/useI18n'
-import { replayActions, replaySite, replaySlots, replayTiles, replayTimeAt, replayTotals, useReplayClock, SLOT_SECONDS } from '../../composables/useReplayClock'
-import { drawSkyMap, type ObservedMark } from '../../lib/skymap'
+import { replayActions, replayNights, replaySite, replaySlots, replayTiles, replayTimeAt, replayTotals, useReplayClock, SLOT_SECONDS } from '../../composables/useReplayClock'
+import { drawSkyMap, lstDeg, PAD, type ObservedMark } from '../../lib/skymap'
 import { OUTCOME_COLORS } from '../../lib/report'
 import { fmtUtc, num } from '../../lib/format'
 
@@ -10,14 +10,28 @@ const { t, tf } = useI18n()
 const clock = useReplayClock()
 const canvas = ref<HTMLCanvasElement | null>(null)
 const hud = ref({ slot: '', night: '', date: '', utc: '', seeing: 0, transp: 0, sky: 0, eff: 0, open: true, score: 0, completed: 0, nightNo: 1 })
+/** What the replay is doing right now, so viewers who do not know the task can follow along. */
+const beat = ref<{ key: string; region: string; nightNo: number }>({ key: 'idle', region: '', nightNo: 1 })
 const paused = computed(() => clock.state.paused)
 const reduced = computed(() => clock.state.reduced)
 let raf = 0, observer: ResizeObserver | undefined, shownScore = 0, lastProgress = 0
 const PULSE = SLOT_SECONDS * 2  // glow for two slots of replay time after a tile completes
-const nightIds = [...new Set(replaySlots.map(s => s.night))]
+const nightIds = replayNights
+const tileById = new Map(replayTiles.map(tile => [tile.id, tile]))
+
+const narration = computed(() => tf(`hero.console.beat.${beat.value.key}`, { region: beat.value.region, night: beat.value.nightNo, nights: replayTotals.nights }))
+/** Where the meridian sits inside the canvas box, so the walkthrough can point at the line wherever it is. */
+const meridianLeft = ref('50%')
+function trackMeridian(nowSec: number) {
+  const el = canvas.value
+  if (!el || !el.clientWidth) return
+  const plot = el.clientWidth - PAD.left - PAD.right
+  const px = PAD.left + (lstDeg(replaySite.lon, nowSec) / 360) * plot
+  meridianLeft.value = `${(px / el.clientWidth) * 100}%`
+}
 
 function frameAt(progress: number) {
-  const { slotIndex, nowSec, actionIndex } = replayTimeAt(progress)
+  const { slotIndex, nowSec, actionIndex, fastForward } = replayTimeAt(progress)
   const observed = new Map<string, ObservedMark>()
   let score = 0, completed = 0
   for (let k = 0; k <= actionIndex; k++) {
@@ -29,25 +43,68 @@ function frameAt(progress: number) {
     if (!prev || a.cls === 'completed') observed.set(a.tile, { state: a.cls, doneSec: a.doneSec })
     if (a.cls === 'completed') completed++
   }
-  return { slotIndex, nowSec, observed, score, completed }
+  return { slotIndex, nowSec, observed, score, completed, actionIndex, fastForward }
+}
+
+/** Pick the line of commentary for the current action. Night changes win, because that is the moment the sky
+ *  visibly jumps: the replay skips the daytime hours between two nights in a single frame. */
+function beatFor(actionIndex: number, fastForward: boolean, open: boolean, nightNo: number) {
+  const action = replayActions[actionIndex]!
+  const prev = actionIndex > 0 ? replayActions[actionIndex - 1] : undefined
+  const nightChanged = Boolean(prev) && prev!.slot.split('-')[0] !== action.slot.split('-')[0]
+  if (nightChanged) return { key: 'night_change', region: '', nightNo }
+  if (action.a === 'observe') {
+    const tile = tileById.get(action.tile)
+    const key = action.cls === 'completed' ? (tile?.cls === 'R' ? 'observe_required' : 'observe') : 'interrupted'
+    return { key, region: tile?.region ?? '', nightNo }
+  }
+  if (!open) return { key: 'dome_closed', region: '', nightNo }
+  if (fastForward) return { key: 'fast_forward', region: '', nightNo }
+  return { key: 'waiting', region: '', nightNo }
 }
 
 function render() {
   const progress = clock.replayProgress()
-  const { slotIndex, nowSec, observed, score, completed } = frameAt(progress)
+  const { slotIndex, nowSec, observed, score, completed, actionIndex, fastForward } = frameAt(progress)
   if (progress < lastProgress) shownScore = 0  // loop restarted
   lastProgress = progress
   shownScore = reduced.value ? score : shownScore + (score - shownScore) * 0.18
   const slot = replaySlots[slotIndex]!
   const stamp = fmtUtc(new Date(nowSec * 1000).toISOString(), { seconds: true, short: true })
-  hud.value = { slot: slot.slot, night: slot.night, date: stamp.slice(0, 5), utc: stamp.slice(6), seeing: slot.seeing, transp: slot.transp, sky: slot.sky, eff: slot.eff, open: slot.open, score: shownScore, completed, nightNo: nightIds.indexOf(slot.night) + 1 }
+  const nightNo = nightIds.indexOf(slot.night) + 1
+  hud.value = { slot: slot.slot, night: slot.night, date: stamp.slice(0, 5), utc: stamp.slice(6), seeing: slot.seeing, transp: slot.transp, sky: slot.sky, eff: slot.eff, open: slot.open, score: shownScore, completed, nightNo }
+  beat.value = beatFor(actionIndex, fastForward, slot.open, nightNo)
+  trackMeridian(nowSec)
   if (canvas.value) drawSkyMap(canvas.value, replayTiles, replaySite, { nowSec, observed, pulseSeconds: reduced.value ? 0 : PULSE })
 }
 function loop() { render(); if (!reduced.value) raf = requestAnimationFrame(loop) }
 
+// --- first-visit walkthrough -------------------------------------------------
+// Four beats explaining the axes, the marks, the meridian (and its jump) and the readout. Shown once per
+// browser; the replay keeps running behind it, paused so nothing moves while reading.
+const TOUR_KEY = 'sac.sky-tour.seen'
+const TOUR_STEPS = ['axes', 'tiles', 'meridian', 'hud'] as const
+const tourStep = ref(-1)
+const tourOpen = computed(() => tourStep.value >= 0)
+const currentStep = computed(() => TOUR_STEPS[tourStep.value] ?? null)
+
+function startTour() { tourStep.value = 0; clock.setPaused(true) }
+function nextStep() {
+  if (tourStep.value < TOUR_STEPS.length - 1) { tourStep.value += 1; return }
+  endTour()
+}
+function endTour() {
+  tourStep.value = -1
+  clock.setPaused(false)
+  try { window.localStorage.setItem(TOUR_KEY, '1') } catch { /* private mode */ }
+}
+
 onMounted(() => {
   if (canvas.value) { observer = new ResizeObserver(() => render()); observer.observe(canvas.value) }
   loop()
+  let seen = true
+  try { seen = window.localStorage.getItem(TOUR_KEY) === '1' } catch { /* private mode: do not nag */ }
+  if (!seen && !clock.state.reduced) startTour()
 })
 onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
 </script>
@@ -61,7 +118,35 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
         <button type="button" class="replay-toggle" :aria-pressed="paused" :disabled="reduced" @click="clock.setPaused(!paused)">{{ paused ? t('hero.console.resume') : t('hero.console.pause') }}</button>
       </span>
     </div>
-    <canvas ref="canvas" class="sky-canvas" role="img" :aria-label="t('hero.console.aria')"></canvas>
+    <p class="sky-explainer">
+      {{ t('hero.console.explainer') }}
+      <button type="button" class="sky-tour-link" @click="startTour">{{ t('hero.console.tour_replay') }}</button>
+    </p>
+    <div class="sky-stage">
+      <canvas ref="canvas" class="sky-canvas" role="img" :aria-label="t('hero.console.aria')"></canvas>
+      <div v-if="tourOpen" class="sky-tour" role="dialog" aria-modal="false" :aria-label="t('hero.console.tour_title')">
+        <div
+          class="sky-tour-spot"
+          :class="`is-${currentStep}`"
+          :style="currentStep === 'meridian' ? { left: `calc(${meridianLeft} - 3%)` } : undefined"
+          aria-hidden="true"
+        ></div>
+        <div class="sky-tour-card" :class="`at-${currentStep}`">
+          <p class="sky-tour-step">{{ tourStep + 1 }} / {{ TOUR_STEPS.length }}</p>
+          <p class="sky-tour-text">{{ t(`hero.console.tour.${currentStep}`) }}</p>
+          <p class="sky-tour-actions">
+            <button type="button" class="replay-toggle" @click="nextStep">
+              {{ tourStep === TOUR_STEPS.length - 1 ? t('hero.console.tour_done') : t('hero.console.tour_next') }}
+            </button>
+            <button type="button" class="sky-tour-link" @click="endTour">{{ t('hero.console.tour_skip') }}</button>
+          </p>
+        </div>
+      </div>
+    </div>
+    <p class="sky-narration" aria-live="polite" data-testid="sky-narration">
+      <span class="sky-narration-dot" :class="{ 'is-wait': beat.key !== 'observe' && beat.key !== 'observe_required' }"></span>
+      {{ narration }}
+    </p>
     <div class="sky-legend" aria-hidden="true">
       <span><i class="diamond"></i>{{ t('hero.console.legend_required') }}</span>
       <span><i style="border-color:#78a6ff"></i>{{ t('hero.console.legend_flexible') }}</span>
@@ -116,7 +201,52 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
 }
 .replay-toggle:hover:not(:disabled) { border-color: #315efb; color: #78a6ff; }
 .replay-toggle:disabled { opacity: .4; cursor: default; }
+.sky-explainer {
+  margin: 0;
+  padding: .6rem .9rem;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  font-size: .78rem; line-height: 1.6; color: rgba(255,255,255,.62);
+}
+.sky-tour-link {
+  border: 0; padding: 0; margin-left: .35rem;
+  font: inherit; color: #78a6ff; background: none; cursor: pointer; text-decoration: underline;
+}
+.sky-stage { position: relative; }
 .sky-canvas { display: block; width: 100%; aspect-ratio: 3 / 2; min-height: 200px; }
+
+.sky-tour { position: absolute; inset: 0; background: rgba(2,5,12,.55); }
+/* the spotlight boxes track the canvas padding in lib/skymap.ts (left 30, right 10, top 16, bottom 18) */
+.sky-tour-spot { position: absolute; border: 1px solid #78a6ff; box-shadow: 0 0 0 9999px rgba(2,5,12,.55); }
+.sky-tour-spot.is-axes { left: 0; right: 0; bottom: 0; height: 22%; }
+.sky-tour-spot.is-tiles { left: 8%; right: 8%; top: 18%; height: 46%; }
+.sky-tour-spot.is-meridian { width: 6%; top: 0; bottom: 14%; }  /* left is bound to the live meridian */
+.sky-tour-spot.is-hud { left: 0; right: 0; bottom: -1px; height: 12%; border-color: transparent; box-shadow: none; }
+.sky-tour-card {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  width: min(30rem, calc(100% - 2rem));
+  padding: .85rem 1rem;
+  border: 1px solid rgba(120,166,255,.55);
+  background: rgba(4,8,18,.96);
+}
+.sky-tour-card.at-axes, .sky-tour-card.at-hud { top: 12%; }
+.sky-tour-card.at-tiles, .sky-tour-card.at-meridian { bottom: 8%; }
+.sky-tour-step {
+  margin: 0 0 .35rem;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: .6rem; letter-spacing: .12em; color: #78a6ff;
+}
+.sky-tour-text { margin: 0; font-size: .82rem; line-height: 1.65; color: #f5f5f5; }
+.sky-tour-actions { display: flex; align-items: center; gap: .9rem; margin: .7rem 0 0; }
+
+.sky-narration {
+  display: flex; align-items: center; gap: .5rem;
+  margin: 0; padding: .55rem .9rem;
+  border-top: 1px solid rgba(255,255,255,.1);
+  font-size: .78rem; color: rgba(255,255,255,.85);
+  min-height: 2.4rem;
+}
+.sky-narration-dot { width: .4rem; height: .4rem; flex: none; border-radius: 50%; background: #315efb; }
+.sky-narration-dot.is-wait { background: rgba(255,255,255,.35); }
 .sky-legend {
   display: flex; flex-wrap: wrap; gap: .4rem 1rem;
   padding: .45rem .9rem;

@@ -157,7 +157,7 @@
       "paused": "Paused",
       "pause": "Pause",
       "resume": "Resume",
-      "aria": "Sky map replay of the minimal agent over 14 nights: REQUIRED and FLEXIBLE tiles fill in as exposures complete",
+      "aria": "Replay sky map of the minimal agent: REQUIRED and FLEXIBLE patches fill in as exposures complete",
       "slot": "Slot",
       "weather": "See·trp·sky·eff",
       "dome_closed": "Dome closed",
@@ -169,7 +169,29 @@
       "legend_required": "REQUIRED",
       "legend_flexible": "FLEXIBLE",
       "legend_completed": "Completed",
-      "legend_interrupted": "Interrupted"
+      "legend_interrupted": "Interrupted",
+      "explainer": "This is the whole observable sky. Every mark is a patch waiting to be imaged; a filled one is done. Every 15 minutes the agent picks one to shoot — or waits for better weather.",
+      "tour_replay": "What am I looking at?",
+      "tour_title": "Sky map walkthrough",
+      "tour_next": "Next",
+      "tour_done": "Start watching",
+      "tour_skip": "Skip",
+      "tour": {
+        "axes": "The horizontal axis is right ascension — the sky's longitude — going all the way round from 0° to 360°. The vertical axis is declination, its latitude. R00–R07 across the top are the eight regions the sky is split into.",
+        "tiles": "Each mark is a patch to image: ◇ is a REQUIRED one that must be finished, □ is an optional FLEXIBLE one. A ring around it means it is high enough to shoot right now; filled in means it is already done.",
+        "meridian": "The dashed blue line is where the telescope is pointing at this instant, drifting right as the Earth turns. When the replay moves to the next night the line jumps across: a whole daytime has been skipped.",
+        "hud": "The row underneath is the current slot, the live weather and the progress. The score climbs as patches light up — that is the number competitors are trying to maximise."
+      },
+      "beat": {
+        "observe": "Imaging a patch in region {region}",
+        "observe_required": "Taking a REQUIRED patch that must be finished (region {region})",
+        "interrupted": "Weather cut this exposure short — it has to be redone",
+        "dome_closed": "Dome closed — too much cloud to observe this slot",
+        "waiting": "Nothing worth shooting is high enough yet; waiting for the next slot",
+        "fast_forward": "Fast-forwarding: the rest of this night is spent waiting",
+        "night_change": "Night {night} of {nights} — daytime skipped, the sky has come back round",
+        "idle": "Starting up"
+      }
     },
     "pipeline_intro": "Milestones"
   },

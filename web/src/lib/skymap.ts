@@ -20,7 +20,7 @@ export interface SkyFrame {
 
 export const CLASS_COLORS: Record<SchedulingClass, string> = { R: '#f5f5f5', F: '#78a6ff' }
 const RA_MAX = 360, DEC_MIN = -10, DEC_MAX = 70
-const PAD = { left: 30, right: 10, top: 16, bottom: 18 }
+export const PAD = { left: 30, right: 10, top: 16, bottom: 18 }
 
 const DEG = Math.PI / 180
 const mod = (a: number, n: number) => ((a % n) + n) % n

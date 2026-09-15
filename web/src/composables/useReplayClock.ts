@@ -19,6 +19,11 @@ export interface ReplayAction {
 export const LOOP_MS = 45_000
 export const SLOT_SECONDS = 900
 const WAIT_WEIGHT = 0.12
+/** A run of consecutive waits shows the same picture over and over, so only the first few get their share of
+ *  the loop and the rest are fast-forwarded. Without this a quiet night (nearly 40 waits) costs as much of the
+ *  loop as a busy one and the console looks stuck. */
+const WAIT_RUN_SHOWN = 4
+const WAIT_TAIL_WEIGHT = 0.012
 export const replaySite: SkySite = replay.site
 export const replayTiles: SkyTile[] = replay.tiles.map(t => ({ id: t.id, ra: t.ra, dec: t.dec, cls: t.cls === 'R' ? 'R' as const : 'F' as const, region: t.region, exp: t.exp }))
 export const replaySlots: ReplaySlot[] = replay.weather.map(w => ({ ...w, startSec: Date.parse(w.t) / 1000 }))
@@ -29,8 +34,21 @@ export const replayActions: ReplayAction[] = replay.actions.map(a => {
 })
 export const replayTotals = { finalScore: replay.score.total, baseScience: replay.score.base_science, completed: replay.completed, nights: replay.nights, requiredMissing: replay.required_missing.length }
 
+/** Nights in order, so the console can say which one it is showing. */
+export const replayNights: string[] = [...new Set(replaySlots.map(s => s.night))]
+
 // cumulative loop weights: action k spans [cum[k], cum[k+1]) of the loop
-const weights = replayActions.map(a => (a.a === 'wait' ? WAIT_WEIGHT : 1))
+const weights: number[] = []
+/** True where the action is in the fast-forwarded tail of a run of waits. */
+const skipped: boolean[] = []
+let waitRun = 0
+for (const a of replayActions) {
+  if (a.a !== 'wait') { waitRun = 0; weights.push(1); skipped.push(false); continue }
+  waitRun += 1
+  const tail = waitRun > WAIT_RUN_SHOWN
+  weights.push(tail ? WAIT_TAIL_WEIGHT : WAIT_WEIGHT)
+  skipped.push(tail)
+}
 const cum: number[] = [0]
 for (const w of weights) cum.push(cum[cum.length - 1]! + w)
 const TOTAL_WEIGHT = cum[cum.length - 1]!
@@ -56,7 +74,7 @@ export function slotIndexAt(nowSec: number): number {
   return lo
 }
 /** Map loop progress onto the current action, replay time (unix seconds) and slot index. */
-export function replayTimeAt(progress: number): { actionIndex: number; slotIndex: number; nowSec: number; frac: number } {
+export function replayTimeAt(progress: number): { actionIndex: number; slotIndex: number; nowSec: number; frac: number; fastForward: boolean } {
   const v = Math.max(0, Math.min(TOTAL_WEIGHT - 1e-9, progress * TOTAL_WEIGHT))
   let lo = 0, hi = replayActions.length - 1
   while (lo < hi) {
@@ -66,7 +84,7 @@ export function replayTimeAt(progress: number): { actionIndex: number; slotIndex
   const frac = (v - cum[lo]!) / weights[lo]!
   const a = replayActions[lo]!
   const nowSec = a.startSec + frac * Math.max(1, a.dt)
-  return { actionIndex: lo, slotIndex: slotIndexAt(nowSec), nowSec, frac }
+  return { actionIndex: lo, slotIndex: slotIndexAt(nowSec), nowSec, frac, fastForward: skipped[lo]! }
 }
 function tick() {
   const p = replayProgress()
