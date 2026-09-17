@@ -48,7 +48,7 @@ export interface Announcement {
 export interface LeaderboardEntry {
   rank: number; team_id: string; team_name: string; team_slug: string; total_score: number; science_score: number
   completion_rate: number; uniformity_score: number
-  base_science: number; program_bonus: number; request_reward: number; penalty_total: number; completed_tiles: number | null; required_missing: number | null
+  base_science: number; program_bonus: number; request_reward: number; coverage_bonus: number | null; coverage_evenness: number | null; penalty_total: number; completed_tiles: number | null; required_missing: number | null
   submission_count: number; best_submission_id: number | null; kind: string | null; scored_at: string | null
 }
 
@@ -163,6 +163,8 @@ export async function loadLeaderboard(phaseSlug: string | null, limit = 500): Pr
     base_science: Number(row.base_science ?? 0),
     program_bonus: Number(row.program_bonus ?? 0),
     request_reward: Number(row.request_reward ?? 0),
+    coverage_bonus: row.coverage_bonus == null ? null : Number(row.coverage_bonus),
+    coverage_evenness: row.coverage_evenness == null ? null : Number(row.coverage_evenness),
     penalty_total: Number(row.penalty_total ?? 0),
     completed_tiles: row.completed_tiles == null ? null : Number(row.completed_tiles),
     required_missing: row.required_missing == null ? null : Number(row.required_missing),

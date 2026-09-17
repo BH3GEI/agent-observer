@@ -120,6 +120,9 @@ onMounted(async () => {
               <dt>{{ t('subs.base_science') }}</dt><dd class="m">{{ num(sub.base_science) }}</dd>
               <dt>{{ t('subs.program_bonus') }}</dt><dd class="m">+{{ num(sub.program_bonus) }}</dd>
               <dt>{{ t('subs.request_reward') }}</dt><dd class="m">+{{ num(sub.request_reward) }}</dd>
+              <template v-if="Number(sub.coverage_bonus ?? 0) !== 0">
+                <dt>{{ t('subs.coverage_bonus') }}</dt><dd class="m">+{{ num(sub.coverage_bonus) }}<span v-if="sub.coverage_evenness != null" class="text3 xs"> · {{ t('subs.coverage_evenness') }} {{ num(sub.coverage_evenness, 3) }}</span></dd>
+              </template>
               <dt>{{ t('subs.penalties') }}</dt><dd class="m text-[#ff6b6b]">−{{ num(sub.penalty_total) }}</dd>
             </dl>
             <dl class="kv">
@@ -158,6 +161,10 @@ onMounted(async () => {
               <div><div class="label">{{ t('subs.base_science') }}</div><div class="m text-xl">{{ num(ev.base_science) }}</div></div>
               <div><div class="label">{{ t('subs.program_bonus') }}</div><div class="m text-xl">+{{ num(ev.program_bonus) }}</div></div>
               <div><div class="label">{{ t('subs.request_reward') }}</div><div class="m text-xl">+{{ num(ev.request_reward) }}</div></div>
+              <div v-if="Number(ev.coverage_bonus ?? 0) !== 0 || Number(reports[ev.id]?.score.coverage_bonus ?? 0) !== 0">
+                <div class="label">{{ t('subs.coverage_bonus') }}</div>
+                <div class="m text-xl">+{{ num(ev.coverage_bonus ?? reports[ev.id]?.score.coverage_bonus) }}<span v-if="(ev.coverage_evenness ?? reports[ev.id]?.score.coverage_evenness) != null" class="text3 text-xs"> · {{ t('subs.coverage_evenness') }} {{ num(ev.coverage_evenness ?? reports[ev.id]?.score.coverage_evenness, 3) }}</span></div>
+              </div>
               <div><div class="label">{{ t('subs.penalties') }}</div><div class="m text-xl text-[#ff6b6b]">−{{ num(penaltySum(ev)) }}</div></div>
             </div>
             <div class="table-wrap mt-4">
@@ -272,9 +279,12 @@ onMounted(async () => {
         <div class="panel">
           <div class="hd"><h2>{{ t('subs.reading_title') }}</h2></div>
           <p class="text2 text-sm">{{ t('subs.reading_formula') }}</p>
-          <pre class="code-block mt-3 text-xs">total = base_science + program_bonus + request_reward
+          <pre class="code-block mt-3 text-xs">total = base_science + program_bonus + request_reward + coverage_bonus
       − unsafe_observation − invalid_action − avoidable_wait
-      − required_miss − flexible_shortfall − request_miss</pre>
+      − required_miss − flexible_shortfall − request_miss
+
+coverage_bonus = coverage_bonus_weight × base_science × coverage_evenness</pre>
+          <p class="text3 mt-3 text-xs">{{ t('subs.coverage_weight_note') }}</p>
           <p class="text3 mt-3 text-xs">{{ t('subs.reading_note') }}</p>
           <p class="mt-5"><router-link class="label accent" to="/rules">{{ t('home.evaluation.link') }} →</router-link></p>
         </div>

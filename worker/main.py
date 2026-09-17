@@ -116,6 +116,7 @@ def metrics_from_report(report: dict, n_tiles: int = 0) -> dict:
     return {
         "score": float(sc["total"]), "base_science": float(sc.get("base_science", 0.0)), "program_bonus": float(sc.get("program_bonus", 0.0)),
         "request_reward": float(sc.get("request_reward", 0.0)), "penalty_total": round(sum(penalties.values()), 6), "penalties": penalties,
+        "coverage_bonus": round(float(sc.get("coverage_bonus", 0.0)), 6), "coverage_evenness": round(float(sc.get("coverage_evenness", 0.0)), 6),
         "completed_tiles": completed, "total_tiles": total_tiles, "required_missing": required_missing_n, "required_missing_ids": required_missing if isinstance(required_missing, list) else [],
         "flexible_shortfall": shortfall_n, "flexible_shortfall_by_region": shortfall if isinstance(shortfall, dict) else {}, "flexible_by_region": comp.get("flexible_by_region", {}),
         "requests_completed": sum(1 for r in reqs if r.get("status") == "completed"), "requests_total": len(reqs),
@@ -138,6 +139,7 @@ def _finish_eval(sb: Supa, ev: dict, out: Path, prefix: str, report: dict, extra
     sb.upload("results", f"{prefix}/report.json", report_path.read_bytes(), "application/json")
     ev.update({"status": "scored", "score": m["score"], "science_score": m["science_score"], "completion": m["completion"], "uniformity": m["uniformity"],
                "base_science": m["base_science"], "program_bonus": m["program_bonus"], "request_reward": m["request_reward"], "penalty_total": m["penalty_total"],
+               "coverage_bonus": m["coverage_bonus"], "coverage_evenness": m["coverage_evenness"],
                "completed_tiles": m["completed_tiles"], "required_missing": m["required_missing"], "flexible_shortfall": m["flexible_shortfall"],
                "termination_reason": m["termination_reason"], "report_path": f"{prefix}/report.json",
                "summary": {**(ev.get("summary") or {}), **{k: v for k, v in m.items() if k not in ("penalties", "flexible_by_region", "wait_seconds")},
@@ -253,11 +255,13 @@ def evaluate(sb: Supa, sub: dict) -> None:
         sb.update("submissions", {"id": f"eq.{sid}"}, {
             "status": "scored", "score": avg("score"), "science_score": avg("science_score"), "completion": avg("completion"), "uniformity": avg("uniformity"),
             "base_science": avg("base_science"), "program_bonus": avg("program_bonus"), "request_reward": avg("request_reward"), "penalty_total": avg("penalty_total"),
+            "coverage_bonus": avg("coverage_bonus"), "coverage_evenness": avg("coverage_evenness"),
             "completed_tiles": int(sum(e.get("completed_tiles") or 0 for e in scored) / n), "required_missing": int(sum(e.get("required_missing") or 0 for e in scored) / n),
             "flexible_shortfall": int(sum(e.get("flexible_shortfall") or 0 for e in scored) / n),
             "termination_reason": ";".join(sorted({e.get("termination_reason", "") for e in scored})),
             "metrics": {"scenarios": [{"slug": scn["slug"], "score": e["score"], "base_science": e.get("base_science"), "program_bonus": e.get("program_bonus"),
                                        "request_reward": e.get("request_reward"), "penalty_total": e.get("penalty_total"), "completed_tiles": e.get("completed_tiles"),
+                                       "coverage_bonus": e.get("coverage_bonus"), "coverage_evenness": e.get("coverage_evenness"),
                                        "required_missing": e.get("required_missing"), "termination_reason": e.get("termination_reason")} for e, scn in zip(evals, scn_rows)]},
             "error": "; ".join(f"{scn['slug']}: {e['error']}" for e, scn in zip(evals, scn_rows) if e.get("error"))[:4000], "finished_at": now_iso()})
     else:

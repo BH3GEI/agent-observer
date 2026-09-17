@@ -12,6 +12,7 @@ writes decisions.csv which is re-scored by the frozen scorer for the official re
 from __future__ import annotations
 
 import json
+import ast
 import os
 import queue
 import resource
@@ -62,6 +63,35 @@ class RunResult:
 AGENT_TEMPLATE_FILES = ("minimal_agent.py", "decision_graph.py", "model_factory.py", "protocol.py", "state.py", "my_strategy.py", "scoring_preview.py")
 
 
+def _is_strategy_module(path: Path) -> bool:
+    """True when the file looks like a my_strategy.py rather than an agent entry point.
+
+    Participants rename the strategy file all the time (strategy.py, solution.py, reference_strategy.py). Run as
+    an entry script it defines a function, does nothing and exits, and the scenario scores as if the agent never
+    answered — a five-figure penalty for a naming slip. Decided by parsing rather than by looking for substrings,
+    so a docstring mentioning choose_action does not count.
+    """
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+    except (SyntaxError, ValueError, OSError):
+        return False
+    has_choose_action = any(
+        isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == "choose_action"
+        for node in tree.body
+    )
+    if not has_choose_action:
+        return False
+    # an entry script runs something at import time: `if __name__ == "__main__"` or a bare top-level call
+    for node in tree.body:
+        if isinstance(node, ast.If):
+            test = ast.dump(node.test)
+            if "__name__" in test and "__main__" in test:
+                return False
+        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Call):
+            return False
+    return True
+
+
 def prepare_agent_dir(upload: Path, dest: Path, *, max_files: int = 2000, max_bytes: int = 50 * 1024 * 1024, original_name: str = "") -> Path:
     """Extract an uploaded .py or .zip into dest safely. Returns the entry script path (or dest when none is found)."""
     if dest.exists():
@@ -72,6 +102,10 @@ def prepare_agent_dir(upload: Path, dest: Path, *, max_files: int = 2000, max_by
         # so that complete_agent_package() can wrap it with the rest of the minimal agent; otherwise it is the entry
         base = os.path.basename(original_name or "")
         name = base if base in AGENT_TEMPLATE_FILES else "agent.py"
+        if name == "agent.py" and _is_strategy_module(upload):
+            # A file that defines choose_action and never runs anything is a strategy, whatever it got called —
+            # treating it as the entry script means it exits immediately and the run scores as a total miss.
+            name = "my_strategy.py"
         shutil.copyfile(upload, dest / name)
         return dest / name
     if not zipfile.is_zipfile(upload):

@@ -26,6 +26,8 @@ const phase = computed<Phase | null>(() => {
   return phases.value.find(p => p.counts_for_final && (p.status === 'open' || p.status === 'closed')) ?? phases.value.find(p => p.status === 'open') ?? phases.value[0] ?? null
 })
 const visible = computed(() => phase.value != null && phase.value.leaderboard_mode !== 'hidden')
+// The coverage term only exists where the scenario's score_config sets a weight, so keep the column out of practice phases.
+const showCoverage = computed(() => entries.value.some(e => (e.coverage_bonus ?? 0) !== 0))
 
 async function loadBoard() {
   if (!phase.value || !visible.value) { entries.value = []; return }
@@ -84,7 +86,7 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
             <ScoreBars class="mb-8" :entries="entries" :team-id="team?.id ?? null" :updated-at="updatedAt" />
             <div class="table-wrap">
               <table class="data-table">
-                <thead><tr><th>{{ t('leaderboard.rank') }}</th><th>{{ t('leaderboard.team') }}</th><th class="r">{{ t('leaderboard.score') }}</th><th class="r">{{ t('leaderboard.base_science') }}</th><th class="r">{{ t('leaderboard.bonus') }}</th><th class="r">{{ t('leaderboard.requests') }}</th><th class="r">{{ t('leaderboard.penalties') }}</th><th class="r">{{ t('leaderboard.tiles') }}</th><th class="r">{{ t('leaderboard.required_missing') }}</th><th class="r">{{ t('leaderboard.submissions') }}</th><th>{{ t('leaderboard.kind') }}</th></tr></thead>
+                <thead><tr><th>{{ t('leaderboard.rank') }}</th><th>{{ t('leaderboard.team') }}</th><th class="r">{{ t('leaderboard.score') }}</th><th class="r">{{ t('leaderboard.base_science') }}</th><th class="r">{{ t('leaderboard.bonus') }}</th><th class="r">{{ t('leaderboard.requests') }}</th><th v-if="showCoverage" class="r">{{ t('leaderboard.coverage') }}</th><th class="r">{{ t('leaderboard.penalties') }}</th><th class="r">{{ t('leaderboard.tiles') }}</th><th class="r">{{ t('leaderboard.required_missing') }}</th><th class="r">{{ t('leaderboard.submissions') }}</th><th>{{ t('leaderboard.kind') }}</th></tr></thead>
                 <tbody>
                   <tr v-for="row in entries" :key="row.team_id" data-testid="lb-row" :class="{ me: team && team.id === row.team_id }">
                     <td class="m text-[#315efb]">{{ row.rank }}</td>
@@ -93,6 +95,7 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
                     <td class="r m">{{ num(row.base_science) }}</td>
                     <td class="r m">{{ num(row.program_bonus) }}</td>
                     <td class="r m">{{ num(row.request_reward) }}</td>
+                    <td v-if="showCoverage" class="r m">{{ row.coverage_bonus == null ? '—' : `+${num(row.coverage_bonus)}` }}</td>
                     <td class="r m" :class="{ 'text-[#ff6b6b]': row.penalty_total > 0 }">−{{ num(row.penalty_total) }}</td>
                     <td class="r m">{{ row.completed_tiles ?? '—' }}</td>
                     <td class="r m" :class="{ 'text-[#ff6b6b]': Number(row.required_missing) > 0 }">{{ row.required_missing ?? '—' }}</td>

@@ -17,7 +17,7 @@ const isMe = (e: LeaderboardEntry) => props.teamId != null && e.team_id === prop
 /** The hatched penalty tail covers the part of the gross bar that the penalties took away (all of it when the total is negative). */
 const penaltyLeft = (e: LeaderboardEntry) => widthPct(Math.max(0, Math.min(e.total_score, gross(e))))
 const penaltyWidth = (e: LeaderboardEntry) => widthPct(Math.min(gross(e), Math.max(0, e.penalty_total)))
-const tooltip = (e: LeaderboardEntry) => tf('leaderboard.chart.tooltip', { score: num(e.total_score), base: num(e.base_science), bonus: num(e.program_bonus), requests: num(e.request_reward), penalty: num(e.penalty_total), tiles: e.completed_tiles ?? '—', missing: e.required_missing ?? '—' })
+const tooltip = (e: LeaderboardEntry) => tf('leaderboard.chart.tooltip', { score: num(e.total_score), base: num(e.base_science), bonus: num(e.program_bonus), requests: num(e.request_reward), coverage: num(e.coverage_bonus ?? 0), penalty: num(e.penalty_total), tiles: e.completed_tiles ?? '—', missing: e.required_missing ?? '—' })
 </script>
 
 <template>

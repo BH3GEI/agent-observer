@@ -22,7 +22,7 @@ export interface ReportRequest {
 }
 export interface ScoreReport {
   schema_version?: string
-  score: { total: number; base_science: number; program_bonus: number; request_reward: number; penalties: Partial<Record<PenaltyKey, number>> }
+  score: { total: number; base_science: number; program_bonus: number; request_reward: number; coverage_bonus?: number; coverage_evenness?: number; penalties: Partial<Record<PenaltyKey, number>> }
   completion: { completed_tiles: string[]; required_missing: string[]; flexible_by_region: Record<string, number>; flexible_shortfall: Record<string, number> }
   requests: ReportRequest[]
   wait_seconds: Partial<Record<WaitKey, number>>
