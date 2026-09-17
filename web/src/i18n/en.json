@@ -1755,7 +1755,11 @@
       "admin": "admin",
       "banned": "banned",
       "confirm_ban": "Toggle ban for this user?",
-      "confirm_admin": "Toggle admin for this user?"
+      "confirm_admin": "Toggle admin for this user?",
+      "recovery_link": "Reset link",
+      "link_ready": "Link generated and copied to the clipboard.",
+      "link_hint": "Send this to them directly (valid for one hour, single use):",
+      "no_link_returned": "No link was generated — check that this email is registered on the platform."
     },
     "teams": {
       "hide": "hide",

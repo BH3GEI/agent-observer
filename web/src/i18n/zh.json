@@ -1755,7 +1755,11 @@
       "admin": "管理员",
       "banned": "已封禁",
       "confirm_ban": "切换该用户的封禁状态？",
-      "confirm_admin": "切换该用户的管理员权限？"
+      "confirm_admin": "切换该用户的管理员权限？",
+      "recovery_link": "生成重置链接",
+      "link_ready": "链接已生成并复制到剪贴板。",
+      "link_hint": "把这条链接发给他本人（1 小时内有效，用过即失效）：",
+      "no_link_returned": "没能生成链接，请确认这个邮箱在平台上注册过。"
     },
     "teams": {
       "hide": "隐藏",
