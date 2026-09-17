@@ -20,6 +20,10 @@ Every candidate is a dict with these keys:
 `snapshot` is the full decision snapshot (cursor, current_site_weather, active_requests, progress, night_start,
 weekly ...) as documented on the platform's Docs page. `memory` is an empty dict at the start of each run that
 you may fill with anything you want to remember between decisions (nothing else persists).
+
+想看一份写完整、每条规则都讲清楚为什么存在的示范，见同目录的 `reference_strategy.py`
+（含实测数字，以及它为什么在当前赛题上只能和基线打平）。
+A fully worked, commented example lives next to this file in `reference_strategy.py`.
 """
 
 
