@@ -163,7 +163,7 @@ base       = V_tile · (segment_seconds / nominal_exptime_seconds) · combined
 bonus      = base · {DARK: 0.25, BRIGHT: 0.15, BACKUP: 0.08}[program]   if program == band, else 0
 ```
 
-`total = base_science + program_bonus + request_reward − unsafe_observation − invalid_action − avoidable_wait − required_miss − flexible_shortfall − request_miss`, with the constants of `config/score_config.json`:
+`total = base_science + program_bonus + request_reward + coverage_bonus − unsafe_observation − invalid_action − avoidable_wait − required_miss − flexible_shortfall − request_miss`, with the constants of `config/score_config.json`:
 
 | Term | Rule | Amount |
 |---|---|---|
@@ -174,6 +174,7 @@ bonus      = base · {DARK: 0.25, BRIGHT: 0.15, BACKUP: 0.08}[program]   if prog
 | `flexible_shortfall` | fewer than 4 FLEXIBLE tiles completed in a region | 100 per missing tile |
 | `request_miss` | request expired with fewer visits than required, unless no feasible opportunity existed (`excused_unobservable`) | `miss_penalty` per required tile (190) |
 | `request_reward` | request completed before its deadline | `reward` per required tile (140) |
+| `coverage_bonus` | how evenly finished tiles are spread over the regions (Jain's index) x base science x weight | weight per scenario in `score_config.json`: 0 for practice, 0.35 for the competition |
 
 Only completed exposures score. An exposure whose later segment meets closed weather is `weather_interrupted` (no science, no penalty); one that runs into the tile setting below 30° or the end of the night is `geometry_or_night_interrupted` (no science, invalid-action penalty). A tile scores once; the lunar factor lowers `combined` continuously when the moon is up and can change the matching program. Terminal penalties (`required_miss`, `flexible_shortfall`, `request_miss`) are applied even to runs cut short by the wall clock or an agent error.
 

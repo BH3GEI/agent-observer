@@ -163,7 +163,7 @@ base       = V_tile · (segment_seconds / nominal_exptime_seconds) · combined
 bonus      = program == band 时 base · {DARK: 0.25, BRIGHT: 0.15, BACKUP: 0.08}[program]，否则 0
 ```
 
-`total = base_science + program_bonus + request_reward − unsafe_observation − invalid_action − avoidable_wait − required_miss − flexible_shortfall − request_miss`，常数来自 `config/score_config.json`：
+`total = base_science + program_bonus + request_reward + coverage_bonus − unsafe_observation − invalid_action − avoidable_wait − required_miss − flexible_shortfall − request_miss`，常数来自 `config/score_config.json`：
 
 | 项 | 规则 | 数值 |
 |---|---|---|
@@ -174,6 +174,7 @@ bonus      = program == band 时 base · {DARK: 0.25, BRIGHT: 0.15, BACKUP: 0.08
 | `flexible_shortfall` | 某分区完成的 FLEXIBLE 天区少于 4 个 | 每缺一个 100 |
 | `request_miss` | 请求到期时访问数不足，除非根本不存在可行机会（`excused_unobservable`） | 每个所需天区 `miss_penalty`（190） |
 | `request_reward` | 请求在截止前完成 | 每个所需天区 `reward`（140） |
+| `coverage_bonus` | 已完成天区在各分区间的均匀度（Jain 指数）× 基础科学分 × 权重 | 权重见场景的 `score_config.json`：练习 0，正式比赛 0.35 |
 
 只有完成的曝光计分。后续分段遇到关闭天气的曝光为 `weather_interrupted`（无科学分，无惩罚）；跑到天区落到 30° 以下或夜晚结束的为 `geometry_or_night_interrupted`（无科学分，记无效动作惩罚）。每个天区只计一次分；月亮升起时月光因子持续降低 `combined`，并可能改变匹配的项目。终局惩罚（`required_miss`、`flexible_shortfall`、`request_miss`）对被时钟或智能体错误截断的运行同样适用。
 
