@@ -4,7 +4,8 @@ Usage:
   python -m worker.main run | once
   python -m worker.main seed                       # default scenarios + phases (idempotent)
   python -m worker.main add-scenario --slug S --root DIR [--name N] [--hidden-weather] [--hidden-forecasts] [--public-events] [--wallclock 3600]
-  python -m worker.main gen-scenario --slug S --seed 7 [--days 180] [--start-date 2026-10-05] [--wallclock 3600] [--hidden-weather] [--regions 8 --tiles-per-region 8]
+  python -m worker.main gen-scenario --slug S --seed 7 [--days 180] [--start-date 2026-10-05] [--wallclock 3600] [--hidden-weather]
+                                     [--regions 8 --tiles-per-region 200] [--coverage-weight 0.35]
   python -m worker.main promote-admin EMAIL
 
 Environment: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (service role), SAC_* limits (see worker/config.py).
@@ -303,12 +304,27 @@ def process_scenario_job(sb: Supa) -> bool:
     log.info("rotating scenario %s with seed %s (job %s)", slug, seed, job["id"])
     root = Path(tempfile.mkdtemp(prefix="sac-rotate-"))
     try:
+        # A rotation changes the weather, nothing else. Catalogue size and the coverage weight live in the
+        # scenario's own config, so read them off the copy already published rather than falling back to the
+        # reference defaults — otherwise rotating a competition scenario would quietly shrink it.
+        existing = sb.select("scenarios", filters={"slug": f"eq.{slug}"}, columns="name, description, checksum")
+        meta = existing[0] if existing else {"name": slug, "description": ""}
+        overrides, coverage_weight = {}, None
+        if meta.get("checksum"):
+            try:
+                current = fetch_scenario(sb, slug, meta["checksum"])
+                catalog = json.loads((current / "config" / "tile_config.json").read_text(encoding="utf-8"))["catalog"]
+                overrides = {"n_regions": int(catalog["n_regions"]), "tiles_per_region": int(catalog["tiles_per_region"])}
+                score_cfg = json.loads((current / "config" / "score_config.json").read_text(encoding="utf-8"))
+                if "coverage_bonus_weight" in score_cfg:
+                    coverage_weight = float(score_cfg["coverage_bonus_weight"])
+            except Exception:  # noqa: BLE001 - a missing local copy just means the reference defaults apply
+                log.warning("could not read the current config of %s; rotating with the reference defaults", slug)
         scenario_builder.generate_scenario(
             root, scenario_id=slug, seed=int(seed), days=job.get("days") or 30,
             start_date=job.get("start_date"), global_wallclock_seconds=job.get("wallclock") or 3600,
+            tile_overrides=overrides or None, coverage_bonus_weight=coverage_weight,
         )
-        existing = sb.select("scenarios", filters={"slug": f"eq.{slug}"}, columns="name, description")
-        meta = existing[0] if existing else {"name": slug, "description": ""}
         register_scenario(
             sb, slug=slug, name=meta.get("name") or slug, description=meta.get("description") or "", root=root,
             weather_public=bool(job.get("weather_public")), forecasts_public=bool(job.get("forecasts_public")),
@@ -395,8 +411,8 @@ DEFAULT_SCENARIOS = [
     ("dev-fortnight", "Development fortnight (14 nights, seed 2026)", "A short public scenario for quick iteration: 14 nights from 2026-10-05, all files public.", 2026, 14, "2026-10-05", 1800, True, True, True),
     # same parameters as starter_kit/scenarios/demo-week, so the shipped copy and the published one are the same scenario
     ("demo-week", "One-week demo (7 nights, seed 20261005)", "The seven-night demo shipped in the starter kit: 7 nights from 2026-10-05, all files public. Runs in seconds and the replay is short enough to read night by night.", 20261005, 7, "2026-10-05", 900, True, True, True),
-    ("eval-a", "Competition scenario A (hidden weather)", "Online competition replay A: 30 nights from 2026-10-05. Weather, forecasts and events are hidden; agents see only the published snapshots.", RANDOM_SEED, 30, "2026-10-05", 3600, False, False, False),
-    ("eval-b", "Competition scenario B (hidden weather)", "Online competition replay B: 30 nights from 2026-11-01, different seed.", RANDOM_SEED, 30, "2026-11-01", 3600, False, False, False),
+    ("eval-a", "Competition scenario A (hidden weather)", "Online competition replay A: 30 nights from 2026-10-05, 1600 tiles. Weather, forecasts and events are hidden; coverage evenness is scored.", RANDOM_SEED, 30, "2026-10-05", 3600, False, False, False),
+    ("eval-b", "Competition scenario B (hidden weather)", "Online competition replay B: 30 nights from 2026-11-01, 1600 tiles, different seed. Weather, forecasts and events are hidden; coverage evenness is scored.", RANDOM_SEED, 30, "2026-11-01", 3600, False, False, False),
 ]
 
 
@@ -466,6 +482,8 @@ def main(argv=None) -> int:
     g = sp.add_parser("gen-scenario"); g.add_argument("--slug", required=True); g.add_argument("--name"); g.add_argument("--description", default="")
     g.add_argument("--seed", type=int, required=True); g.add_argument("--days", type=int, default=180); g.add_argument("--start-date"); g.add_argument("--wallclock", type=int, default=7200)
     g.add_argument("--regions", type=int); g.add_argument("--tiles-per-region", type=int)
+    g.add_argument("--coverage-weight", type=float, default=None,
+                   help="weight of the coverage-evenness term; omitted leaves it absent, i.e. zero")
     g.add_argument("--hidden-weather", action="store_true"); g.add_argument("--hidden-forecasts", action="store_true"); g.add_argument("--public-events", action="store_true")
     pa = sp.add_parser("promote-admin"); pa.add_argument("email")
     args = p.parse_args(argv)
@@ -483,7 +501,9 @@ def main(argv=None) -> int:
     elif args.cmd == "gen-scenario":
         root = Path(tempfile.mkdtemp(prefix="sac-gen-"))
         ov = {k: v for k, v in (("n_regions", args.regions), ("tiles_per_region", args.tiles_per_region)) if v}
-        scenario_builder.generate_scenario(root, scenario_id=args.slug, seed=args.seed, days=args.days, start_date=args.start_date, global_wallclock_seconds=args.wallclock, tile_overrides=ov)
+        scenario_builder.generate_scenario(root, scenario_id=args.slug, seed=args.seed, days=args.days, start_date=args.start_date,
+                                           global_wallclock_seconds=args.wallclock, tile_overrides=ov,
+                                           coverage_bonus_weight=args.coverage_weight)
         row = register_scenario(sb, slug=args.slug, name=args.name or args.slug, description=args.description, root=root,
                                 weather_public=not args.hidden_weather, forecasts_public=not args.hidden_forecasts, events_public=args.public_events, wallclock=args.wallclock)
         shutil.rmtree(root, ignore_errors=True)
