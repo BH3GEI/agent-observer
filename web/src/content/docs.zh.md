@@ -110,7 +110,7 @@ decision_id,slot_id,action,tile_id,program,request_id,reason
 
 ### score_report.json（`score-report-v3`）
 
-`score{total, base_science, program_bonus, request_reward, penalties{unsafe_observation, invalid_action, avoidable_wait, required_miss, flexible_shortfall, request_miss}}`、`completion{completed_tiles[], required_missing[], flexible_by_region{}, flexible_shortfall{}}`、`requests[{request_id, status, satisfied_tile_count, required_tile_count, feasible_tile_count, reward, penalty}]`、`wait_seconds{explicit, implicit, invalid, avoidable, unavailable}`、每个决策一条的 `actions[]`（`outcome`、`start_utc`、`elapsed_seconds`、`base_science_score`、`program_bonus_score`、`penalty`，以及带 airmass、活动事件、大气与月光质量、质量区间和项目匹配的 `segments[]`）、`termination_reason`、`final_cursor`、`parameters` 与 `input_sha256`。
+`score{total, base_science, program_bonus, request_reward, coverage_bonus, coverage_evenness, penalties{unsafe_observation, invalid_action, avoidable_wait, required_miss, flexible_shortfall, request_miss}}`、`completion{completed_tiles[], required_missing[], flexible_by_region{}, flexible_shortfall{}}`、`requests[{request_id, status, satisfied_tile_count, required_tile_count, feasible_tile_count, reward, penalty}]`、`wait_seconds{explicit, implicit, invalid, avoidable, unavailable}`、每个决策一条的 `actions[]`（`outcome`、`start_utc`、`elapsed_seconds`、`base_science_score`、`program_bonus_score`、`penalty`，以及带 airmass、活动事件、大气与月光质量、质量区间和项目匹配的 `segments[]`）、`termination_reason`、`final_cursor`、`parameters` 与 `input_sha256`。
 
 动作结果：`completed`、`wait`、`weather_interrupted`、`geometry_or_night_interrupted`、`unsafe_observation`、`invalid_observe`、`invalid_request_tag`、`duplicate_tile`、`outside_tile_window`、`unknown_slot`、`stale_decision`。
 

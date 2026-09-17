@@ -191,7 +191,13 @@ def _strategy_decision(previews: list[CandidatePreview], state: DecisionState) -
     allowed = {(c["tile_id"], c["program"], c["request_id"]): c for c in candidates}
     memory = state.setdefault("memory", {})  # type: ignore[typeddict-item]
     try:
-        choice = chooser(candidates, state["snapshot"], memory)
+        # The scoring contract arrives once, in the initialize message, but a strategy only ever sees the
+        # per-decision snapshot — so surface it there. Competition scenarios carry the coverage weight in it.
+        snapshot = state["snapshot"]
+        contract = (state.get("initial_publication") or {}).get("scoring_contract")
+        if contract and "scoring_contract" not in snapshot:
+            snapshot = {**snapshot, "scoring_contract": contract, "score_config": contract.get("score_config", {})}
+        choice = chooser(candidates, snapshot, memory)
     except Exception as exc:  # noqa: BLE001
         import sys
         print(f"my_strategy.choose_action raised {type(exc).__name__}: {exc}; using the default ranking", file=sys.stderr, flush=True)

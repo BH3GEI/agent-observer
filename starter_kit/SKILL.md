@@ -50,7 +50,10 @@ means the environment is broken; read `run_output/agent.log` first. Exit code 2 
    (0.25/0.15/0.08) only when `program` matches the band of `A_used` (DARK ≥ 0.65, BRIGHT ≥ 0.40, else BACKUP).
    Penalties: 2000 unsafe observe (`is_observable` false at start), 100 invalid action, 0.001/s avoidable wait,
    1000 per missed REQUIRED tile, 100 per FLEXIBLE tile short of 4 per region, and each expired request's
-   `miss_penalty`. Completed requests add their `completion_reward`. A tile scores once.
+   `miss_penalty`. Completed requests add their `completion_reward`. A tile scores once. On top of that,
+   `coverage_bonus = coverage_bonus_weight × base_science × Jain_evenness` over finished tiles per region
+   (1.0 when evenly spread): the weight is 0 in practice scenarios, 0.35 in the competition ones — there,
+   which regions you observe changes the score.
 6. Scenario directory (`scenarios/<name>/`): `config/*.json` (calendar, tiles, weather, requests, workflow,
    score) and `outputs/reference/*.csv` (`night_calendar`, `slots`, `tiles`, `targets`, `tile_windows`,
    `observation_requests`, `observation_request_tiles`, `weather`, `weather_forecasts`, `weather_events`).
