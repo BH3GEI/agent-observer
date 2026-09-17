@@ -43,11 +43,11 @@
     },
     "outputs/reference/tile_windows.csv": {
       "rows": 150,
-      "sha256": "3a3ebf5624f28a5cd6707189dbf8b1461caa0f3f899c723f10efcb2b2fe88840"
+      "sha256": "dd4c591a179da537f23a010a1bcc3cfbdecab0870cb088815a40accb4b40c54f"
     },
     "outputs/reference/tiles.csv": {
       "rows": 64,
-      "sha256": "b550a1a965dc1f864d73e60bd67d4aecc3e5020791b4ebcbf2f3e8769649ac3c"
+      "sha256": "ce64bd54679aad72c7fc0424bc2b41828ea2cf393a6a67cee9997e7b96a487cc"
     },
     "outputs/reference/weather.csv": {
       "rows": 294,

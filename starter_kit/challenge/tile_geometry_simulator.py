@@ -296,6 +296,84 @@ def geometry_sample_without_lunar(
     }
 
 
+# A REQUIRED tile offered on a single night is a coin flip on the weather, not something to plan around.
+MIN_REQUIRED_NIGHTS = 2
+
+
+def _assign_required(
+    tiles: Sequence[Tile],
+    config: Mapping,
+    calendar_config: Mapping,
+    nights: Sequence[Night],
+) -> list[Tile]:
+    """Mark `required_per_region` tiles per region REQUIRED, choosing only tiles the site can actually reach.
+
+    Right ascension decides when a tile transits, so over a short survey roughly a sixth of the sky only ever
+    crosses the meridian in daylight. Designating those tiles REQUIRED by array index charged every agent the
+    miss penalty for an exposure it was never offered — the scorer has no notion of an excused REQUIRED tile the
+    way it does for requests. Over a long survey the Sun works through every right ascension, so nothing is
+    excluded there and existing long scenarios keep the catalogue they had.
+    """
+    required_per_region = int(config["catalog"]["required_per_region"])
+    by_region: dict[str, list[int]] = {}
+    for index, tile in enumerate(tiles):
+        by_region.setdefault(tile.region_id, []).append(index)
+
+    chances = {
+        index: completable_nights(tile, config, calendar_config, nights)
+        for index, tile in enumerate(tiles)
+    }
+    required: set[int] = set()
+    for indices in by_region.values():
+        # A region whose right ascension only transits in daylight for this survey contributes no REQUIRED tiles
+        # at all: `required_per_region` is an upper bound, not a quota to fill with unreachable tiles.
+        reachable = [i for i in indices if chances[i] >= MIN_REQUIRED_NIGHTS]
+        required.update(reachable[:required_per_region])
+    return [
+        replace(tile, scheduling_class="REQUIRED") if index in required else tile
+        for index, tile in enumerate(tiles)
+    ]
+
+
+def completable_nights(
+    tile: Tile,
+    config: Mapping,
+    calendar_config: Mapping,
+    nights: Sequence[Night],
+) -> int:
+    """How many nights offer an unbroken stretch long enough to finish one exposure of this tile.
+
+    Mirrors how the platform builds tile windows (`SkyGeometry.get_tile_windows`): walk the night's slots, sample
+    the altitude at each slot midpoint, group the consecutive eligible ones. Two details matter beyond simply
+    clearing the altitude limit — an exposure that cannot finish before the tile sets is an invalid action, so
+    the stretch has to be at least as long as the exposure; and a tile offered on exactly one night is a coin
+    flip on the weather rather than something an agent can plan for.
+    """
+    slot_seconds = float(calendar_config["survey"]["slot_seconds"])
+    minimum_altitude = float(config["geometry"]["minimum_altitude_deg"])
+    exposure = float(tile.nominal_exptime_seconds)
+    count = 0
+    for night in nights:
+        start = night.observing_start_utc
+        span = (night.observing_end_utc - start).total_seconds()
+        run = 0.0
+        offset = 0.0
+        fits = False
+        while offset < span:
+            midpoint = start + timedelta(seconds=offset + slot_seconds / 2)
+            if geometry_sample_without_lunar(tile, midpoint, calendar_config)["altitude_deg"] >= minimum_altitude:
+                run += slot_seconds
+                if run >= exposure:
+                    fits = True
+                    break
+            else:
+                run = 0.0
+            offset += slot_seconds
+        if fits:
+            count += 1
+    return count
+
+
 def build_catalog(
     config: Mapping,
     calendar_config: Mapping,
@@ -321,13 +399,12 @@ def build_catalog(
                     dec_deg=math.degrees(math.asin(rng.uniform(sin_dec_min, sin_dec_max))),
                     nominal_exptime_seconds=int(rng.choice(catalog["nominal_exptime_choices_seconds"])),
                     region_id=f"R{region_index:02d}",
-                    scheduling_class=(
-                        "REQUIRED" if local_index < int(catalog["required_per_region"]) else "FLEXIBLE"
-                    ),
+                    scheduling_class="FLEXIBLE",
                     available_from_utc=survey_start,
                     available_until_utc=survey_end,
                 )
             )
+    tiles = _assign_required(tiles, config, calendar_config, nights)
     limited = int(catalog["time_limited_required_per_region"])
     window_days = int(catalog["time_limited_window_days"])
     adjusted: list[Tile] = []
