@@ -76,6 +76,23 @@ def load_tile_values(path: Path, tiles: Mapping[str, Tile]) -> dict[str, float]:
     return dict(values)
 
 
+def _coverage_evenness(completed_by_region: "Counter[str]", regions: "list[str]") -> float:
+    """How evenly the finished tiles are spread over the survey regions, as Jain's fairness index.
+
+    (sum x)^2 / (n * sum x^2): 1.0 when every region got the same number of tiles, 1/n when one region took
+    everything, 0 when nothing was observed. Wide surveys need even coverage to support the statistics they
+    exist for, but a score that only adds up per-tile science is indifferent to where those tiles are — an agent
+    can abandon a whole region for free. Weighting this term makes that choice cost something.
+    """
+    if not regions:
+        return 0.0
+    counts = [float(completed_by_region.get(region, 0)) for region in regions]
+    total = sum(counts)
+    if total <= 0.0:
+        return 0.0
+    return (total * total) / (len(counts) * sum(value * value for value in counts))
+
+
 class ChallengeScorer:
     def __init__(
         self,
@@ -379,7 +396,12 @@ class ChallengeScorer:
                                  "required_tile_count": request.required_tile_count, "feasible_tile_count": feasible_count,
                                  "reward": reward, "penalty": penalty})
         self.penalties["request_miss"] = request_penalty
-        subtotal = self.base_science_score + self.program_bonus_score + request_reward
+        coverage_evenness = _coverage_evenness(
+            Counter(self.tiles[tile].region_id for tile in self.completed_tiles), regions
+        )
+        coverage_weight = float(self.config.get("coverage_bonus_weight", 0.0))
+        coverage_bonus = coverage_weight * self.base_science_score * coverage_evenness
+        subtotal = self.base_science_score + self.program_bonus_score + request_reward + coverage_bonus
         total_penalty = sum(self.penalties.values())
         slot = self.current_slot()
         return {
@@ -388,6 +410,7 @@ class ChallengeScorer:
                              "timestamp_utc": None if final_time is None else format_utc(final_time)},
             "score": {"total": round(subtotal - total_penalty, 6), "base_science": round(self.base_science_score, 6),
                       "program_bonus": round(self.program_bonus_score, 6), "request_reward": round(request_reward, 6),
+                      "coverage_bonus": round(coverage_bonus, 6), "coverage_evenness": round(coverage_evenness, 6),
                       "penalties": {key: round(value, 6) for key, value in sorted(self.penalties.items())}},
             "completion": {"completed_tiles": sorted(self.completed_tiles), "required_missing": required_missing,
                            "flexible_by_region": dict(sorted(flexible.items())), "flexible_shortfall": shortfall},

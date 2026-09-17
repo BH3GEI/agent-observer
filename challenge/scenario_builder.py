@@ -75,7 +75,7 @@ def _run(module: str, *args: str) -> None:
 
 def generate_scenario(root: Path, *, scenario_id: str, seed: int, days: int = 180, start_date: str | None = None,
                       global_wallclock_seconds: int = 7200, tile_overrides: dict | None = None, base: Path = EXAMPLE3_ROOT,
-                      window_days: int = 3) -> dict:
+                      window_days: int = 3, coverage_bonus_weight: float | None = None) -> dict:
     """Create a complete scenario directory from the reference configs with a new seed (deterministic)."""
     root = Path(root)
     if root.exists():
@@ -110,8 +110,14 @@ def generate_scenario(root: Path, *, scenario_id: str, seed: int, days: int = 18
         c["seed"] = seed
     def _wf(c):
         c["global_wallclock_seconds"] = float(global_wallclock_seconds)
+    def _score(c):
+        # Absent means zero, so a scenario that never sets it keeps the exact v3 totals it always had.
+        if coverage_bonus_weight is not None:
+            c["coverage_bonus_weight"] = float(coverage_bonus_weight)
     patch("scenario_config.json", _scn); patch("calendar_config.json", _cal); patch("tile_config.json", _tile)
     patch("weather_config.json", _weather); patch("request_config.json", _req); patch("workflow_config.json", _wf)
+    if coverage_bonus_weight is not None:
+        patch("score_config.json", _score)
     cd, dd = config_dir(root), data_dir(root)
     _run("observing_calendar", "--config", str(cd / "calendar_config.json"), "--output-dir", str(dd), "generate")
     _run("tile_geometry_simulator", "--tile-config", str(cd / "tile_config.json"), "--calendar-config", str(cd / "calendar_config.json"),
