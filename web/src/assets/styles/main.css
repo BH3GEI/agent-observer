@@ -504,8 +504,9 @@ button:disabled { cursor: not-allowed; }
 .rows > *:last-child { border-bottom: 1px solid rgba(255,255,255,.2); }
 
 .cards { display: grid; gap: 1px; border: 1px solid #3a3a3a; background: #3a3a3a; }
-@media (min-width: 768px) { .cards-2 { grid-template-columns: repeat(2, 1fr); } .cards-3 { grid-template-columns: repeat(3, 1fr); } .cards-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 768px) { .cards-2 { grid-template-columns: repeat(2, 1fr); } .cards-3 { grid-template-columns: repeat(3, 1fr); } .cards-4 { grid-template-columns: repeat(2, 1fr); } .cards-5 { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 1024px) { .cards-4 { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1100px) { .cards-5 { grid-template-columns: repeat(5, 1fr); } }
 .card { background: #000; padding: 1.75rem; min-width: 0; }
 .card h3, .card h4 { font-size: 1.0625rem; font-weight: 500; letter-spacing: -.02em; color: #f5f5f5; }
 .card p { margin-top: .5rem; color: #bdbdbd; font-size: .9rem; line-height: 1.65; }

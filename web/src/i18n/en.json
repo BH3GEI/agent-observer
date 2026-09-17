@@ -1506,6 +1506,8 @@
     "lede": "Everything needed to run and score an agent locally: the starter kit and, per scenario, the configuration and reference files the platform uses.",
     "kit": "Starter kit (zip)",
     "kit_desc": "agent/ (minimal agent, optional LLM via .env), challenge/ (workflow, scorer, preview, simulators, replay), scenarios/dev-reference, local_runner.py, score_decisions.py, make_scenario.py, pack_agent.py, sac_submit.py, SKILL.md.",
+    "reference": "Reference implementation (GitHub)",
+    "reference_desc": "A complete, runnable example strategy, reference_strategy.py: published snapshot data and the standard library only — copy it over my_strategy.py and it runs. It measures an exact tie with the greedy baseline. Read it, then beat it.",
     "skill": "SKILL.md",
     "skill_desc": "One-file instructions an AI coding agent can follow to build, test and submit.",
     "scenarios": "Scenarios",

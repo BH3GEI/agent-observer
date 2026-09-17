@@ -17,9 +17,10 @@ const GROUPS: ScenarioFileGroup[] = ['config', 'data', 'weather', 'forecasts', '
 
 const kit = [
   { n: '01', title: 'resources.kit', desc: 'resources.kit_desc', href: appUrl('/downloads/agent-observer-starter-kit.zip'), primary: true, label: 'common.download' },
-  { n: '02', title: 'resources.scorer', desc: 'resources.scorer_desc', href: appUrl('/downloads/scoring_core.py'), primary: false, label: 'common.download' },
-  { n: '03', title: 'resources.skill', desc: 'resources.skill_desc', href: appUrl('/skill.md'), primary: false, label: 'common.view', view: true },
-  { n: '04', title: 'resources.docs', desc: 'resources.docs_desc', href: '/docs', primary: false, label: 'common.view', route: true },
+  { n: '02', title: 'resources.reference', desc: 'resources.reference_desc', href: 'https://github.com/BH3GEI/agent-observer/tree/main/challenge/participant_agent', primary: false, label: 'common.view', view: true },
+  { n: '03', title: 'resources.scorer', desc: 'resources.scorer_desc', href: appUrl('/downloads/scoring_core.py'), primary: false, label: 'common.download' },
+  { n: '04', title: 'resources.skill', desc: 'resources.skill_desc', href: appUrl('/skill.md'), primary: false, label: 'common.view', view: true },
+  { n: '05', title: 'resources.docs', desc: 'resources.docs_desc', href: '/docs', primary: false, label: 'common.view', route: true },
 ]
 const cli = `# environment for sac_submit.py (also printed in SKILL.md inside the kit)
 export SAC_URL=${import.meta.env.VITE_SUPABASE_URL || 'https://<ref>.supabase.co'}
@@ -61,7 +62,7 @@ onMounted(async () => {
   <main class="poster-canvas">
     <PageHead :kicker="t('resources.kicker')" :title="t('resources.title')" :lede="t('resources.lede')" />
     <section class="section"><div class="wrap">
-      <div class="cards cards-4">
+      <div class="cards cards-5">
         <article v-for="item in kit" :key="item.n" class="card">
           <span class="label accent">{{ item.n }}</span>
           <h3 class="mt-3">{{ t(item.title) }}</h3>
