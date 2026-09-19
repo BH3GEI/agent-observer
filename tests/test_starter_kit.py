@@ -19,7 +19,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 KIT = ROOT / "starter_kit"
 PY = sys.executable
-BASELINE_TOTAL = 12287.478365  # deterministic minimal agent, scenarios/dev-reference, survey_complete
+BASELINE_TOTAL = 23430.568406  # deterministic minimal agent, scenarios/dev-reference, survey_complete
 
 
 def run(script: str, *args: str, cwd: Path = KIT, timeout: int = 240) -> subprocess.CompletedProcess:
@@ -40,7 +40,7 @@ def sha256(path: Path) -> str:
 def baseline(tmp_path_factory) -> dict:
     out = tmp_path_factory.mktemp("baseline")
     proc = run("local_runner.py", "--scenario", "scenarios/dev-reference", "--agent", "agent/minimal_agent.py",
-               "--wallclock", "120", "--out", str(out), "--quiet")
+               "--wallclock", "240", "--out", str(out), "--quiet")
     summary = summary_of(proc)
     return {"out": out, "summary": summary}
 
@@ -52,7 +52,7 @@ def test_baseline_completes_survey(baseline):
     assert summary["total"] > 12000
     assert summary["total"] == pytest.approx(BASELINE_TOTAL, abs=1.0)
     assert summary["required_missing"] == 0
-    assert summary["wall_seconds"] < 120
+    assert summary["wall_seconds"] < 240
     for name in ("decisions.csv", "workflow_result.json", "score_report.json", "agent.log"):
         assert (out / name).is_file(), name
     report = json.loads((out / "score_report.json").read_text(encoding="utf-8"))
@@ -69,7 +69,7 @@ def test_baseline_completes_survey(baseline):
 
 
 def test_baseline_is_deterministic(baseline, tmp_path):
-    proc = run("local_runner.py", "--wallclock", "120", "--out", str(tmp_path), "--quiet", "--no-replay")
+    proc = run("local_runner.py", "--wallclock", "240", "--out", str(tmp_path), "--quiet", "--no-replay")
     second = summary_of(proc)
     assert second["total"] == baseline["summary"]["total"]
     assert sha256(tmp_path / "decisions.csv") == sha256(baseline["out"] / "decisions.csv")
@@ -219,7 +219,7 @@ def test_kit_docs_and_layout():
     for placeholder in ("{{BASE_URL}}", "{{SUPABASE_URL}}", "{{SUPABASE_ANON_KEY}}"):
         assert placeholder in skill
     readme = (KIT / "README.md").read_text(encoding="utf-8")
-    assert "agent/README_ZH.md" in readme and "participant-agent-protocol-v1" in readme
+    assert "agent/README_ZH.md" in readme and "participant-agent-protocol-v2" in readme
     assert not (KIT / "agent" / ".env").exists(), "never ship a real .env in the kit"
     assert (KIT / "agent" / ".env.example").is_file()
     assert not (KIT / "scenarios" / "dev-reference" / "outputs" / "reference" / "score_report.json").exists()

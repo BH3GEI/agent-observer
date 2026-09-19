@@ -22,23 +22,31 @@ python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal
 ```
 
 Standard output ends with a JSON summary (`--quiet` prints only that). Expected for the unmodified kit: `"termination_reason": "survey_complete"`,
-`"total"` ≈ 12287.48, `"completed_tiles": 64`, `"required_missing": 0`, `wall_seconds` ≈ 10-20. Anything else
+`"total"` ≈ 23430.57, `"completed_tiles": 64`, `"required_missing": 0`, `wall_seconds` ≈ 10-20. Anything else
 means the environment is broken; read `run_output/agent.log` first. Exit code 2 means the agent crashed
 (`agent_error`) or failed to start.
 
 ## 3. Understand the task
 
-1. Protocol `participant-agent-protocol-v1`, one JSON object per line on stdin/stdout. The platform sends one
+1. Protocol `participant-agent-protocol-v2`, one JSON object per line on stdin/stdout. The platform sends one
    `initialize` (no reply), then repeats `decision_request` → your `decision_response` with the same
    `decision_sequence`. Full envelope shapes are in `README.md`; `agent/protocol.py` validates them.
-2. Each `decision_request.payload` (`decision-snapshot-v2`) gives `cursor` (slot, time, offset),
+2. Each `decision_request.payload` (`decision-snapshot-v3`) gives `cursor` (slot, time, offset),
    `current_site_weather`, `candidate_tiles` (each legal start now, with `tile_science_value`, window,
    `geometry.airmass`, `geometry.lunar_quality_factor`, `effective_weather`, `already_completed`),
-   `active_requests` with visit progress, `progress`, and on the first decision of a night `night_start`
-   (that night's tile windows) and every 7th night `weekly` (weather forecast revisions, multi-night windows,
-   requests).
+   `active_requests` with visit progress, `progress`, `tile_last_finished` (the realized score of your last
+   finished exposure, `null` before the first), and on the first decision of a night `night_start`
+   (that night's tile windows), every 7th night `weekly` (weather forecast revisions, multi-night windows,
+   requests), and — only once a fault report of yours was correct — `fault_status` (fault scope, effective
+   efficiency multiplier, repair completion time, re-published nightly until repaired). Snapshot weather never
+   carries `instrument_efficiency`: the preview baseline is efficiency-free by design, so the deviation of a
+   realized score from its baseline isolates the hidden instrument side (jitter × fault × tag).
 3. Response: `{"action":"observe","tile_id":...,"program":"DARK|BRIGHT|BACKUP","request_id":"","reason":"..."}`
-   or `{"action":"wait","reason":"..."}`. `observe` runs `nominal_exptime_seconds` from the cursor and may cross
+   or `{"action":"wait","reason":"..."}`, optionally with a `"reports"` array — entries
+   `{"kind":"Instrument_Failure"}` or `{"kind":"NOVA"|"Reddening","tile_id":"..."}` that report anomalies you
+   detected. Reports never consume slot time; malformed entries are dropped (the action still counts);
+   accepted reports land in `decisions.csv` as `report_*` action rows right after their carrier decision.
+   `observe` runs `nominal_exptime_seconds` from the cursor and may cross
    slot boundaries; `wait` consumes the rest of the current slot.
 4. Time: one global wall clock per scenario (`initialize.global_wallclock_seconds`, also `SAC_WALLCLOCK_SECONDS`
    in the environment; 7200 s on the reference scenario). No per-decision limit. When it expires the process is
@@ -47,22 +55,44 @@ means the environment is broken; read `run_output/agent.log` first. Exit code 2 
    reference scenario has about 7,900 slots.
 5. Score (`challenge-score-v3`): per exposure `V_tile * A_used * (1 + bonus)` where
    `A_used = instrument_efficiency*transparency*sky_quality/(seeing*airmass) * lunar_quality_factor`; the bonus
-   (0.25/0.15/0.08) only when `program` matches the band of `A_used` (DARK ≥ 0.65, BRIGHT ≥ 0.40, else BACKUP).
+   (0.25/0.15/0.08) only when `program` matches the band of `A_used` (DARK ≥ 0.65, BRIGHT ≥ 0.40, else BACKUP) —
+   bands are computed on the efficiency-free quality, so the preview and the scorer always agree on them while
+   efficiency still scales the score.
+   Repeat observations are legal: a tile banks the **maximum** over its observations, and completion still banks
+   on the first legal one. Hidden tags multiply a tile's score (nova ×1.5, reddening ×0.8, stacking); a
+   region-scoped instrument fault collapses its efficiency (multiplier down to 0.10), is never forecast, and
+   does not end on its own — only a correct report's two-day repair ends it, otherwise it runs to the survey end.
    Penalties: 2000 unsafe observe (`is_observable` false at start), 100 invalid action, 0.001/s avoidable wait,
    1000 per missed REQUIRED tile, 100 per FLEXIBLE tile short of 4 per region, and each expired request's
-   `miss_penalty`. Completed requests add their `completion_reward`. A tile scores once. On top of that,
+   `miss_penalty`. Completed requests add their `completion_reward`. On top of that,
    `coverage_bonus = coverage_bonus_weight × base_science × Jain_evenness` over finished tiles per region
    (1.0 when evenly spread): the weight is 0 in practice scenarios, 0.35 in the competition ones — there,
    which regions you observe changes the score.
-6. Scenario directory (`scenarios/<name>/`): `config/*.json` (calendar, tiles, weather, requests, workflow,
+6. Reporting: compare `tile_last_finished.score` against the public-formula estimate of that exposure.
+   Baselines are efficiency-free, so reads sit at ≈ 0.90–1.00 from jitter alone; ≈ 1.35–1.5 → NOVA,
+   ≈ 0.72–0.80 → Reddening, persistently below 0.70 → Instrument_Failure. These bands are a heuristic for
+   spotting anomalies, not a rule the scorer applies. Reads taken under a forecasted
+   cold_wave carry a legitimate efficiency dip — skip them. Correct tags earn +100,
+   wrong ones cost −150 (first report per tile and tag counts; both tags may be reported on one tile), so only
+   report with solid evidence — the shipped `anomaly_detection.py` shows one conservative way (a tag must
+   dominate the tile's read history; a fault needs repeated collapses). A correct fault report publishes
+   `fault_status` one simulated day later and starts a two-day repair; with no active fault the same report is
+   a misreport (one free per correct report, then 100 each) and gets a one-night `"status":"normal"` answer.
+   The short `demo-week` scenario (see `QUICKSTART.md`) is only seven nights long, so the shipped detector
+   resolves just part of its hidden tags there — it can miss tags and file a wrong report. That is expected:
+   it is a demonstration detector, not a calibrated solution; `scenarios/dev-reference` is the 180-night
+   scenario where it reports all four tags.
+7. Scenario directory (`scenarios/<name>/`): `config/*.json` (calendar, tiles, weather, requests, workflow,
    score) and `outputs/reference/*.csv` (`night_calendar`, `slots`, `tiles`, `targets`, `tile_windows`,
-   `observation_requests`, `observation_request_tiles`, `weather`, `weather_forecasts`, `weather_events`).
+   `observation_requests`, `observation_request_tiles`, `weather`, `weather_forecasts`, `weather_events`,
+   and `tile_anomalies` when the scenario ships hidden tags).
    `README.md` lists every file. Weather events are directional (`REGION_SET`, `SKY_CAP_ICRS`, `HORIZON_SECTOR`
    or `ALL`) and some force a closure, so a candidate's `effective_weather` can differ from
    `current_site_weather`; forecasts are uncertain and revised daily. Requests have deadline classes
    `ONE_WEEK` / `TWO_WEEKS` / `ONE_MONTH` and completion modes `ALL` / `AT_LEAST_N`.
-7. `agent/scoring_preview.py` (`preview_actions(snapshot, scoring_contract)`) computes the public estimate for every
+8. `agent/scoring_preview.py` (`preview_actions(snapshot, scoring_contract)`) computes the public estimate for every
    legal candidate, including terminal-penalty avoidance and request value; it is what the baseline ranks by.
+   Pass a `tile_best_scores` map to value repeat observations by their real marginal gain.
 
 ## 4. Generate more scenarios
 
@@ -123,18 +153,20 @@ and at least one long (≥ 90-night) scenario before submitting.
 
 `run_output/score_report.json` (and the platform's report) is `score-report-v3`:
 
-* `score.total / base_science / program_bonus / request_reward / penalties{...}` — the decomposition.
+* `score.total / base_science / program_bonus / request_reward / report_reward / penalties{...}` — the decomposition.
 * `completion.required_missing`, `completion.flexible_shortfall` — what the terminal penalties came from.
 * `requests[]` — `completed`, `missed`, `excused_unobservable` or `active_incomplete` per request.
+* `reports` — the settlement of your reports: per-(tile, tag) outcomes (+100 / −150), fault correct/misreport counts.
 * `actions[]` — every committed decision with its `outcome` (`completed`, `wait`, `weather_interrupted`,
-  `geometry_or_night_interrupted`, `unsafe_observation`, `invalid_observe`, `duplicate_tile`,
+  `geometry_or_night_interrupted`, `unsafe_observation`, `invalid_observe`,
   `outside_tile_window`, `invalid_request_tag`, `unknown_slot`, `stale_decision`) and exposure `segments`
   with the quality used. Interrupted exposures score nothing but carry no penalty; the `invalid_*`,
-  `duplicate_tile`, `outside_tile_window`, `invalid_request_tag` and `unknown_slot` outcomes cost 100 each,
-  `unsafe_observation` 2000.
+  `outside_tile_window`, `invalid_request_tag` and `unknown_slot` outcomes cost 100 each,
+  `unsafe_observation` 2000. Re-observing a completed tile is legal and scores (the tile banks the max).
 * `termination_reason` — `survey_complete`, `global_wallclock_expired`, `agent_error`, `agent_initialization_error`.
 
-`python3 score_decisions.py --scenario DIR --decisions run/decisions.csv` re-scores a decisions file; the result
+`python3 score_decisions.py --scenario DIR --decisions run/decisions.csv` re-scores a decisions file (including
+its `report_*` rows); the result
 is identical to the runner's report and to the platform's for the same public scenario.
 
 ## 8. If the platform reports failure
@@ -145,5 +177,5 @@ is identical to the runner's report and to the platform's for the same public sc
    common mistakes, otherwise pin known versions.
 3. `global_wallclock_expired` with a low score: the agent is too slow; remove per-decision LLM calls or shrink
    the prompt, and profile with `--wallclock 60` locally.
-4. `invalid_action` penalties: the response referenced a tile that was not a current candidate, an already
-   completed tile, or a bad program / request id; keep the validation in `_finalize`.
+4. `invalid_action` penalties: the response referenced a tile that was not a current candidate, a tile outside
+   its availability window, or a bad program / request id; keep the validation in `_finalize`.

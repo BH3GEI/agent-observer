@@ -48,7 +48,7 @@ def run(stdin=sys.stdin, stdout=sys.stdout) -> None:
         if agent is None:
             raise RuntimeError("decision_request received before initialize")
         decision = agent.decide(payload)
-        response = decision_response(int(message["decision_sequence"]), decision)
+        response = decision_response(int(message["decision_sequence"]), decision, decision.get("reports"))
         print(
             json.dumps(response, ensure_ascii=False, separators=(",", ":")),
             file=stdout,

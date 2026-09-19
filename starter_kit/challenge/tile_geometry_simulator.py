@@ -73,7 +73,8 @@ def load_config(path: Path) -> dict:
 
 def validate_config(config: Mapping) -> None:
     required = {"schema_version", "seed", "geometry", "catalog", "lunar_model", "target_models"}
-    if set(config) != required or config.get("schema_version") != SCHEMA_VERSION:
+    # anomaly_tags is optional: absent means the scenario ships no hidden tile tags.
+    if not required <= set(config) <= required | {"anomaly_tags"} or config.get("schema_version") != SCHEMA_VERSION:
         raise ValueError("invalid tile geometry config keys or schema_version")
     catalog = config["catalog"]
     for key in (

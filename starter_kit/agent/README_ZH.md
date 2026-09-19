@@ -114,6 +114,15 @@ agent    -> decision_response
 每条消息是单独一行 JSON。`decision_response.decision_sequence` 必须与请求相同。
 反复查询当前快照不推进世界；提交 action 才推进时间。
 
+快照还带两块异常检测相关的信息：`tile_last_finished`（最近一次完成观测的实现分数，
+中断得 0，首次完成前为 null）与夜初才出现的 `fault_status`（正确故障上报一天后发布
+故障范围/生效乘数/修复完成时间，维修期每晚重发；误报则同期收到一次 `status: normal` 应答）。
+`decision_response` 可附 `reports` 数组上报异常：`{"kind":"Instrument_Failure"}` 或
+`{"kind":"NOVA"|"Reddening","tile_id":"..."}`，不占时隙、不推进时间；畸形条目被丢弃，
+动作照常入账。被接受的上报在 `decisions.csv` 里落为紧随承载决策的
+`report_instrument_failure` / `report_nova` / `report_reddening` 动作行（共享递增的
+`decision_id` 序列），单个文件即可完整复放。
+
 ## 当前评分参数
 
 初始消息会提供完整 `challenge-score-v3` 配置。当前公开值为：
@@ -124,12 +133,16 @@ agent    -> decision_response
 - avoidable wait：每秒 `0.001`；
 - REQUIRED miss：每 tile `1000`；
 - FLEXIBLE region shortfall：每 tile `100`，每 region quota 为 `4`。
+- 重复观测合法：每个 tile 按历次观测的最高分入账，完成状态仍以首次合法观测为准。
+- 隐藏标签乘数：nova `×1.5`、reddening `×0.8`（可叠加）；标签上报对了 `+100`、错了 `−150`
+  （每个 tile 每种标签只计首次）；故障误报在每次正确上报之间有一次免费额度，之后每次 `−100`。
 
-`scoring_preview.py` 使用公开当前天气、airmass 和 lunar factor 计算：
+`scoring_preview.py` 使用公开当前天气、airmass 和 lunar factor 计算（快照不含
+`instrument_efficiency`，preview 基线因此不含效率因子——实现分与基线的偏差正好隔离出
+隐藏的仪器侧：效率抖动 × 故障乘数 × 标签乘数）：
 
 ```text
-atmospheric = instrument_efficiency * transparency * sky_quality
-              / (seeing_arcsec * airmass)
+atmospheric = transparency * sky_quality / (seeing_arcsec * airmass)
 combined = atmospheric * lunar_quality_factor
 estimated_science = V_tile * combined * (1 + matched_program_bonus)
 ```

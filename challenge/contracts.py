@@ -11,9 +11,9 @@ from typing import Iterable, Mapping, Sequence
 
 UTC = timezone.utc
 
-PARTICIPANT_PROTOCOL_VERSION = "participant-agent-protocol-v1"
+PARTICIPANT_PROTOCOL_VERSION = "participant-agent-protocol-v2"
 INITIAL_PUBLICATION_VERSION = "initial-publication-v2"
-DECISION_SNAPSHOT_VERSION = "decision-snapshot-v2"
+DECISION_SNAPSHOT_VERSION = "decision-snapshot-v3"
 WORKFLOW_RESULT_VERSION = "workflow-result-v2"
 
 NIGHT_COLUMNS = [
@@ -144,6 +144,18 @@ DECISION_COLUMNS = [
     "request_id",
     "reason",
 ]
+
+REPORT_KINDS = ("Instrument_Failure", "NOVA", "Reddening")
+
+REPORT_ACTIONS = {
+    "report_instrument_failure": "Instrument_Failure",
+    "report_nova": "NOVA",
+    "report_reddening": "Reddening",
+}
+
+ANOMALY_TAG_VALUES = ("nova", "reddening")
+
+TILE_ANOMALY_COLUMNS = ["tile_id", "anomaly_tag"]
 
 
 def parse_utc(value: str) -> datetime:

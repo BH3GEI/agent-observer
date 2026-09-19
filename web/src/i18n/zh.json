@@ -19,7 +19,7 @@
       },
       "docs": {
         "title": "文档",
-        "description": "participant-agent-protocol-v1 消息、challenge-score-v3 评分器、场景文件与入门套件。"
+        "description": "participant-agent-protocol-v2 消息、challenge-score-v3 评分器、场景文件与入门套件。"
       },
       "faq": {
         "title": "常见问题",
@@ -526,7 +526,7 @@
         "kicker": "05 / 参赛任务",
         "title": "构建可复现运行的观测智能体项目",
         "paragraphs": [
-          "本地练习不限语言：在天气公开的练习场景上自行运行智能体，提交生成的 decisions.csv 即可。线上比赛的智能体程序包须在平台上以 Python 3.12 入口脚本（minimal_agent.py、agent.py 或 main.py）运行，通过 participant-agent-protocol-v1 收发 JSON 消息；权威接口约定见「文档」页。",
+          "本地练习不限语言：在天气公开的练习场景上自行运行智能体，提交生成的 decisions.csv 即可。线上比赛的智能体程序包须在平台上以 Python 3.12 入口脚本（minimal_agent.py、agent.py 或 main.py）运行，通过 participant-agent-protocol-v2 收发 JSON 消息；权威接口约定见「文档」页。",
           "在平台上运行智能体完成评测场景，由同一评分器给出分数。",
           "下载入门包，研究公开开发场景与可视化报告，依据协议开发原型，在开发场景中评测并检查回放；练习赛可提交 decisions.csv，线上比赛提交智能体程序包。"
         ],
@@ -1346,7 +1346,7 @@
     "agent_hints": [
       "只改了 my_strategy.py？直接上传这一个文件，平台会用入门包的标准文件补齐程序包。",
       "用了大模型？把整个 agent 文件夹拖进来：.env（你的 API key，不会展示给任何人）和 requirements.txt（开钟前安装）一起带上。",
-      "自己从零写的智能体？根目录含 minimal_agent.py、agent.py 或 main.py 的 .zip，通过 stdin/stdout 使用 participant-agent-protocol-v1。",
+      "自己从零写的智能体？根目录含 minimal_agent.py、agent.py 或 main.py 的 .zip，通过 stdin/stdout 使用 participant-agent-protocol-v2。",
       "限制：单次 20 MB、2,000 个文件、解压后 50 MB、不含符号链接。缓存、scratch/ 与 run_output/ 会自动剔除。"
     ],
     "results_public_only": "这里只列出天气公开的场景——评分器要拿到完整天气才能复核你本地跑出的结果。",
@@ -1568,7 +1568,7 @@
       },
       {
         "q": "可以用什么语言？",
-        "a": "本地不限语言：在天气公开的练习场景上自己运行智能体并上传 decisions.csv。平台在隐藏天气上运行时，入口脚本须为通过 stdin/stdout 使用 participant-agent-protocol-v1 的 Python 3.12（minimal_agent.py、agent.py 或 main.py）；它可以按 requirements.txt 安装依赖，并在沙箱内启动所需的子进程。"
+        "a": "本地不限语言：在天气公开的练习场景上自己运行智能体并上传 decisions.csv。平台在隐藏天气上运行时，入口脚本须为通过 stdin/stdout 使用 participant-agent-protocol-v2 的 Python 3.12（minimal_agent.py、agent.py 或 main.py）；它可以按 requirements.txt 安装依赖，并在沙箱内启动所需的子进程。"
       },
       {
         "q": "可以使用大模型或商业 API 吗？",

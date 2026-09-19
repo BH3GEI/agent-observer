@@ -114,7 +114,7 @@ def public_pages(page: Page, base: str):
         "/": ("main", re.compile("Agent Observer|巡天", re.I)),
         "/brief": ("main", re.compile(".{200,}", re.S)),
         "/rules": ("article", re.compile("flexible_shortfall")),
-        "/docs": ("article", re.compile("participant-agent-protocol-v1")),
+        "/docs": ("article", re.compile("participant-agent-protocol-v2")),
         "/faq": ("main", re.compile("wall clock|时钟", re.I)),
         "/resources": ("[data-testid=resources-scenario-dev-reference]", re.compile("dev-reference")),
         "/leaderboard/practice": ("main", re.compile("Standings|榜")),

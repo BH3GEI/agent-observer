@@ -27,10 +27,15 @@ class ReferenceAgent:
     def __call__(self, snapshot, deadline_monotonic):
         candidates = [item for item in snapshot["candidate_tiles"] if item["effective_weather"]["is_observable"] and not item["already_completed"]]
         if not candidates:
+            # Repeat observations are legal and bank the per-tile maximum: an
+            # observable completed tile beats an avoidable wait.
+            candidates = [item for item in snapshot["candidate_tiles"] if item["effective_weather"]["is_observable"]]
+        if not candidates:
             return {"action": "wait", "reason": "no open uncompleted candidate"}
         tile = self.rng.choice(candidates)
         quality = tile["effective_weather"]
-        atmospheric = float(quality["instrument_efficiency"]) * float(quality["transparency"]) * float(quality["sky_quality"]) / (float(quality["seeing_arcsec"]) * float(tile["geometry"]["airmass"]))
+        # Snapshot weather omits instrument_efficiency (hidden instrument side).
+        atmospheric = float(quality["transparency"]) * float(quality["sky_quality"]) / (float(quality["seeing_arcsec"]) * float(tile["geometry"]["airmass"]))
         combined = atmospheric * float(tile["geometry"]["lunar_quality_factor"])
         program = "DARK" if combined >= .65 else "BRIGHT" if combined >= .40 else "BACKUP"
         request_id = ""

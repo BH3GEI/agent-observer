@@ -30,10 +30,18 @@ class ParticipantProtocolTests(unittest.TestCase):
             round(workflow.scorer.tile_values[first["tile_id"]], 6),
         )
 
+    def test_snapshot_weather_never_carries_instrument_efficiency(self) -> None:
+        workflow = ChallengeWorkflow(ROOT / "reference")
+        snapshot = workflow.decision_snapshot(1)
+        self.assertNotIn("instrument_efficiency", snapshot["current_site_weather"])
+        self.assertTrue(snapshot["candidate_tiles"])
+        for candidate in snapshot["candidate_tiles"]:
+            self.assertNotIn("instrument_efficiency", candidate["effective_weather"])
+
     def test_snapshot_has_public_current_progress_without_future_truth(self) -> None:
         workflow = ChallengeWorkflow(ROOT / "reference")
         snapshot = workflow.decision_snapshot(1)
-        self.assertEqual(snapshot["schema_version"], "decision-snapshot-v2")
+        self.assertEqual(snapshot["schema_version"], "decision-snapshot-v3")
         self.assertNotIn("weather_events", snapshot)
         self.assertIn("flexible_completed_by_region", snapshot["progress"])
         self.assertTrue(snapshot["candidate_tiles"])
@@ -66,7 +74,7 @@ class ParticipantProtocolTests(unittest.TestCase):
         workflow = ChallengeWorkflow(ROOT / "reference")
         snapshot = workflow.decision_snapshot(1)
         message = {
-            "protocol_version": "participant-agent-protocol-v1",
+            "protocol_version": "participant-agent-protocol-v2",
             "message_type": "decision_request",
             "decision_sequence": 2,
             "payload": snapshot,
@@ -103,7 +111,7 @@ class ParticipantProtocolTests(unittest.TestCase):
         finally:
             env_patch.stop()
             provider.close(force=True)
-        self.assertEqual(response["protocol_version"], "participant-agent-protocol-v1")
+        self.assertEqual(response["protocol_version"], "participant-agent-protocol-v2")
         self.assertEqual(response["message_type"], "decision_response")
         self.assertEqual(response["decision_sequence"], 1)
         self.assertIn(response["action"], {"observe", "wait"})

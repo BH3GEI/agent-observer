@@ -10,7 +10,17 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Mapping, Sequence
 
-from .contracts import DECISION_COLUMNS, TARGET_COLUMNS, format_utc, read_exact_csv, sha256_file, write_text_lf
+from .contracts import (
+    ANOMALY_TAG_VALUES,
+    DECISION_COLUMNS,
+    REPORT_ACTIONS,
+    TARGET_COLUMNS,
+    TILE_ANOMALY_COLUMNS,
+    format_utc,
+    read_exact_csv,
+    sha256_file,
+    write_text_lf,
+)
 from .observation_request_simulator import ObservationRequest, load_request_tiles, load_requests
 from .observing_calendar import Slot, load_slots
 from .tile_geometry_simulator import Tile, TileGeometrySimulator, load_tiles
@@ -41,15 +51,43 @@ def load_decisions(path: Path) -> list[Decision]:
         item = Decision(*(row[key].strip() for key in DECISION_COLUMNS))
         if not item.decision_id or item.decision_id in seen:
             raise ValueError("decision_id must be non-empty and unique")
-        if item.action not in {"observe", "wait"}:
-            raise ValueError(f"{item.decision_id}: action must be observe or wait")
+        if item.action not in {"observe", "wait", *REPORT_ACTIONS}:
+            raise ValueError(f"{item.decision_id}: unknown action {item.action!r}")
         if item.action == "wait" and (item.tile_id or item.program or item.request_id):
             raise ValueError(f"{item.decision_id}: wait must not name tile, program, or request")
         if item.action == "observe" and (not item.tile_id or item.program not in PROGRAMS):
             raise ValueError(f"{item.decision_id}: invalid observe fields")
+        if item.action in REPORT_ACTIONS:
+            kind = REPORT_ACTIONS[item.action]
+            if item.program or item.request_id:
+                raise ValueError(f"{item.decision_id}: report rows must not name program or request")
+            if (kind == "Instrument_Failure") == bool(item.tile_id):
+                raise ValueError(f"{item.decision_id}: fault reports name no tile; tag reports require one")
         seen.add(item.decision_id)
         rows.append(item)
     return rows
+
+
+def load_tile_anomalies(path: Path, tiles: Mapping[str, Tile]) -> dict[str, frozenset[str]]:
+    """Hidden per-tile anomaly tags (nova/reddening); absent file means no tags."""
+    tags: defaultdict[str, set[str]] = defaultdict(set)
+    for row in read_exact_csv(path, TILE_ANOMALY_COLUMNS):
+        tile_id, tag = row["tile_id"].strip(), row["anomaly_tag"].strip()
+        if tile_id not in tiles:
+            raise ValueError(f"tile_anomalies: unknown tile_id {tile_id!r}")
+        if tag not in ANOMALY_TAG_VALUES:
+            raise ValueError(f"tile_anomalies: unknown anomaly_tag {tag!r}")
+        tags[tile_id].add(tag)
+    return {tile_id: frozenset(values) for tile_id, values in tags.items()}
+
+
+@dataclass(frozen=True)
+class Report:
+    """One anomaly report; lives as a report_* action row inside decisions.csv."""
+
+    report_id: str
+    kind: str
+    tile_id: str
 
 
 def load_score_config(path: Path) -> dict:
@@ -57,6 +95,9 @@ def load_score_config(path: Path) -> dict:
         config = json.load(handle)
     if config.get("schema_version") != "challenge-score-v3":
         raise ValueError("unsupported score config")
+    aggregation = config.get("repeat_observation", {}).get("tile_score_aggregation", "max")
+    if aggregation != "max":
+        raise ValueError(f"unsupported repeat_observation.tile_score_aggregation {aggregation!r}")
     return config
 
 
@@ -104,6 +145,7 @@ class ChallengeScorer:
         requests: Sequence[ObservationRequest],
         request_tiles: Mapping[str, Mapping[str, int]],
         score_config: Mapping,
+        tile_anomalies: Mapping[str, frozenset[str]] | None = None,
     ) -> None:
         self.slots = list(slots)
         self.slot_indices = {slot.slot_id: index for index, slot in enumerate(slots)}
@@ -114,10 +156,29 @@ class ChallengeScorer:
         self.requests = {item.request_id: item for item in requests}
         self.request_tiles = {key: dict(value) for key, value in request_tiles.items()}
         self.config = score_config
+        self.tile_anomalies = {key: frozenset(value) for key, value in (tile_anomalies or {}).items()}
+        tag_config = score_config.get("anomaly_tags", {})
+        self._tag_factors = {
+            "nova": float(tag_config.get("nova_factor", 1.5)),
+            "reddening": float(tag_config.get("reddening_factor", 0.8)),
+        }
+        reporting = score_config.get("reporting", {})
+        self._report_reward = float(reporting.get("reward_correct", 100.0))
+        self._report_penalty = float(reporting.get("penalty_wrong", 150.0))
+        self._misreport_allowance = int(reporting.get("fault_misreport_free_allowance", 1))
+        self._misreport_penalty = float(reporting.get("fault_misreport_penalty", 100.0))
+        fault_response = score_config.get("fault_response", {})
+        self._repair_duration = timedelta(days=float(fault_response.get("repair_duration_days", 2)))
         self.slot_index = 0
         self.offset_seconds = 0
         self.completed_tiles: set[str] = set()
+        self.tile_best_scores: dict[str, tuple[float, float]] = {}
         self.request_visits: Counter[tuple[str, str]] = Counter()
+        self.fault_acknowledgements: dict[str, datetime] = {}
+        self.fault_correct_reports = 0
+        self.misreport_count = 0
+        self.misreport_total = 0
+        self.tag_reports: dict[tuple[str, str], str] = {}
         self.actions: list[dict[str, object]] = []
         self.base_science_score = 0.0
         self.program_bonus_score = 0.0
@@ -132,8 +193,10 @@ class ChallengeScorer:
         geometry = TileGeometrySimulator.from_files(output / "tiles.csv", config / "tile_config.json", config / "calendar_config.json", output / "night_calendar.csv", output / "slots.csv")
         weather = WeatherSimulator(load_weather(output / "weather.csv"), load_forecasts(output / "weather_forecasts.csv"), load_events(output / "weather_events.csv"), load_weather_config(config / "weather_config.json"), geometry)
         tile_map = {item.tile_id: item for item in tiles}
+        anomalies_path = output / "tile_anomalies.csv"
         return cls(load_slots(output / "slots.csv"), tiles, load_tile_values(output / "targets.csv", tile_map), geometry, weather,
-                   load_requests(output / "observation_requests.csv"), load_request_tiles(output / "observation_request_tiles.csv"), load_score_config(config / "score_config.json"))
+                   load_requests(output / "observation_requests.csv"), load_request_tiles(output / "observation_request_tiles.csv"), load_score_config(config / "score_config.json"),
+                   load_tile_anomalies(anomalies_path, tile_map) if anomalies_path.exists() else None)
 
     def current_slot(self) -> Slot | None:
         return self.slots[self.slot_index] if self.slot_index < len(self.slots) else None
@@ -154,6 +217,13 @@ class ChallengeScorer:
     def _quality_band(self, quality: float) -> str:
         return "DARK" if quality >= float(self.config["quality_thresholds"]["dark"]) else "BRIGHT" if quality >= float(self.config["quality_thresholds"]["bright"]) else "BACKUP"
 
+    def _anomaly_factor(self, tile_id: str) -> float:
+        """Hidden per-tile truth multiplier; the published tile_science_value stays untagged."""
+        factor = 1.0
+        for tag in self.tile_anomalies.get(tile_id, ()):
+            factor *= self._tag_factors[tag]
+        return factor
+
     def _tile_legal(self, tile: Tile, moment: datetime) -> bool:
         if not tile.available_from_utc <= moment < tile.available_until_utc:
             return False
@@ -166,11 +236,51 @@ class ChallengeScorer:
         if self.current_slot() is None:
             return False
         for tile in self.tiles.values():
-            if tile.tile_id not in self.completed_tiles and self._can_complete_from(
-                tile, self.slot_index, self.offset_seconds
-            ):
+            if tile.tile_id not in self.completed_tiles:
+                if self._can_complete_from(tile, self.slot_index, self.offset_seconds):
+                    return True
+                continue
+            # A completed tile stays actionable while a repeat started now could beat its banked best.
+            best = self.tile_best_scores.get(tile.tile_id)
+            banked = 0.0 if best is None else best[0] + best[1]
+            if self._repeat_score_potential(tile, self.slot_index, self.offset_seconds) > banked + 1e-9:
                 return True
         return False
+
+    def _repeat_score_potential(self, tile: Tile, slot_index: int, offset_seconds: int) -> float:
+        """Best-program score a repeat observation started at the cursor would earn under truth weather (0 when it cannot complete)."""
+        if slot_index >= len(self.slots):
+            return 0.0
+        first_night = self.slots[slot_index].night_id
+        remaining = tile.nominal_exptime_seconds
+        segments = []
+        while remaining > 0 and slot_index < len(self.slots):
+            slot = self.slots[slot_index]
+            if slot.night_id != first_night:
+                return 0.0
+            start = slot.timestamp_utc + timedelta(seconds=offset_seconds)
+            seconds = min(remaining, slot.duration_seconds - offset_seconds)
+            midpoint = start + timedelta(seconds=seconds / 2)
+            if not self._tile_legal(tile, start) or not self._tile_legal(tile, midpoint):
+                return 0.0
+            conditions = self.weather.get_effective_conditions(slot.slot_id, tile.tile_id)
+            if not conditions["is_observable"]:
+                return 0.0
+            geometry = self.geometry.get_tile_geometry(tile.tile_id, midpoint)
+            combined = weather_quality(conditions, float(geometry["airmass"]), self.weather.config) * float(geometry["lunar_quality_factor"])
+            band_quality = weather_quality(conditions, float(geometry["airmass"]), self.weather.config, include_efficiency=False) * float(geometry["lunar_quality_factor"])
+            base = self.tile_values[tile.tile_id] * seconds / tile.nominal_exptime_seconds * combined * self._anomaly_factor(tile.tile_id)
+            segments.append((base, self._quality_band(band_quality)))
+            remaining -= seconds
+            slot_index += 1
+            offset_seconds = 0
+        if remaining > 0:
+            return 0.0
+        bonuses = self.config["program_bonus"]
+        return max(
+            sum(base * (1.0 + float(bonuses[program]) if band == program else 1.0) for base, band in segments)
+            for program in PROGRAMS
+        )
 
     def _can_complete_from(
         self, tile: Tile, slot_index: int, offset_seconds: int = 0
@@ -242,6 +352,27 @@ class ChallengeScorer:
         return action
 
     def apply_decision(self, decision: Decision) -> dict[str, object]:
+        if decision.action in REPORT_ACTIONS:
+            # Report rows ride the trace: they never touch the slot cursor and act
+            # at the current cursor time (right after their carrier decision).
+            as_of = self.current_time() or self.slots[-1].end_utc
+            kind = REPORT_ACTIONS[decision.action]
+            if kind != "Instrument_Failure" and decision.tile_id not in self.tiles:
+                action = {"decision_id": decision.decision_id, "slot_id": decision.slot_id, "action": decision.action, "tile_id": decision.tile_id,
+                          "program": "", "request_id": "", "start_utc": format_utc(as_of), "elapsed_seconds": 0,
+                          "outcome": "report_dropped", "base_science_score": 0.0, "program_bonus_score": 0.0, "penalty": 0.0, "segments": [],
+                          "report_result": {"report_id": decision.decision_id, "kind": kind, "result": "dropped_unknown_tile"}}
+                self.actions.append(action)
+                return action
+            before = float(self.penalties["fault_misreport"])
+            outcome = self.apply_report(Report(decision.decision_id, kind, decision.tile_id), as_of)
+            action = {"decision_id": decision.decision_id, "slot_id": decision.slot_id, "action": decision.action, "tile_id": decision.tile_id,
+                      "program": "", "request_id": "", "start_utc": format_utc(as_of), "elapsed_seconds": 0,
+                      "outcome": f"report_{outcome['result']}", "base_science_score": 0.0, "program_bonus_score": 0.0,
+                      "penalty": round(float(self.penalties["fault_misreport"]) - before, 6), "segments": [],
+                      "report_result": outcome}
+            self.actions.append(action)
+            return action
         if decision.slot_id not in self.slot_indices:
             return self._invalid(decision, "unknown_slot")
         target = self.slot_indices[decision.slot_id]
@@ -271,8 +402,6 @@ class ChallengeScorer:
         request = self.requests.get(decision.request_id) if decision.request_id else None
         if decision.request_id and (request is None or tile.tile_id not in self.request_tiles.get(decision.request_id, {}) or not request.available_from_utc <= started < request.deadline_utc):
             return self._invalid(decision, "invalid_request_tag")
-        if tile.tile_id in self.completed_tiles and request is None:
-            return self._invalid(decision, "duplicate_tile")
         initial_weather = self.weather.get_effective_conditions(slot.slot_id, tile.tile_id)
         if not initial_weather["is_observable"]:
             return self._invalid(decision, "unsafe_observation", unsafe=True)
@@ -297,14 +426,19 @@ class ChallengeScorer:
             atmospheric_quality = weather_quality(
                 conditions, float(geometry["airmass"]), self.weather.config
             )
+            # Bands never see instrument efficiency: preview and replay always agree.
+            band_quality = weather_quality(
+                conditions, float(geometry["airmass"]), self.weather.config, include_efficiency=False
+            )
             lunar_quality = float(geometry["lunar_quality_factor"])
             combined_quality = atmospheric_quality * lunar_quality
-            band = self._quality_band(combined_quality)
+            band = self._quality_band(band_quality * lunar_quality)
             base = (
                 self.tile_values[tile.tile_id]
                 * seconds
                 / tile.nominal_exptime_seconds
                 * combined_quality
+                * self._anomaly_factor(tile.tile_id)
             )
             bonus = base * (float(self.config["program_bonus"][decision.program]) if decision.program == band else 0.0)
             pending_base += base
@@ -324,14 +458,14 @@ class ChallengeScorer:
             action_penalty = float(self.config["penalties"]["invalid_action"])
             self.penalties["invalid_action"] += action_penalty
         if completed:
-            if tile.tile_id not in self.completed_tiles:
-                self.completed_tiles.add(tile.tile_id)
-                self.base_science_score += pending_base
-                self.program_bonus_score += pending_bonus
-            else:
-                # A request-tagged revisit is operationally valid but cannot
-                # duplicate the tile's ordinary science/completion credit.
-                pending_base = pending_bonus = 0.0
+            # Completion banks once, on the first legal observation; the tile's
+            # science contribution is the per-observation maximum and only grows.
+            self.completed_tiles.add(tile.tile_id)
+            banked = self.tile_best_scores.get(tile.tile_id, (0.0, 0.0))
+            if pending_base + pending_bonus > banked[0] + banked[1]:
+                self.base_science_score += pending_base - banked[0]
+                self.program_bonus_score += pending_bonus - banked[1]
+                self.tile_best_scores[tile.tile_id] = (pending_base, pending_bonus)
             if request is not None:
                 self.request_visits[(request.request_id, tile.tile_id)] += 1
         else:
@@ -342,6 +476,60 @@ class ChallengeScorer:
                   "program_bonus_score": round(pending_bonus, 6), "penalty": action_penalty, "segments": segments}
         self.actions.append(action)
         return action
+
+    def apply_report(self, report: Report, as_of: datetime) -> dict[str, object]:
+        """Book one participant report at cursor time as_of; never touches the cursor.
+
+        Fault reports are settled in-run (they gate the fault publication and
+        repair); tag reports are pure detection judgments settled in finalize.
+        """
+        if report.kind == "Instrument_Failure":
+            active = [
+                event for event in self.weather.events
+                if event.condition == "instrument_fault"
+                and event.actual_start_utc <= as_of < self.weather.end_overrides.get(event.event_id, event.actual_end_utc)
+            ]
+            unacknowledged = [event for event in active if event.event_id not in self.fault_acknowledgements]
+            if unacknowledged:
+                repair_at = as_of + self._repair_duration
+                for event in unacknowledged:
+                    self.fault_acknowledgements[event.event_id] = repair_at
+                    self.weather.end_overrides[event.event_id] = min(event.actual_end_utc, repair_at)
+                self.fault_correct_reports += 1
+                self.misreport_count = 0
+                result = "correct"
+            elif active:
+                result = "neutral"  # acknowledged fault, still under repair
+            else:
+                self.misreport_count += 1
+                self.misreport_total += 1
+                if self.misreport_count > self._misreport_allowance:
+                    self.penalties["fault_misreport"] += self._misreport_penalty
+                result = "misreport"
+            return {"report_id": report.report_id, "kind": report.kind, "result": result,
+                    "acknowledged_event_ids": [event.event_id for event in unacknowledged] if result == "correct" else [],
+                    "repair_complete_utc": None if result != "correct" else format_utc(repair_at)}
+        tag = "nova" if report.kind == "NOVA" else "reddening"
+        key = (report.tile_id, tag)
+        if key in self.tag_reports:
+            return {"report_id": report.report_id, "kind": report.kind, "result": "duplicate_ignored"}
+        self.tag_reports[key] = report.report_id
+        return {"report_id": report.report_id, "kind": report.kind, "result": "recorded"}
+
+    def _settle_tag_reports(self) -> tuple[list[dict[str, object]], float]:
+        rows = []
+        reward_total = 0.0
+        penalty_total = 0.0
+        for tile_id, tag in sorted(self.tag_reports):
+            correct = tag in self.tile_anomalies.get(tile_id, frozenset())
+            delta = self._report_reward if correct else -self._report_penalty
+            reward_total += max(0.0, delta)
+            penalty_total += max(0.0, -delta)
+            rows.append({"tile_id": tile_id, "tag": tag, "report_id": self.tag_reports[(tile_id, tag)],
+                         "settled": "correct" if correct else "wrong", "delta": round(delta, 6)})
+        if penalty_total:
+            self.penalties["wrong_tag_report"] += penalty_total
+        return rows, reward_total
 
     def finalize(self, termination_reason: str = "trace_complete") -> dict[str, object]:
         required_missing = sorted(tile.tile_id for tile in self.tiles.values() if tile.scheduling_class == "REQUIRED" and tile.tile_id not in self.completed_tiles)
@@ -396,12 +584,13 @@ class ChallengeScorer:
                                  "required_tile_count": request.required_tile_count, "feasible_tile_count": feasible_count,
                                  "reward": reward, "penalty": penalty})
         self.penalties["request_miss"] = request_penalty
+        tag_settlements, report_reward = self._settle_tag_reports()
         coverage_evenness = _coverage_evenness(
             Counter(self.tiles[tile].region_id for tile in self.completed_tiles), regions
         )
         coverage_weight = float(self.config.get("coverage_bonus_weight", 0.0))
         coverage_bonus = coverage_weight * self.base_science_score * coverage_evenness
-        subtotal = self.base_science_score + self.program_bonus_score + request_reward + coverage_bonus
+        subtotal = self.base_science_score + self.program_bonus_score + request_reward + coverage_bonus + report_reward
         total_penalty = sum(self.penalties.values())
         slot = self.current_slot()
         return {
@@ -411,10 +600,17 @@ class ChallengeScorer:
             "score": {"total": round(subtotal - total_penalty, 6), "base_science": round(self.base_science_score, 6),
                       "program_bonus": round(self.program_bonus_score, 6), "request_reward": round(request_reward, 6),
                       "coverage_bonus": round(coverage_bonus, 6), "coverage_evenness": round(coverage_evenness, 6),
+                      "report_reward": round(report_reward, 6),
                       "penalties": {key: round(value, 6) for key, value in sorted(self.penalties.items())}},
             "completion": {"completed_tiles": sorted(self.completed_tiles), "required_missing": required_missing,
                            "flexible_by_region": dict(sorted(flexible.items())), "flexible_shortfall": shortfall},
             "requests": request_rows, "wait_seconds": dict(sorted(self.wait_seconds.items())),
+            "reports": {
+                "tag_settlements": tag_settlements,
+                "fault_correct_reports": self.fault_correct_reports,
+                "fault_misreports": self.misreport_total,
+                "fault_acknowledged_event_ids": sorted(self.fault_acknowledgements),
+            },
             "actions": self.actions,
             "parameters": {
                 "score_config": self.config,

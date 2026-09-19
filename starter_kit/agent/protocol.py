@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Mapping
+from typing import Mapping, Sequence
 
 
-PROTOCOL_VERSION = "participant-agent-protocol-v1"
+PROTOCOL_VERSION = "participant-agent-protocol-v2"
 INITIAL_PUBLICATION_VERSION = "initial-publication-v2"
-DECISION_SNAPSHOT_VERSION = "decision-snapshot-v2"
+DECISION_SNAPSHOT_VERSION = "decision-snapshot-v3"
 
 
 class ProtocolError(ValueError):
@@ -37,9 +37,14 @@ def parse_platform_message(message: Mapping[str, object]) -> tuple[str, dict]:
     return message_type, payload
 
 
-def decision_response(sequence: int, decision: Mapping[str, object]) -> dict[str, object]:
-    """Wrap one validated local decision in the public response envelope."""
-    return {
+def decision_response(sequence: int, decision: Mapping[str, object], reports: Sequence[Mapping[str, object]] | None = None) -> dict[str, object]:
+    """Wrap one validated local decision in the public response envelope.
+
+    `reports` is an optional list of {"kind": "Instrument_Failure"} or
+    {"kind": "NOVA" | "Reddening", "tile_id": ...} entries riding on this
+    decision; reports never consume slot time.
+    """
+    envelope = {
         "protocol_version": PROTOCOL_VERSION,
         "message_type": "decision_response",
         "decision_sequence": int(sequence),
@@ -50,4 +55,7 @@ def decision_response(sequence: int, decision: Mapping[str, object]) -> dict[str
         "reason": decision.get("reason", ""),
         "decision_source": decision.get("decision_source", "deterministic"),
     }
+    if reports:
+        envelope["reports"] = [dict(entry) for entry in reports]
+    return envelope
 

@@ -24,7 +24,7 @@ async function copy() {
   <section class="protocol-panel" data-testid="protocol-explorer" :aria-label="t('docs_page.protocol.title')">
     <div class="protocol-head">
       <span class="label">{{ t('docs_page.protocol.title') }}</span>
-      <span class="text3 font-mono text-xs uppercase tracking-[.1em]">participant-agent-protocol-v1 · JSON lines · stdin / stdout</span>
+      <span class="text3 font-mono text-xs uppercase tracking-[.1em]">participant-agent-protocol-v2 · JSON lines · stdin / stdout</span>
     </div>
     <div class="tabs" role="tablist">
       <button v-for="tab in tabs" :key="tab" type="button" role="tab" :aria-selected="active === tab" :class="{ active: active === tab }" :data-testid="`protocol-tab-${tab}`" @click="active = tab">{{ t(`docs_page.protocol.tabs.${tab}`) }}</button>
