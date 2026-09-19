@@ -109,7 +109,7 @@
     "eyebrow": "GOSIM Hackathon · Intelligent Survey Operations",
     "system": "Agent Observer",
     "subtitle": "巡天智能体",
-    "lede": "Write an observing agent for a telescope. It can see the published state of the sky but not the real weather; forecasts shift and new observation requests arrive mid-night. Every 15 minutes it has to choose what to point at next.",
+    "lede": "Build a future agent observer for survey nights: read the sky state, reason like a leading observer, and choose the next observation every 900 seconds.",
     "pipeline": [
       {
         "label": "Online Training",
@@ -199,11 +199,11 @@
   "home": {
     "vision": {
       "kicker": "01 / Vision",
-      "title": "Hand the night sky to an agent",
+      "title": "Build an open benchmark for intelligent survey operations",
       "lede": "The sky is too large and observing time too precious to point the telescope by chance.",
       "paragraphs": [
-        "Every night a survey telescope faces dozens of tiles that are only visible for a few hours. Weather closes the dome, directional clouds and smog spoil one part of the sky, the moon brightens another, and a science request with a deadline appears in the middle of the week. Every decision a human observer makes shapes the quality of the final cosmic sample.",
-        "We are building an open benchmark: an agent receives the published sky state, reasons like a seasoned observer, and commits the next action slot by slot. Every participant receives the same calendar, catalogue, forecasts, requests, simulator and scoring rule — the only variables are strategy and how the global wall clock is spent."
+        "Every night a survey telescope faces thousands of observable tiles. Weather changes, target visibility changes, and science priorities change. Every decision a human observer makes shapes the quality of the final cosmic sample.",
+        "We are building an open benchmark: an agent reads the state of the night sky, reasons like a seasoned observer, and decides the next observation every 900 seconds. Every participant receives the same survey plan, weather replay, inserted requests, simulator, and scoring rule — the only variable is strategy."
       ],
       "link": "Read the full event brief",
       "stats": [
@@ -223,20 +223,20 @@
     },
     "mission": {
       "kicker": "02 / Mission",
-      "title": "Design an agentic observer",
+      "title": "Where should the telescope look next",
       "lede": "Your agent takes over the core decisions of a human lead observer.",
       "cards": [
         {
-          "title": "Read the published sky",
-          "desc": "The current slot's weather, every candidate tile with its geometry, lunar factor and effective conditions, the forecasts issued so far, the active requests and your progress arrive as one JSON snapshot. Future weather never does."
+          "title": "Read the state",
+          "desc": "Weather, forecast, survey progress, and the tiles that are legal right now, packed into one compact state dictionary."
         },
         {
-          "title": "Commit one action at a time",
-          "desc": "Observe a tile in a program (DARK, BRIGHT or BACKUP), optionally tagged with a request, or wait out the slot. Only a committed action advances the survey; a single global wall clock bounds the whole run."
+          "title": "Weigh the trade-offs",
+          "desc": "Spend the good dark time on faint targets, or finish the tile that is one exposure from done? The forecast improves later — is another slot worth the wait?"
         },
         {
-          "title": "One transparent score",
-          "desc": "Base science from completed exposures, a bonus for matching the quality band, request rewards, and six published penalty classes: unsafe observations, invalid actions, avoidable waits, missed REQUIRED tiles, FLEXIBLE shortfalls and missed requests."
+          "title": "Make the call",
+          "desc": "Observe a tile, or wait. One action every 900 seconds, and the reason for it."
         }
       ],
       "closing": "No astronomy background required. Just an agent that reads snapshots, weighs risk against the clock, and commits decisions."
@@ -412,7 +412,7 @@
         "kicker": "02 / The Observer",
         "title": "What a human lead observer actually does",
         "paragraphs": [
-          "A seasoned lead observer makes a full set of decisions every 900-second slot: understand the science goal and decide tonight’s tactical priority; read seeing, transparency, sky brightness, and the short-term forecast; judge whether tonight suits DARK, BRIGHT, or BACKUP observing; keep the tiles that are visible now, legal, and worth the time; trade off science yield, priority, airmass, footprint balance, and wasted time; finish a tile when completing it beats over-exposure; replan around weather systems, forest-fire smoke, scheduled rocket launches, and changing efficiency; use fast validation signals to calibrate later decisions; and explain why this action was chosen in this slot.",
+          "A seasoned lead observer makes a full set of decisions every 900-second slot: understand the science goal and decide tonight's tactical priority; read seeing, transparency, sky brightness, and the short-term forecast; judge whether tonight suits DARK, BRIGHT, or BACKUP observing; keep the tiles that are visible now, legal, and worth the time; trade off science yield, priority, airmass, footprint balance, and wasted time; finish a tile when completing it beats over-exposure; replan around weather systems, forest-fire smoke, scheduled rocket launches, and changing efficiency; use fast validation signals to calibrate later decisions; and explain why this action was chosen in this slot.",
           "These duties are what the observing agent is taking over. We do not expect an agent to outperform a human immediately. We expect it to be evaluated objectively against a fixed interface, fixed data, and fixed scoring — so it can become a viable component of real survey operations."
         ],
         "duties": [
@@ -465,9 +465,9 @@
       },
       {
         "kicker": "03 / Challenge Format",
-        "title": "The Survey Mission Card and the decision loop",
+        "title": "The Survey Mission Card and the challenge loop",
         "paragraphs": [
-          "Every challenge instance is a published evaluation scenario: science goal, tile catalogue, observing constraints, weather and forecasts, temporary requests, simulator and scoring rules. Public development scenarios (dev-reference, dev-fortnight) are already available on the Resources page; competition scenarios are provided by the platform when the competition starts.",
+          "Every challenge instance starts from a Survey Mission Card: the science goal, footprint area, time budget, telescope site, available observing programs, target classes, observing constraints, and scoring rules — everything a round holds you to. On this platform the mission card takes the form of published evaluation scenarios: tile catalogue, observing constraints, weather and forecasts, ad-hoc requests, simulator, and scoring configuration. The public development scenarios (dev-reference, dev-fortnight) are on the Resources page; competition scenarios are provided by the platform when the competition starts.",
           "Every participant faces the same evaluation scenario: the overall survey plan, per-night seeing and weather replay, ad-hoc observing requests, predictable mid-term disruptions, simulator, and scoring rule are fixed. The agent receives the current state and returns the next observing action every 900 seconds."
         ],
         "loopTitle": "The decision loop",
@@ -528,7 +528,8 @@
         "paragraphs": [
           "Local practice is language-agnostic: run your agent on the public-weather practice scenarios and submit the generated decisions.csv. For the online competition the agent package runs on the platform with a Python 3.12 entry script (minimal_agent.py, agent.py or main.py) exchanging JSON messages over participant-agent-protocol-v1; the authoritative contract is on the Docs page.",
           "The platform runs your agent against the evaluation scenarios and scores it with the same frozen scorer.",
-          "Download the starter kit, study the public development scenarios and visual reports, prototype against the protocol, evaluate on development scenarios, inspect the replays; the practice phase accepts decisions.csv, the online competition accepts agent packages."
+          "Download the starter kit, study the public development scenarios and visual reports, prototype against the protocol, evaluate on development scenarios, inspect the replays; the practice phase accepts decisions.csv, the online competition accepts agent packages.",
+          "The platform keeps the full record of every evaluation — the decisions file, the run log, and a slot-by-slot replay — for organizer review, and for you to inspect why each step went the way it did."
         ],
         "actionCode": "return {\n    \"action\": \"observe\",\n    \"tile_id\": \"T00037\",\n    \"program\": \"DARK\",\n    \"request_id\": \"\",\n    \"reason\": \"highest preview estimate\",\n}"
       },
@@ -574,7 +575,7 @@
             "name": "Online Competition",
             "dates": "Oct 5–7",
             "format": "Online",
-            "challenge": "Run your agent package on the platform against the evaluation scenarios. Evaluation and live standings are powered by CosmosBench.",
+            "challenge": "Submit an agent package; the platform runs it, scores it, and publishes the standings.",
             "participants": "All registered teams."
           },
           {
@@ -967,7 +968,7 @@
         "name": "Online Competition",
         "dates": "Oct 5–7",
         "format": "Online",
-        "challenge": "Complete the survey task and submit agent-generated observation results. Evaluation and live standings are powered by CosmosBench.",
+        "challenge": "Submit an agent package; the platform runs it, scores it, and publishes the standings.",
         "participants": "All registered teams."
       },
       {
@@ -1043,7 +1044,7 @@
   },
   "cta": {
     "title": "Hand the next move of the night sky to the agent you wrote",
-    "tagline": "Everyone gets the same survey plan, the same weather, the same incoming requests, the same simulator and the same scoring rules. The only variable is your strategy.",
+    "tagline": "Same survey plan, weather replay, inserted requests, simulator, and scoring rule. The only variable is strategy.",
     "location": "Online development and CosmosBench evaluation · October 17 at GOSIM Shenzhen",
     "button": "Register now",
     "tag": "2026 / GOSIM / AGENT OBSERVER"
