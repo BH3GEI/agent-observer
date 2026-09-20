@@ -770,7 +770,8 @@
           }
         ]
       }
-    ]
+    ],
+    "intro_gated": "This participant briefing explains why survey operations need agent observers, what a human leading observer does, how the challenge works across three planning horizons, what you submit, how scoring works, the astronomy you need, and the event schedule."
   },
   "about": {
     "kicker": "01 / Why",
