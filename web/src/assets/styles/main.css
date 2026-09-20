@@ -930,3 +930,19 @@ a:focus-visible, button:focus-visible, [role="tab"]:focus-visible, input:focus-v
 .reg-step-line { width: 2.6rem; height: 1px; background: rgba(158,173,255,.35); }
 .reg-step-line.on { background: #fbbf24; }
 .reg-step-label { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: #cdd6ee; }
+
+.series-panel { position: absolute; top: 100%; left: -1rem; min-width: 21rem; z-index: 60;
+  border: 1px solid rgba(158,173,255,.28); background: rgba(8,12,24,.98); backdrop-filter: blur(10px); }
+.series-head { display: flex; justify-content: space-between; gap: 2rem; padding: .7rem 1.1rem;
+  border-bottom: 1px solid rgba(255,255,255,.14); font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.5); }
+.series-item { display: flex; align-items: center; gap: .9rem; padding: .85rem 1.1rem;
+  border-bottom: 1px solid rgba(255,255,255,.08); transition: background .15s ease; }
+.series-item:last-child { border-bottom: 0; }
+.series-item:hover { background: rgba(49,94,251,.14); }
+.series-item.current { background: rgba(49,94,251,.1); }
+.series-n { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .68rem; color: rgba(255,255,255,.4); }
+.series-item b { display: block; font-size: .92rem; font-weight: 600; color: #f5f7ff; letter-spacing: -.01em; white-space: nowrap; }
+.series-item small { display: block; margin-top: .15rem; font-size: .7rem; color: rgba(255,255,255,.45); white-space: nowrap; }
+.series-current { margin-left: auto; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .62rem;
+  letter-spacing: .08em; text-transform: uppercase; color: #fbbf24; }

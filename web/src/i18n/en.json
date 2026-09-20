@@ -1,9 +1,9 @@
 {
   "meta": {
-    "title": "Agent Observer · GOSIM Hackathon",
+    "title": "Agentic Observer · GOSIM Hackathon",
     "description": "The GOSIM survey-agent hackathon: write an observing agent for a telescope that sees the published sky but not the real weather, and decides what to point at next every 15 minutes.",
-    "wordmark_note": "Cosmos Hackathon",
-    "brand": "Agent Observer",
+    "wordmark_note": "AGENTIC OBSERVER",
+    "brand": "Agentic Observer",
     "pages": {
       "home": {
         "title": "Home",
@@ -11,11 +11,11 @@
       },
       "brief": {
         "title": "Event brief",
-        "description": "Mission, timeline, prizes and evaluation of the Agent Observer hackathon."
+        "description": "Mission, timeline, prizes and evaluation of the Agentic Observer hackathon."
       },
       "rules": {
         "title": "Rules",
-        "description": "Eligibility, submission limits, scoring and conduct rules for the Agent Observer hackathon."
+        "description": "Eligibility, submission limits, scoring and conduct rules for the Agentic Observer hackathon."
       },
       "docs": {
         "title": "Docs",
@@ -35,7 +35,7 @@
       },
       "announcements": {
         "title": "Announcements",
-        "description": "Organizer announcements for the Agent Observer hackathon."
+        "description": "Organizer announcements for the Agentic Observer hackathon."
       },
       "register": {
         "title": "Register",
@@ -109,11 +109,39 @@
     "registration_closed": "Registration closed",
     "reset": "Reset password",
     "teammates": "Teammates",
-    "handbook": "Handbook"
+    "handbook": "Handbook",
+    "series": {
+      "label": "Shenzhen hackathon series",
+      "pick": "Pick an event",
+      "current": "Current",
+      "items": [
+        {
+          "n": "01",
+          "name": "巡天智能体",
+          "sub": "Agentic Observer",
+          "href": "",
+          "current": true
+        },
+        {
+          "n": "02",
+          "name": "Agentic App Hackathon",
+          "sub": "The Intent Is the App",
+          "href": "https://create.gosim.org/agenticapp26/",
+          "current": false
+        },
+        {
+          "n": "03",
+          "name": "Agentic Factory International Hackathon",
+          "sub": "OAIC · Agentic Factory",
+          "href": "https://create.gosim.org/factory26/",
+          "current": false
+        }
+      ]
+    }
   },
   "hero": {
     "eyebrow": "GOSIM Hackathon · Intelligent Survey Operations",
-    "system": "Agent Observer",
+    "system": "Agentic Observer",
     "subtitle": "巡天智能体",
     "lede": "Build a future agent observer for survey nights: read the sky state, reason like a leading observer, and choose the next observation every 900 seconds.",
     "pipeline": [
@@ -520,7 +548,7 @@
     "rail_label": "Page map"
   },
   "vision": {
-    "pageTitle": "Agent Observer",
+    "pageTitle": "Agentic Observer",
     "pageSubtitle": "A GOSIM Hackathon for Intelligent Survey Operations",
     "intro": "This participant briefing explains why survey operations need agent observers, what a human leading observer does, how the challenge works across three planning horizons, what you submit, how scoring works, the astronomy you need, and the event schedule.",
     "backToHome": "Back to home",
@@ -1190,7 +1218,7 @@
     "tag": "2026 / GOSIM / AGENT OBSERVER"
   },
   "footer": {
-    "copyright": "2026 GOSIM · Agent Observer",
+    "copyright": "2026 GOSIM · Agentic Observer",
     "mainSite": "GOSIM",
     "lockup": "OPEN / OBSERVER",
     "links": {
@@ -1365,9 +1393,9 @@
     "prev_step": "Back"
   },
   "mail": {
-    "verify_subject": "Verify your Agent Observer account",
+    "verify_subject": "Verify your Agentic Observer account",
     "verify_body": "Open this link to verify your email:\n{url}\n",
-    "reset_subject": "Reset your Agent Observer password",
+    "reset_subject": "Reset your Agentic Observer password",
     "reset_body": "Open this link to choose a new password (valid 2 hours):\n{url}\n"
   },
   "dash": {

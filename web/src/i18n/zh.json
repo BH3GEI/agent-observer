@@ -2,7 +2,7 @@
   "meta": {
     "title": "巡天智能体 · GOSIM 黑客松",
     "description": "GOSIM 智能巡天黑客松：为天文台写一个观测智能体——它看得到公开的天空状态，却看不到真实天气，每 15 分钟决定下一步拍哪片天。",
-    "wordmark_note": "Cosmos Hackathon",
+    "wordmark_note": "AGENTIC OBSERVER",
     "brand": "巡天智能体",
     "pages": {
       "home": {
@@ -109,12 +109,40 @@
     "registration_closed": "报名已截止",
     "reset": "重置密码",
     "teammates": "找队友",
-    "handbook": "手册"
+    "handbook": "手册",
+    "series": {
+      "label": "深圳黑客松系列",
+      "pick": "选择赛事",
+      "current": "当前",
+      "items": [
+        {
+          "n": "01",
+          "name": "巡天智能体",
+          "sub": "Agentic Observer",
+          "href": "",
+          "current": true
+        },
+        {
+          "n": "02",
+          "name": "Agentic App 黑客松",
+          "sub": "意图，即应用 · The Intent Is the App",
+          "href": "https://create.gosim.org/agenticapp26/",
+          "current": false
+        },
+        {
+          "n": "03",
+          "name": "智能体工厂国际黑客松与大奖赛",
+          "sub": "OAIC · Agentic Factory",
+          "href": "https://create.gosim.org/factory26/",
+          "current": false
+        }
+      ]
+    }
   },
   "hero": {
     "eyebrow": "GOSIM 黑客松 · 智能巡天",
     "system": "巡天智能体",
-    "subtitle": "Agent Observer",
+    "subtitle": "Agentic Observer",
     "lede": "为巡天之夜构建未来的观测智能体：读取天空状态，像主值观测员一样推理，每 900 秒选择下一次观测。",
     "pipeline": [
       {
