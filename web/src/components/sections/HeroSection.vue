@@ -227,7 +227,7 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
   margin: 0; padding: 0; list-style: none;
   border-top: 1px solid rgba(255,255,255,.25);
 }
-.hero-timeline li { position: relative; display: flex; flex-direction: column; gap: .3rem; padding: 1.1rem 1rem 0 0; }
+.hero-timeline li { position: relative; display: flex; flex-direction: column; gap: .45rem; padding: 1.7rem 1.4rem 0 0; }
 .hero-timeline li::before {
   position: absolute; top: -5px; left: 0; width: 9px; height: 9px; content: '';
   background: #78a6ff; transform: rotate(45deg);
@@ -237,9 +237,10 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
   position: absolute; top: -1px; left: 9px; right: 0; height: 1px; content: '';
   background: linear-gradient(90deg, rgba(120,166,255,.55), rgba(255,255,255,.14));
 }
-.hero-timeline-step { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .62rem; letter-spacing: .14em; color: #78a6ff; }
-.hero-timeline-label { font-size: .95rem; font-weight: 600; letter-spacing: -.01em; color: #f7f9ff; }
-.hero-timeline-date { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.55); }
+.hero-timeline-step { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .74rem; letter-spacing: .16em; color: #8fb4ff; }
+.hero-timeline-label { font-size: 1.18rem; font-weight: 650; letter-spacing: -.015em; color: #ffffff; }
+.hero-timeline-date { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .76rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.68); }
+.hero-timeline-note { display: block; margin-top: .15rem; max-width: 16rem; font-size: .8rem; line-height: 1.55; color: rgba(226,234,255,.92); }
 
 .hero-metric-value { color: #f7f9ff; }
 .hero-metrics-strong { border-top-color: rgba(255,255,255,.32); background: linear-gradient(180deg, rgba(49,94,251,.1), transparent 70%); }
@@ -253,7 +254,6 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
 @media (max-width: 1023px) {
   .hero-wash-video { opacity: .32; }
   .hero-grid { min-height: 0; }
-  .hero-timeline-note { display: block; margin-top: .3rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .62rem; letter-spacing: .05em; color: rgba(214,226,255,.8); }
 .hero-timeline { grid-template-columns: 1fr; }
   .hero-timeline li::after { display: none; }
 }
