@@ -32,7 +32,7 @@ const current = computed(() => (!isLoggedIn.value ? 0 : !me.value?.team ? 1 : 2)
           class="quest-card"
           :class="{ current: i === current, done: i < current }"
         >
-          <span class="quest-step">LV.0{{ i + 1 }}</span>
+          <span class="quest-step">STEP 0{{ i + 1 }}</span>
           <span class="quest-time">{{ level.time }}</span>
           <h3>{{ level.title }}</h3>
           <p>{{ !mechanicsPublic && level.desc_gated ? level.desc_gated : level.desc }}</p>

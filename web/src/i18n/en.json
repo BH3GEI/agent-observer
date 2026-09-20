@@ -480,50 +480,50 @@
     },
     "participants": {
       "kicker": "Participants · LIVE",
-      "title": "The telescope is not the star. They are.",
-      "lede": "Every registered participant shows their card here: astronomy tier, AI tier, and the kind of partner they want. Claim your spot.",
+      "title": "The participants are the story of this competition",
+      "lede": "Every registered participant is presented here: astronomy tier, AI tier and team-forming intent. You are welcome to join them.",
       "stat_total": "Registered",
       "stat_teams": "Teams",
-      "stat_looking": "Looking for teammates",
-      "looking": "Looking",
+      "stat_looking": "Seeking teammates",
+      "looking": "Seeking teammates",
       "in_team": "Team · {team}",
-      "empty_title": "The wall is waiting",
-      "empty_desc": "Tick “put my card on the wall” when you register and yours will be the first card.",
+      "empty_title": "The wall awaits its first card",
+      "empty_desc": "Choose to display your card during registration and yours will be the first.",
       "cta_board": "Find teammates",
-      "cta_wall_register": "Register and get on the wall",
+      "cta_wall_register": "Register",
       "cta_wall_profile": "Manage my card"
     },
     "quest": {
-      "kicker": "Main quest",
-      "note": "Fully online · solo-friendly",
-      "current_chip": "Current quest",
-      "done_chip": "✓ Done",
-      "locked_chip": "Up next",
+      "kicker": "Participation path",
+      "note": "Fully online · individual entries welcome",
+      "current_chip": "Current stage",
+      "done_chip": "✓ Completed",
+      "locked_chip": "Upcoming",
       "levels": [
         {
-          "title": "Sign up",
-          "desc": "Name, e-mail, password — pick your astronomy and AI tiers and claim a spot on the wall.",
+          "title": "Register",
+          "desc": "Enter your name, e-mail and password, select your astronomy and AI tiers, and complete registration.",
           "time": "~2 min",
           "to": "/register"
         },
         {
-          "title": "Form a team",
-          "desc": "Even solo players need a team — scores are per team. Missing a partner? Fish by tier on the teammates board.",
+          "title": "Create a team",
+          "desc": "Scores are recorded per team; individual entrants create a team as well. Find collaborators by tier on the Teammates page.",
           "time": "~1 min",
           "to": "/team"
         },
         {
-          "title": "Run the baseline, edit one function",
-          "desc": "Download the kit, double-click, score in 15 s; then edit just my_strategy.py and climb the practice board.",
+          "title": "Run the baseline, make your changes",
+          "desc": "Download the kit and run it — a baseline score in 15 seconds. Then edit my_strategy.py and submit to the Playground board.",
           "time": "~20 min",
           "to": "/start"
         },
         {
-          "title": "Take on the finals",
-          "desc": "Oct 5–7: hidden weather plus the anomaly game. Rehearse catching faults with run_finals_preview first.",
+          "title": "Enter the online competition",
+          "desc": "October 5–7: hidden weather and the anomaly mechanics. Rehearse fault reporting and tag identification with run_finals_preview first.",
+          "desc_gated": "October 5–7: hidden weather replays; the platform runs your package, mean of two scenarios.",
           "time": "Oct 5",
-          "to": "/brief#section-7",
-          "desc_gated": "Oct 5–7: hidden weather replays, your package runs on the platform, mean of two scenarios."
+          "to": "/brief#section-7"
         }
       ]
     },
@@ -1359,15 +1359,15 @@
       "Create a team or join one with an invite code",
       "Upload a results file or an agent package"
     ],
-    "about_you": "Tell everyone who you are",
-    "about_you_note": "The two tiers go on your participant card — people with different strengths finding each other is how teams start.",
+    "about_you": "Participant profile",
+    "about_you_note": "Your tiers appear on your participant card, helping entrants from different backgrounds find each other and form teams.",
     "city": "City",
     "contact": "Contact",
     "contact_ph": "WeChat ID or e-mail — for team contact and event notices; visible to logged-in participants only",
     "heard_from": "How did you hear about us",
     "blurb": "One-line introduction",
-    "blurb_ph": "Shown on the participants wall, e.g. builds agents, looking for an astronomy partner",
-    "show_on_wall": "Put my card on the participants wall (removable anytime)",
+    "blurb_ph": "Shown on the participants wall, e.g. experienced in agent development, seeking a partner with an astronomy background",
+    "show_on_wall": "Display my card on the participants wall (can be withdrawn at any time)",
     "long_term": "After the hackathon, I would like to stay involved in the open survey community",
     "role_options": {
       "student": "Student",
@@ -2120,26 +2120,26 @@
     "astro_label": "Astronomy tier",
     "ai_label": "AI tier",
     "astro": [
-      "Stargazing rookie",
+      "New stargazer",
       "Amateur astronomer",
-      "Hands-on with data or scopes",
+      "Data or observing experience",
       "Survey-grade researcher"
     ],
     "astro_hints": [
-      "Completely new — here to learn",
-      "Knows constellations, has chased a meteor shower or used a sky app",
-      "Has played with astronomy data, imaged deep sky or run a telescope",
+      "New to astronomy and here to learn",
+      "Knows the constellations; has used sky apps or joined observing sessions",
+      "Has worked with astronomy data, imaged deep sky or operated a telescope",
       "Works in astronomy research or survey operations"
     ],
     "ai": [
-      "New to AI",
-      "Can call an LLM",
+      "AI beginner",
+      "Works with LLM APIs",
       "Has built agents",
-      "Working professional"
+      "Senior practitioner"
     ],
     "ai_hints": [
-      "Has not called an AI from code yet",
-      "Has used LLM APIs or done prompt engineering",
+      "Has not yet called an AI from code",
+      "Has used LLM APIs and understands prompt engineering",
       "Has built agents, workflows or trained models",
       "Works in AI engineering or research"
     ]
@@ -2147,27 +2147,27 @@
   "teammates": {
     "kicker": "Participants wall",
     "title": "Find each other by tier",
-    "lede": "Astronomers looking for agent builders, agent builders looking for astronomers. Turn on complementary sorting and the best-matched partners come first.",
+    "lede": "Participants with astronomy and engineering backgrounds find each other here. With complementary sorting on, candidates whose strengths complement yours are shown first.",
     "self_title": "My card",
     "self_on": "On the wall",
     "self_off": "Not on the wall",
     "self_blurb": "One-line introduction",
-    "self_blurb_ph": "e.g. builds agents, looking for an astronomy partner",
+    "self_blurb_ph": "e.g. experienced in agent development, seeking a partner with an astronomy background",
     "self_save": "Save my card",
-    "saved_on": "Saved — your card is on the wall.",
-    "saved_off": "Saved — your card is off the wall.",
+    "saved_on": "Saved — your card is displayed on the wall.",
+    "saved_off": "Saved — your card has been removed from the wall.",
     "login_hint": "Log in to get on the wall, use complementary sorting, and see contact details.",
     "filter_astro": "Astronomy tier",
     "filter_ai": "AI tier",
     "filter_any": "Any",
-    "filter_looking": "Only people looking for teammates",
-    "filter_comp": "Complementary first (strong where I am not)",
+    "filter_looking": "Only participants seeking teammates",
+    "filter_comp": "Complementary first (strengths that complement mine)",
     "comp_chip": "Complements you",
     "no_team": "No team yet",
     "reveal": "Show contact",
-    "no_contact": "No contact shared — try GitHub or ask for a team invite code.",
+    "no_contact": "No contact shared — try their GitHub, or reach them through a team invite code.",
     "login_to_contact": "Log in to see contact",
     "empty_title": "No participants match these filters",
-    "empty_desc": "Loosen the filters, or put your own card up first."
+    "empty_desc": "Loosen the filters, or display your own card first."
   }
 }
