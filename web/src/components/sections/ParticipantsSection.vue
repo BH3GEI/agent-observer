@@ -40,9 +40,8 @@ const statItems = computed(() => stats.value ? [
     <div class="mx-auto max-w-[1600px] px-5 md:px-10 xl:px-14">
       <div class="reveal flex flex-wrap items-end justify-between gap-6">
         <div>
-          <span class="poster-kicker kicker-amber">{{ t('home.participants.kicker') }}</span>
-          <h2 class="section-title distressed-type mt-8">{{ t('home.participants.title') }}</h2>
-          <p class="lede mt-5 max-w-2xl">{{ t('home.participants.lede') }}</p>
+          <span class="poster-kicker kicker-amber kicker-xl">{{ t('home.participants.kicker') }}</span>
+          <p class="lede mt-6 max-w-2xl">{{ t('home.participants.lede') }}</p>
         </div>
         <div v-if="statItems.length" class="wall-stats">
           <div v-for="s in statItems" :key="s.l"><b v-countup>{{ s.v }}</b><span>{{ s.l }}</span></div>

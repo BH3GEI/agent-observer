@@ -946,3 +946,6 @@ a:focus-visible, button:focus-visible, [role="tab"]:focus-visible, input:focus-v
 .series-item small { display: block; margin-top: .15rem; font-size: .7rem; color: rgba(255,255,255,.45); white-space: nowrap; }
 .series-current { margin-left: auto; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .62rem;
   letter-spacing: .08em; text-transform: uppercase; color: #fbbf24; }
+
+.poster-kicker.kicker-xl { font-size: 1.35rem; letter-spacing: .2em; }
+.poster-kicker.kicker-xl::before { width: 3.2rem; }
