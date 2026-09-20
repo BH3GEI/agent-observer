@@ -6,8 +6,9 @@ import { describeError } from '../lib/errors'
 import { useAuth } from '../stores/auth'
 import { useFlash } from '../stores/flash'
 import DashShell from '../components/layout/DashShell.vue'
+import TierBadge from '../components/TierBadge.vue'
 
-interface Member { id: string; name: string; github: string | null; affiliation: string | null; is_leader: boolean }
+interface Member { id: string; name: string; github: string | null; affiliation: string | null; is_leader: boolean; astro_level: number; ai_level: number }
 interface OpenTeam { id: string; name: string; member_count: number; max_size: number; created_at: string }
 
 const { t, tf } = useI18n()
@@ -89,7 +90,9 @@ onMounted(load)
             <thead><tr><th>{{ t('common.name') }}</th><th>{{ t('auth.github') }}</th><th>{{ t('auth.affiliation') }}</th><th></th></tr></thead>
             <tbody>
               <tr v-for="m in members" :key="m.id">
-                <td>{{ m.name }} <span v-if="m.is_leader" class="pill accent ml-1">{{ t('team.leader') }}</span></td>
+                <td>{{ m.name }} <span v-if="m.is_leader" class="pill accent ml-1">{{ t('team.leader') }}</span>
+                  <span class="wall-badges wall-badges-inline"><TierBadge kind="astro" :level="m.astro_level" /><TierBadge kind="ai" :level="m.ai_level" /></span>
+                </td>
                 <td class="m text-sm">{{ m.github || '—' }}</td>
                 <td class="text-sm">{{ m.affiliation || '—' }}</td>
                 <td class="r">

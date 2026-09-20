@@ -22,7 +22,16 @@ const mode = ref<Mode>(readMode())
 const busy = ref(false)
 const errors = ref<string[]>([])
 const sent = ref(false)
-const reg = ref({ name: '', email: '', password: '', password2: '', github: '', affiliation: '', looking_for_team: true, agree: false })
+const reg = ref({
+  name: '', email: '', password: '', password2: '', github: '', affiliation: '', looking_for_team: true, agree: false,
+  astro_level: 0, ai_level: 0, role: '', city: '', contact: '', heard_from: '', blurb: '', long_term: false, show_on_wall: true,
+})
+const astroTiers = computed(() => t('tiers.astro') as string[])
+const aiTiers = computed(() => t('tiers.ai') as string[])
+const astroHints = computed(() => t('tiers.astro_hints') as string[])
+const aiHints = computed(() => t('tiers.ai_hints') as string[])
+const roleOptions = computed(() => Object.entries(t('auth.role_options') as Record<string, string>))
+const heardOptions = computed(() => Object.entries(t('auth.heard_options') as Record<string, string>))
 const login = ref({ email: '', password: '' })
 const forgot = ref({ email: '' })
 type Metric = { value: string; label: string }
@@ -77,8 +86,17 @@ async function submitRegister() {
           name: reg.value.name.trim(),
           github: reg.value.github.trim().replace(/^@/, ''),
           affiliation: reg.value.affiliation.trim(),
-          looking_for_team: reg.value.looking_for_team,
+          looking_for_team: String(reg.value.looking_for_team),
           locale: locale.value,
+          astro_level: String(reg.value.astro_level),
+          ai_level: String(reg.value.ai_level),
+          role: reg.value.role,
+          city: reg.value.city.trim(),
+          contact: reg.value.contact.trim(),
+          heard_from: reg.value.heard_from,
+          blurb: reg.value.blurb.trim(),
+          long_term: String(reg.value.long_term),
+          show_on_wall: String(reg.value.show_on_wall),
         },
       },
     })
@@ -175,7 +193,42 @@ async function submitForgot() {
               <label class="field"><span>{{ t('auth.github') }} · {{ t('common.optional') }}</span><input v-model="reg.github" type="text" maxlength="120" autocomplete="username"></label>
               <label class="field"><span>{{ t('auth.affiliation') }} · {{ t('common.optional') }}</span><input v-model="reg.affiliation" type="text" maxlength="200" autocomplete="organization"></label>
             </div>
+            <div class="reg-divider"><span class="label accent-amber">{{ t('auth.about_you') }}</span><p class="help mt-1 mb-0">{{ t('auth.about_you_note') }}</p></div>
+
+            <fieldset class="tier-fieldset">
+              <legend class="label">{{ t('tiers.astro_label') }}</legend>
+              <div class="tier-pick" role="radiogroup" data-testid="reg-astro">
+                <label v-for="(name, i) in astroTiers" :key="i" class="tier-option" :class="[`tier-astro-${i}`, { active: reg.astro_level === i }]">
+                  <input v-model.number="reg.astro_level" type="radio" name="astro_level" :value="i">
+                  <b>{{ name }}</b><small>{{ astroHints[i] }}</small>
+                </label>
+              </div>
+            </fieldset>
+            <fieldset class="tier-fieldset">
+              <legend class="label">{{ t('tiers.ai_label') }}</legend>
+              <div class="tier-pick" role="radiogroup" data-testid="reg-ai">
+                <label v-for="(name, i) in aiTiers" :key="i" class="tier-option" :class="[`tier-ai-${i}`, { active: reg.ai_level === i }]">
+                  <input v-model.number="reg.ai_level" type="radio" name="ai_level" :value="i">
+                  <b>{{ name }}</b><small>{{ aiHints[i] }}</small>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="grid-form">
+              <label class="field"><span>{{ t('profile.role') }}</span>
+                <select v-model="reg.role"><option value="">{{ t('common.optional') }}</option><option v-for="[code, label] in roleOptions" :key="code" :value="code">{{ label }}</option></select>
+              </label>
+              <label class="field"><span>{{ t('auth.city') }} · {{ t('common.optional') }}</span><input v-model="reg.city" type="text" maxlength="120"></label>
+              <label class="field"><span>{{ t('auth.contact') }} · {{ t('common.optional') }}</span><input v-model="reg.contact" type="text" maxlength="200" :placeholder="t('auth.contact_ph')"></label>
+              <label class="field"><span>{{ t('auth.heard_from') }} · {{ t('common.optional') }}</span>
+                <select v-model="reg.heard_from"><option value="">—</option><option v-for="[code, label] in heardOptions" :key="code" :value="code">{{ label }}</option></select>
+              </label>
+            </div>
+            <label class="field"><span>{{ t('auth.blurb') }} · {{ t('common.optional') }}</span><input v-model="reg.blurb" type="text" maxlength="160" :placeholder="t('auth.blurb_ph')"></label>
+
+            <label class="check"><input v-model="reg.show_on_wall" type="checkbox" data-testid="reg-wall"> {{ t('auth.show_on_wall') }}</label>
             <label class="check"><input v-model="reg.looking_for_team" type="checkbox"> {{ t('auth.looking_for_team') }}</label>
+            <label class="check"><input v-model="reg.long_term" type="checkbox"> {{ t('auth.long_term') }}</label>
             <label class="check"><input data-testid="reg-agree" v-model="reg.agree" type="checkbox"> <span>{{ t('auth.agree') }} <router-link class="accent-l underline underline-offset-2" to="/rules" target="_blank">{{ t('nav.rules') }} ↗</router-link></span></label>
             <button data-testid="reg-submit" class="btn primary" type="submit" :disabled="busy || !registrationOpen || !isSupabaseConfigured">{{ busy ? t('common.working') : t('auth.submit_register') }} →</button>
             <p class="text3 mt-6 text-sm">{{ t('auth.have_account') }} <button type="button" class="accent-l" @click="setMode('login')">{{ t('nav.login') }}</button></p>

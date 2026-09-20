@@ -31,6 +31,7 @@ const items = [
   { key: 'nav.docs', to: '/docs' },
   { key: 'nav.resources', to: '/resources' },
   { key: 'nav.leaderboard', to: '/leaderboard' },
+  { key: 'nav.teammates', to: '/teammates' },
   { key: 'nav.faq', to: '/faq' },
 ]
 const isActive = (to: string) => route.path === to || route.path.startsWith(`${to}/`)

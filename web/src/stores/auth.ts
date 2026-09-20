@@ -9,6 +9,8 @@ export interface MeTeam {
 export interface Me {
   id: string; email: string; name: string; github: string | null; affiliation: string | null; role: string | null
   looking_for_team: boolean; locale: string | null; is_admin: boolean; is_banned: boolean; team: MeTeam | null
+  astro_level: number; ai_level: number; city: string | null; contact: string | null
+  heard_from: string | null; long_term: boolean; blurb: string | null; show_on_wall: boolean
 }
 
 const state = reactive({

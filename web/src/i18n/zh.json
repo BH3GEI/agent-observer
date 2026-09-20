@@ -80,6 +80,10 @@
       "start": {
         "title": "新手上路",
         "description": "学员从注册、建队伍、跑通入门包到上传第一个成绩的完整步骤。"
+      },
+      "teammates": {
+        "title": "找队友",
+        "description": "按天文段位和 AI 段位互相找到，组一支互补的队伍。"
       }
     }
   },
@@ -103,7 +107,8 @@
     "profile": "个人资料",
     "menu": "菜单",
     "registration_closed": "报名已截止",
-    "reset": "重置密码"
+    "reset": "重置密码",
+    "teammates": "找队友"
   },
   "hero": {
     "eyebrow": "GOSIM 黑客松 · 智能巡天",
@@ -431,6 +436,21 @@
     "announcements": {
       "kicker": "公告",
       "all": "全部公告"
+    },
+    "participants": {
+      "kicker": "选手墙 · LIVE",
+      "title": "主角不是望远镜，是他们",
+      "lede": "每一位报名的选手都在这面墙上亮牌：天文段位、AI 段位、想找什么样的搭子。你也来占一格。",
+      "stat_total": "已报名选手",
+      "stat_teams": "队伍",
+      "stat_looking": "在找队友",
+      "looking": "找队友中",
+      "in_team": "队伍 · {team}",
+      "empty_title": "选手墙虚位以待",
+      "empty_desc": "报名时勾选「上墙」，你就是第一张名片。",
+      "cta_board": "去找队友",
+      "cta_wall_register": "报名并上墙",
+      "cta_wall_profile": "管理我的名片"
     }
   },
   "vision": {
@@ -1235,7 +1255,31 @@
       "创建账户（无需邮件确认）",
       "创建队伍或用邀请码加入",
       "上传结果文件或智能体程序包"
-    ]
+    ],
+    "about_you": "让大家认识你",
+    "about_you_note": "两个段位会显示在你的选手名片上——不同段位的人互相找得到，正是组队的起点。",
+    "city": "城市",
+    "contact": "联系方式",
+    "contact_ph": "微信号或邮箱，仅登录选手可见",
+    "heard_from": "从哪里听说比赛",
+    "blurb": "一句话介绍自己",
+    "blurb_ph": "会显示在选手墙上，例如：会写 Agent，想找懂天文的搭子",
+    "show_on_wall": "把我的名片放上选手墙（可随时撤下）",
+    "long_term": "比赛之后，我愿意继续参与开源巡天社区",
+    "role_options": {
+      "student": "学生",
+      "engineer": "工程师",
+      "researcher": "研究人员",
+      "product": "产品 / 设计",
+      "other": "其他"
+    },
+    "heard_options": {
+      "friend": "朋友或同事",
+      "community": "微信群 / 社群",
+      "gosim": "GOSIM 官方渠道",
+      "social": "社交媒体",
+      "other": "其他"
+    }
   },
   "mail": {
     "verify_subject": "验证你的巡天智能体账号",
@@ -1941,5 +1985,59 @@
     "cta_dashboard": "去我的控制台",
     "cta_kit": "下载入门包",
     "cta_docs": "完整文档"
+  },
+  "tiers": {
+    "astro_label": "天文段位",
+    "ai_label": "AI 段位",
+    "astro": [
+      "观星萌新",
+      "天文爱好者",
+      "摸过数据或望远镜",
+      "巡天科研级"
+    ],
+    "astro_hints": [
+      "完全没接触过，来学的",
+      "认星座、追过流星雨或用过星图 App",
+      "玩过天文数据、拍过深空或操作过望远镜",
+      "天文科研或巡天项目从业"
+    ],
+    "ai": [
+      "AI 新手",
+      "会调大模型",
+      "写过 Agent",
+      "从业老手"
+    ],
+    "ai_hints": [
+      "还没写过代码调用 AI",
+      "调过 LLM API 或写过提示词工程",
+      "搭过 Agent、工作流或训练过模型",
+      "AI 相关工作或研究"
+    ]
+  },
+  "teammates": {
+    "kicker": "选手墙",
+    "title": "按段位互相找到",
+    "lede": "懂天文的找会写 Agent 的，会写 Agent 的找懂天文的。开互补排序，最合适的搭子排最前面。",
+    "self_title": "我的名片",
+    "self_on": "已上墙",
+    "self_off": "未上墙",
+    "self_blurb": "一句话介绍",
+    "self_blurb_ph": "例如：会写 Agent，想找懂天文的搭子",
+    "self_save": "保存名片",
+    "saved_on": "已保存，你的名片在墙上了。",
+    "saved_off": "已保存，名片已从墙上撤下。",
+    "login_hint": "登录后可以上墙、开互补排序、查看联系方式。",
+    "filter_astro": "天文段位",
+    "filter_ai": "AI 段位",
+    "filter_any": "不限",
+    "filter_looking": "只看在找队友的",
+    "filter_comp": "互补优先（和我强弱互补的排前面）",
+    "comp_chip": "和你互补",
+    "no_team": "暂无队伍",
+    "reveal": "查看联系方式",
+    "no_contact": "TA 没有留联系方式，试试 GitHub 或队伍邀请码。",
+    "login_to_contact": "登录后查看联系方式",
+    "empty_title": "还没有符合条件的选手",
+    "empty_desc": "放宽筛选，或者把自己的名片先挂上去。"
   }
 }

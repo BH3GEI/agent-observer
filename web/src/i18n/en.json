@@ -80,6 +80,10 @@
       "start": {
         "title": "Get started",
         "description": "The participant walkthrough: register, create a team, run the starter kit and upload a first score."
+      },
+      "teammates": {
+        "title": "Find teammates",
+        "description": "Find each other by astronomy tier and AI tier, and build a complementary team."
       }
     }
   },
@@ -103,7 +107,8 @@
     "profile": "Profile",
     "menu": "Menu",
     "registration_closed": "Registration closed",
-    "reset": "Reset password"
+    "reset": "Reset password",
+    "teammates": "Teammates"
   },
   "hero": {
     "eyebrow": "GOSIM Hackathon · Intelligent Survey Operations",
@@ -431,6 +436,21 @@
     "announcements": {
       "kicker": "Announcements",
       "all": "All announcements"
+    },
+    "participants": {
+      "kicker": "Participants · LIVE",
+      "title": "The telescope is not the star. They are.",
+      "lede": "Every registered participant shows their card here: astronomy tier, AI tier, and the kind of partner they want. Claim your spot.",
+      "stat_total": "Registered",
+      "stat_teams": "Teams",
+      "stat_looking": "Looking for teammates",
+      "looking": "Looking",
+      "in_team": "Team · {team}",
+      "empty_title": "The wall is waiting",
+      "empty_desc": "Tick “put my card on the wall” when you register and yours will be the first card.",
+      "cta_board": "Find teammates",
+      "cta_wall_register": "Register and get on the wall",
+      "cta_wall_profile": "Manage my card"
     }
   },
   "vision": {
@@ -1235,7 +1255,31 @@
       "Create your account (no e-mail confirmation needed)",
       "Create a team or join one with an invite code",
       "Upload a results file or an agent package"
-    ]
+    ],
+    "about_you": "Tell everyone who you are",
+    "about_you_note": "The two tiers go on your participant card — people with different strengths finding each other is how teams start.",
+    "city": "City",
+    "contact": "Contact",
+    "contact_ph": "WeChat ID or e-mail; visible to logged-in participants only",
+    "heard_from": "How did you hear about us",
+    "blurb": "One-line introduction",
+    "blurb_ph": "Shown on the participants wall, e.g. builds agents, looking for an astronomy partner",
+    "show_on_wall": "Put my card on the participants wall (removable anytime)",
+    "long_term": "After the hackathon, I would like to stay involved in the open survey community",
+    "role_options": {
+      "student": "Student",
+      "engineer": "Engineer",
+      "researcher": "Researcher",
+      "product": "Product / design",
+      "other": "Other"
+    },
+    "heard_options": {
+      "friend": "Friend or colleague",
+      "community": "Chat groups / community",
+      "gosim": "GOSIM official channels",
+      "social": "Social media",
+      "other": "Other"
+    }
   },
   "mail": {
     "verify_subject": "Verify your Agent Observer account",
@@ -1941,5 +1985,59 @@
     "cta_dashboard": "Go to my dashboard",
     "cta_kit": "Download the kit",
     "cta_docs": "Full docs"
+  },
+  "tiers": {
+    "astro_label": "Astronomy tier",
+    "ai_label": "AI tier",
+    "astro": [
+      "Stargazing rookie",
+      "Amateur astronomer",
+      "Hands-on with data or scopes",
+      "Survey-grade researcher"
+    ],
+    "astro_hints": [
+      "Completely new — here to learn",
+      "Knows constellations, has chased a meteor shower or used a sky app",
+      "Has played with astronomy data, imaged deep sky or run a telescope",
+      "Works in astronomy research or survey operations"
+    ],
+    "ai": [
+      "New to AI",
+      "Can call an LLM",
+      "Has built agents",
+      "Working professional"
+    ],
+    "ai_hints": [
+      "Has not called an AI from code yet",
+      "Has used LLM APIs or done prompt engineering",
+      "Has built agents, workflows or trained models",
+      "Works in AI engineering or research"
+    ]
+  },
+  "teammates": {
+    "kicker": "Participants wall",
+    "title": "Find each other by tier",
+    "lede": "Astronomers looking for agent builders, agent builders looking for astronomers. Turn on complementary sorting and the best-matched partners come first.",
+    "self_title": "My card",
+    "self_on": "On the wall",
+    "self_off": "Not on the wall",
+    "self_blurb": "One-line introduction",
+    "self_blurb_ph": "e.g. builds agents, looking for an astronomy partner",
+    "self_save": "Save my card",
+    "saved_on": "Saved — your card is on the wall.",
+    "saved_off": "Saved — your card is off the wall.",
+    "login_hint": "Log in to get on the wall, use complementary sorting, and see contact details.",
+    "filter_astro": "Astronomy tier",
+    "filter_ai": "AI tier",
+    "filter_any": "Any",
+    "filter_looking": "Only people looking for teammates",
+    "filter_comp": "Complementary first (strong where I am not)",
+    "comp_chip": "Complements you",
+    "no_team": "No team yet",
+    "reveal": "Show contact",
+    "no_contact": "No contact shared — try GitHub or ask for a team invite code.",
+    "login_to_contact": "Log in to see contact",
+    "empty_title": "No participants match these filters",
+    "empty_desc": "Loosen the filters, or put your own card up first."
   }
 }

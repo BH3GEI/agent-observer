@@ -116,9 +116,10 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
 .cosmos-hero {
   color: #f7f9ff;
   background:
-    radial-gradient(circle at 18% 20%, rgba(49,94,251,.28), transparent 24%),
-    radial-gradient(circle at 82% 12%, rgba(120,166,255,.16), transparent 20%),
-    linear-gradient(180deg, #02050c 0%, #05070d 58%, #02050c 100%);
+    radial-gradient(circle at 18% 20%, rgba(49,94,251,.32), transparent 26%),
+    radial-gradient(circle at 82% 12%, rgba(139,92,246,.2), transparent 24%),
+    radial-gradient(circle at 62% 88%, rgba(34,211,238,.14), transparent 30%),
+    linear-gradient(180deg, #02050c 0%, #060a16 58%, #030612 100%);
 }
 .hero-wash {
   position: absolute; z-index: 0; inset: 0; pointer-events: none;
@@ -161,6 +162,8 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
   max-width: 11ch; color: #f7f9ff;
   font-family: 'Space Grotesk', 'Noto Sans SC', system-ui, sans-serif;
   font-size: clamp(3.4rem, 6vw, 6.4rem); font-weight: 600; letter-spacing: -.065em; line-height: .92; text-wrap: balance;
+  background: linear-gradient(97deg, #ffffff 6%, #bccbff 40%, #d8c3ff 66%, #8fd9ff 96%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 .hero-title-line { display: block; }
 .hero-title-zh { font-size: clamp(3.2rem, 5.6vw, 5.8rem); line-height: 1.04; }
@@ -174,7 +177,7 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
   transition: color .2s ease, background .2s ease, border-color .2s ease;
 }
 .hero-action:hover { color: #06102a; border-color: #f7f9ff; background: #f7f9ff; }
-.hero-action-primary { color: #ffffff; border-color: #315efb; background: #315efb; }
+.hero-action-primary { color: #ffffff; border-color: #315efb; background: linear-gradient(92deg, #315efb, #7c5cff); }
 
 .hero-grid-lines {
   position: absolute; z-index: 0; inset: 0; pointer-events: none; opacity: .16;

@@ -204,3 +204,29 @@ export async function loadCreditsNote(): Promise<CreditsNote> {
     return { en: typeof value.en === 'string' ? value.en : '', zh: typeof value.zh === 'string' ? value.zh : '' }
   } catch { return { en: '', zh: '' } }
 }
+
+// --- participants wall -------------------------------------------------------
+
+export interface WallEntry {
+  id: string; name: string; role: string | null; affiliation: string | null; city: string | null; blurb: string | null
+  astro_level: number; ai_level: number; looking_for_team: boolean; team_name: string | null; joined_at: string
+}
+export interface ParticipantsStats { total: number; on_wall: number; looking: number; teams: number }
+
+export async function loadParticipantsWall(limit = 60): Promise<WallEntry[]> {
+  const { data, error } = await supabase.rpc('participants_wall', { p_limit: limit })
+  if (error) throw error
+  return (data ?? []) as WallEntry[]
+}
+
+export async function loadParticipantsStats(): Promise<ParticipantsStats> {
+  const { data, error } = await supabase.rpc('participants_stats')
+  if (error) throw error
+  return data as ParticipantsStats
+}
+
+export async function revealTeammateContact(id: string): Promise<{ contact: string; github: string } | null> {
+  const { data, error } = await supabase.rpc('teammate_contact', { p_id: id })
+  if (error) throw error
+  return (data ?? null) as { contact: string; github: string } | null
+}

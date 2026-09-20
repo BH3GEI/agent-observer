@@ -16,6 +16,7 @@ const router = createRouter({
     { path: '/resources', component: () => import('./pages/ResourcesPage.vue') , meta: { page: 'resources' }},
     { path: '/leaderboard/:phase?', component: () => import('./pages/LeaderboardPage.vue') , meta: { page: 'leaderboard' }},
     { path: '/announcements', component: () => import('./pages/AnnouncementsPage.vue') , meta: { page: 'announcements' }},
+    { path: '/teammates', component: () => import('./pages/TeammatesPage.vue') , meta: { page: 'teammates' }},
     { path: '/register', component: () => import('./pages/RegisterPage.vue') , meta: { page: 'register' }},
     { path: '/login', redirect: to => ({ path: '/register', query: { ...to.query, mode: 'login' } }) },
     { path: '/forgot', redirect: to => ({ path: '/register', query: { ...to.query, mode: 'forgot' } }) },

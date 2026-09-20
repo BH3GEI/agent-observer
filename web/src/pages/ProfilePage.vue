@@ -1,17 +1,25 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n, type Locale } from '../composables/useI18n'
 import { supabase } from '../lib/supabase'
 import { describeError } from '../lib/errors'
 import { useAuth } from '../stores/auth'
 import { useFlash } from '../stores/flash'
 import DashShell from '../components/layout/DashShell.vue'
+import TierBadge from '../components/TierBadge.vue'
 
 const { t, locale, setLocale } = useI18n()
 const i18n = useI18n()
 const flash = useFlash()
 const { me, refreshMe } = useAuth()
-const form = ref({ name: '', github: '', affiliation: '', role: '', looking_for_team: false, locale: 'zh' as Locale })
+const form = ref({
+  name: '', github: '', affiliation: '', role: '', looking_for_team: false, locale: 'zh' as Locale,
+  astro_level: 0, ai_level: 0, city: '', contact: '', blurb: '', long_term: false, show_on_wall: false,
+})
+const astroTiers = computed(() => t('tiers.astro') as string[])
+const aiTiers = computed(() => t('tiers.ai') as string[])
+const roleOptions = computed(() => Object.entries(t('auth.role_options') as Record<string, string>))
+const roleIsCustom = computed(() => Boolean(form.value.role) && !roleOptions.value.some(([code]) => code === form.value.role))
 const pw = ref({ password: '', password2: '' })
 const busy = ref(false)
 const pwBusy = ref(false)
@@ -19,7 +27,13 @@ const loading = ref(true)
 
 onMounted(async () => {
   const profile = await refreshMe()
-  if (profile) form.value = { name: profile.name ?? '', github: profile.github ?? '', affiliation: profile.affiliation ?? '', role: profile.role ?? '', looking_for_team: Boolean(profile.looking_for_team), locale: profile.locale === 'en' ? 'en' : profile.locale === 'zh' ? 'zh' : locale.value }
+  if (profile) form.value = {
+    name: profile.name ?? '', github: profile.github ?? '', affiliation: profile.affiliation ?? '', role: profile.role ?? '',
+    looking_for_team: Boolean(profile.looking_for_team), locale: profile.locale === 'en' ? 'en' : profile.locale === 'zh' ? 'zh' : locale.value,
+    astro_level: Number(profile.astro_level ?? 0), ai_level: Number(profile.ai_level ?? 0),
+    city: profile.city ?? '', contact: profile.contact ?? '', blurb: profile.blurb ?? '',
+    long_term: Boolean(profile.long_term), show_on_wall: Boolean(profile.show_on_wall),
+  }
   loading.value = false
 })
 
@@ -31,6 +45,9 @@ async function save() {
     const { error } = await supabase.from('profiles').update({
       name: form.value.name.trim(), github: form.value.github.trim().replace(/^@/, ''), affiliation: form.value.affiliation.trim(),
       role: form.value.role.trim(), looking_for_team: form.value.looking_for_team, locale: form.value.locale,
+      astro_level: form.value.astro_level, ai_level: form.value.ai_level,
+      city: form.value.city.trim(), contact: form.value.contact.trim(), blurb: form.value.blurb.trim().slice(0, 160),
+      long_term: form.value.long_term, show_on_wall: form.value.show_on_wall,
     }).eq('id', me.value.id)
     if (error) throw error
     setLocale(form.value.locale)
@@ -65,12 +82,26 @@ async function changePassword() {
             <label class="field"><span>{{ t('auth.name') }}</span><input data-testid="profile-name" v-model="form.name" type="text" required maxlength="120"></label>
             <label class="field"><span>{{ t('auth.github') }}</span><input v-model="form.github" type="text" maxlength="120"></label>
             <label class="field"><span>{{ t('auth.affiliation') }}</span><input v-model="form.affiliation" type="text" maxlength="200"></label>
-            <label class="field"><span>{{ t('profile.role') }}</span><input v-model="form.role" type="text" maxlength="120"></label>
+            <label class="field"><span>{{ t('profile.role') }}</span>
+              <select v-model="form.role"><option value="">—</option><option v-for="[code, label] in roleOptions" :key="code" :value="code">{{ label }}</option><option v-if="roleIsCustom" :value="form.role">{{ form.role }}</option></select>
+            </label>
+            <label class="field"><span>{{ t('auth.city') }}</span><input v-model="form.city" type="text" maxlength="120"></label>
+            <label class="field"><span>{{ t('auth.contact') }}</span><input v-model="form.contact" type="text" maxlength="200" :placeholder="t('auth.contact_ph')"></label>
+            <label class="field"><span>{{ t('tiers.astro_label') }}</span>
+              <select v-model.number="form.astro_level" data-testid="profile-astro"><option v-for="(n, i) in astroTiers" :key="i" :value="i">{{ n }}</option></select>
+            </label>
+            <label class="field"><span>{{ t('tiers.ai_label') }}</span>
+              <select v-model.number="form.ai_level" data-testid="profile-ai"><option v-for="(n, i) in aiTiers" :key="i" :value="i">{{ n }}</option></select>
+            </label>
             <label class="field"><span>{{ t('profile.language') }}</span>
               <select v-model="form.locale"><option value="zh">中文</option><option value="en">English</option></select>
             </label>
           </div>
+          <label class="field"><span>{{ t('auth.blurb') }}</span><input v-model="form.blurb" type="text" maxlength="160" :placeholder="t('auth.blurb_ph')"></label>
+          <div class="wall-badges mb-4"><TierBadge kind="astro" :level="form.astro_level" /><TierBadge kind="ai" :level="form.ai_level" /></div>
+          <label class="check"><input v-model="form.show_on_wall" type="checkbox"> {{ t('auth.show_on_wall') }}</label>
           <label class="check"><input v-model="form.looking_for_team" type="checkbox"> {{ t('auth.looking_for_team') }}</label>
+          <label class="check"><input v-model="form.long_term" type="checkbox"> {{ t('auth.long_term') }}</label>
           <p class="help mb-4">{{ t('profile.email_note') }} {{ t('profile.locale_note') }}</p>
           <button data-testid="profile-save" class="btn primary sm" type="submit" :disabled="busy">{{ t('profile.save') }}</button>
         </form>
