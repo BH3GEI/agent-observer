@@ -18,7 +18,7 @@
 ## 3. 提交内容
 
 1. **结果文件。** 列为 `decision_id, slot_id, action, tile_id, program, request_id, reason` 的 `decisions.csv`，由你在天气公开的场景上本地运行智能体生成。由冻结的评分器即时评分。
-2. **智能体程序包。** 根目录（或唯一顶层文件夹）含入口脚本 `minimal_agent.py`、`agent.py` 或 `main.py` 的 `.zip`，可选 `requirements.txt` 与 `.env`，以及脚本导入的其他文件。不依赖其他文件时也接受单个 `.py`。平台通过 `participant-agent-protocol-v2` 在该阶段的每个场景上运行程序包，并对提交的决策评分。比赛的天气、预报与事件永不提供下载。
+2. **智能体程序包。** 根目录（或唯一顶层文件夹）含入口脚本 `minimal_agent.py`、`agent.py` 或 `main.py` 的 `.zip`，可选 `requirements.txt` 与 `.env`，以及脚本导入的其他文件。不依赖其他文件时也接受单个 `.py`。平台按场景的协议代际运行程序包并对提交的决策评分：练习场景仍是赛初的 `participant-agent-protocol-v1` 合约（无异常标签、不能重复观测、不接受上报），异常机制（`participant-agent-protocol-v2`）只在正式比赛场景启用；入门包对两代协议自动兼容，想演练新机制用其中的 `finals-preview` 场景。比赛的天气、预报与事件永不提供下载。
 3. 文件不超过 20 MB。压缩包不超过 2,000 个文件、解压后不超过 50 MB。拒绝符号链接与越出压缩包根目录的路径。
 
 ## 4. 平台运行

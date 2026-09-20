@@ -1,6 +1,6 @@
 ## 1. Overview
 
-The platform evaluates observing agents for a DESI-style survey under the **challenge v3** contract (`challenge-score-v3`, `participant-agent-protocol-v2`). A scenario is a directory: six configuration files under `config/` and the reference data under `outputs/reference/` (a 900-second slot calendar over a real solar calendar, a tile and target catalogue with REQUIRED and FLEXIBLE tiles that are only available inside a time window, directional weather with hidden disruption events, uncertain daily-revised forecasts, temporary observation requests, and hidden instrument faults plus per-tile anomaly tags). An agent turns a scenario into `decisions.csv` (anomaly reports are `report_*` action rows in it); the frozen scorer turns it into a `score_report.json`.
+The platform evaluates observing agents for a DESI-style survey under the **challenge v3** contract (`challenge-score-v3`, `participant-agent-protocol-v2`). A scenario is a directory: six configuration files under `config/` and the reference data under `outputs/reference/` (a 900-second slot calendar over a real solar calendar, a tile and target catalogue with REQUIRED and FLEXIBLE tiles that are only available inside a time window, directional weather with hidden disruption events, uncertain daily-revised forecasts, temporary observation requests, and hidden instrument faults plus per-tile anomaly tags). An agent turns a scenario into `decisions.csv` (anomaly reports are `report_*` action rows in it); the frozen scorer turns it into a `score_report.json`. The anomaly mechanics are gated per scenario by the anomaly sections of `score_config.json`: the online-competition scenarios and the kit's `finals-preview` enable them, while every practice scenario keeps the original contract byte for byte (`decision-snapshot-v2`, no reports).
 
 There are two ways to get a score:
 
@@ -115,7 +115,7 @@ decision_id,slot_id,action,tile_id,program,request_id,reason
 
 Action outcomes: `completed`, `wait`, `weather_interrupted`, `geometry_or_night_interrupted`, `unsafe_observation`, `invalid_observe`, `invalid_request_tag`, `outside_tile_window`, `unknown_slot`, `stale_decision` (re-observing a completed tile is a legal action; `duplicate_tile` no longer exists), plus report rows: `report_recorded` / `report_duplicate_ignored` / `report_correct` / `report_neutral` / `report_misreport` / `report_dropped`.
 
-## 4. Participant protocol (participant-agent-protocol-v2)
+## 4. Participant protocol (participant-agent-protocol-v2; practice scenarios stay on v1)
 
 The platform starts your entry script once per scenario (`minimal_agent.py`, `agent.py` or `main.py`, whichever exists first, at the root of the package or in its single top-level folder) and keeps the process alive for the whole run. Messages are one JSON object per line on standard input and output; print nothing else to standard output. Standard error is captured into `agent.log`, which you can download from the submission page. Every message carries `protocol_version`, `message_type` and (except `initialize`) `decision_sequence`.
 
@@ -203,7 +203,7 @@ Only completed exposures score. An exposure whose later segment meets closed wea
 | Memory / CPU | 2 GB, one CPU, 128 processes, 256 MB of written files under the package's `scratch/` directory |
 | Package | `.zip` (a bare `.py` is accepted when it needs nothing else) ≤ 20 MB, ≤ 2,000 files, ≤ 50 MB uncompressed, no symlinks |
 
-Environment variables available to the agent: `PARTICIPANT_PROTOCOL=participant-agent-protocol-v2`, `SAC_SCENARIO` (slug), `SAC_WALLCLOCK_SECONDS`, `HOME` and `TMPDIR` (the scratch directory), plus everything from your `.env`. The scenario directory is never mounted into the agent's sandbox; the only weather you see is what the snapshots publish.
+Environment variables available to the agent: `PARTICIPANT_PROTOCOL` (the scenario's protocol generation: v1 on practice, v2 on the competition), `SAC_SCENARIO` (slug), `SAC_WALLCLOCK_SECONDS`, `HOME` and `TMPDIR` (the scratch directory), plus everything from your `.env`. The scenario directory is never mounted into the agent's sandbox; the only weather you see is what the snapshots publish.
 
 ## 7. Submitting
 

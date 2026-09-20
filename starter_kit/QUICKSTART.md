@@ -11,7 +11,7 @@ Three steps: run it → edit one file → upload it. No command line and no thir
 | Linux | run `./run_baseline.sh` in a terminal |
 
 After about 15 seconds a web page opens: the replay of the baseline agent over 180 nights of the public scenario.
-The terminal ends with the score, about **23430** for the unmodified kit, with `termination_reason = survey_complete`.
+The terminal ends with the score, about **12287** for the unmodified kit, with `termination_reason = survey_complete`.
 
 For a first look, use `run_demo_week` (`.command` / `.bat` / `.sh`) instead: same pipeline and same scorer over a
 seven-night scenario. It finishes in about two seconds and the replay is short enough to follow night by night.
@@ -51,3 +51,5 @@ The platform wraps your `my_strategy.py` with the kit's standard files: you neve
   matching API key (sponsor credits are on the website's dashboard), and upload the whole `agent` folder.
 - Data formats, the protocol and the scoring formula are on the website's Docs page; `README.md` is the
   engineer's version of this guide.
+
+> Practice scenarios keep the pre-anomaly rules (no tags, no repeats, no reports). To rehearse the finals mechanics, run `run_finals_preview` / `scenarios/finals-preview` (baseline about **8214**; the sample agent detects and reports the instrument fault by itself).

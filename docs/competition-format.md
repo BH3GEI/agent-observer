@@ -50,7 +50,11 @@ the challenge produced without it.
 
 ## The anomaly release (protocol v2 / snapshot v3 / weather v2)
 
-The current contract adds the anomaly-detection game on top of the survey:
+The mechanics are **per scenario**, gated by the anomaly sections of `score_config.json`: the
+online-competition scenarios (and the kit's `finals-preview`) enable them, while every practice scenario
+keeps the pre-anomaly contract byte for byte — same snapshots, same scores, and previously uploaded v1
+agent packages keep running there unchanged. On the enabled scenarios the contract adds the
+anomaly-detection game on top of the survey:
 
 - **Efficiency jitter + instrument faults.** Baseline `instrument_efficiency` is drawn per slot in [0.90, 1.00]
   and frozen at generation. One `instrument_fault` event per scenario (region-scoped, efficiency multiplier down

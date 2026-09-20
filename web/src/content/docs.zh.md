@@ -1,6 +1,6 @@
 ## 1. 概览
 
-平台按 **challenge v3** 合约（`challenge-score-v3`、`participant-agent-protocol-v2`）评测 DESI 式巡天的观测智能体。一个场景是一个目录：`config/` 下六个配置文件，`outputs/reference/` 下的参考数据（基于真实太阳历的 900 秒时隙日历；含 REQUIRED / FLEXIBLE 两类、只在时间窗内可用的天区与目标目录；带隐藏方向性事件的天气；每日修订、带不确定性的预报；临时观测请求；隐藏的仪器故障与 per-tile 异常标签）。智能体把场景变成 `decisions.csv`（异常上报是其中的 `report_*` 动作行），冻结的评分器把它变成 `score_report.json`。
+平台按 **challenge v3** 合约（`challenge-score-v3`、`participant-agent-protocol-v2`）评测 DESI 式巡天的观测智能体。一个场景是一个目录：`config/` 下六个配置文件，`outputs/reference/` 下的参考数据（基于真实太阳历的 900 秒时隙日历；含 REQUIRED / FLEXIBLE 两类、只在时间窗内可用的天区与目标目录；带隐藏方向性事件的天气；每日修订、带不确定性的预报；临时观测请求；隐藏的仪器故障与 per-tile 异常标签）。智能体把场景变成 `decisions.csv`（异常上报是其中的 `report_*` 动作行），冻结的评分器把它变成 `score_report.json`。异常机制按场景开关（由 `score_config.json` 中的异常小节决定）：正式比赛场景与入门包的 `finals-preview` 启用，全部练习场景保持赛初合约逐字节不变（快照 `decision-snapshot-v2`，不接受上报）。
 
 获得分数有两条路径：
 
@@ -115,7 +115,7 @@ decision_id,slot_id,action,tile_id,program,request_id,reason
 
 动作结果：`completed`、`wait`、`weather_interrupted`、`geometry_or_night_interrupted`、`unsafe_observation`、`invalid_observe`、`invalid_request_tag`、`outside_tile_window`、`unknown_slot`、`stale_decision`（重复观测已完成天区是合法动作，不再是 `duplicate_tile`），上报行为 `report_recorded` / `report_duplicate_ignored` / `report_correct` / `report_neutral` / `report_misreport` / `report_dropped`。
 
-## 4. 参赛协议（participant-agent-protocol-v2）
+## 4. 参赛协议（participant-agent-protocol-v2；练习场景仍为 v1）
 
 平台在每个场景上启动一次你的入口脚本（程序包根目录或唯一顶层文件夹中的 `minimal_agent.py`、`agent.py` 或 `main.py`，按此顺序取第一个存在的），并在整个运行期间保持进程存活。消息通过标准输入输出传递，每行一个 JSON 对象；标准输出不要打印其他内容。标准错误被记录为 `agent.log`，可在提交页下载。每条消息都带 `protocol_version`、`message_type`，除 `initialize` 外还带 `decision_sequence`。
 
@@ -203,7 +203,7 @@ bonus      = program == band 时 base · {DARK: 0.25, BRIGHT: 0.15, BACKUP: 0.08
 | 内存 / CPU | 2 GB、一个 CPU、128 个进程、程序包 `scratch/` 目录下最多 256 MB 写入 |
 | 程序包 | `.zip`（不依赖其他文件时也接受单个 `.py`）≤ 20 MB、≤ 2,000 个文件、解压后 ≤ 50 MB、不含符号链接 |
 
-智能体可用的环境变量：`PARTICIPANT_PROTOCOL=participant-agent-protocol-v2`、`SAC_SCENARIO`（slug）、`SAC_WALLCLOCK_SECONDS`、`HOME` 与 `TMPDIR`（scratch 目录），以及 `.env` 中的全部内容。场景目录不会挂载进智能体沙箱；你能看到的天气只有快照发布的内容。
+智能体可用的环境变量：`PARTICIPANT_PROTOCOL`（该场景的协议代际：练习 v1 / 正式赛 v2）、`SAC_SCENARIO`（slug）、`SAC_WALLCLOCK_SECONDS`、`HOME` 与 `TMPDIR`（scratch 目录），以及 `.env` 中的全部内容。场景目录不会挂载进智能体沙箱；你能看到的天气只有快照发布的内容。
 
 ## 7. 提交
 

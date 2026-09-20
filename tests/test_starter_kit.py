@@ -171,8 +171,30 @@ def test_kit_environment_matches_vendored_modules():
             continue
         assert kit_bytes == path.read_bytes(), f"starter_kit/agent/{path.name} differs"
     assert (KIT / "agent" / "scoring_preview.py").read_bytes() == (ROOT / "challenge" / "scoring_preview.py").read_bytes()
-    for rel in ("config/score_config.json", "outputs/reference/weather_events.csv", "outputs/reference/scenario_manifest.json"):
-        assert (KIT / "scenarios" / "dev-reference" / rel).read_bytes() == (ROOT / "challenge" / "reference" / rel).read_bytes(), rel
+    # challenge/reference is the finals-generation template (anomaly mechanics on); the kit's
+    # dev-reference stays frozen on the pre-anomaly scenario the platform's practice phase stores.
+    # The pinned digest guards against an accidental regeneration of the shipped copy.
+    frozen = hashlib.sha256((KIT / "scenarios" / "dev-reference" / "outputs/reference/scenario_manifest.json").read_bytes()).hexdigest()
+    assert frozen == "62db767360818a750ca9154ade11b1baf9b2aa3e2cd03c6408c7533a089535e8", "starter_kit/scenarios/dev-reference must stay the frozen pre-anomaly scenario"
+    kit_score_config = json.loads((KIT / "scenarios" / "dev-reference" / "config/score_config.json").read_text(encoding="utf-8"))
+    assert not any(key in kit_score_config for key in ("repeat_observation", "reporting", "anomaly_tags", "fault_response"))
+
+
+def test_finals_preview_runs_the_anomaly_mechanics(tmp_path):
+    """The rehearsal scenario exercises the finals rules end to end: the unmodified kit
+    finds and reports the instrument fault, and report rows ride inside decisions.csv."""
+    out = tmp_path / "finals_preview_output"
+    proc = run("local_runner.py", "--scenario", "scenarios/finals-preview", "--agent", "agent/minimal_agent.py",
+               "--wallclock", "240", "--out", str(out), "--quiet")
+    summary = summary_of(proc)
+    assert summary["termination_reason"] == "survey_complete"
+    assert summary["total"] == pytest.approx(8214.257133, abs=1.0)
+    report = json.loads((out / "score_report.json").read_text(encoding="utf-8"))
+    assert report["reports"]["fault_correct_reports"] == 1
+    assert report["reports"]["fault_misreports"] == 0
+    decisions = (out / "decisions.csv").read_text(encoding="utf-8")
+    assert "report_instrument_failure" in decisions
+    assert (KIT / "scenarios" / "finals-preview" / "outputs" / "reference" / "tile_anomalies.csv").is_file()
 
 
 def test_demo_week_runs_and_renders_a_replay(tmp_path):
@@ -193,22 +215,29 @@ def test_demo_week_runs_and_renders_a_replay(tmp_path):
 
 
 def test_demo_week_matches_the_scenario_the_platform_seeds(tmp_path):
-    """worker.main seeds demo-week from the same parameters, so the kit copy and the published copy are one scenario."""
+    """The kit demo-week and the platform's stored copy are one frozen pre-anomaly scenario.
+
+    The generation template moved to the anomaly mechanics, so regenerating demo-week
+    from the template no longer reproduces the frozen bytes (and the platform never
+    re-seeds its stored scenarios). Two guards replace the old regeneration equality:
+    the shipped copy is pinned by digest, and the generator stays deterministic."""
+    frozen = hashlib.sha256((KIT / "scenarios" / "demo-week" / "outputs/reference/scenario_manifest.json").read_bytes()).hexdigest()
+    assert frozen == "4e3aa9b965186159e75fec76540da2cbc6858f8ad8181f8518ff5222d8fb605e", "starter_kit/scenarios/demo-week must stay the frozen pre-anomaly scenario"
+    assert not (KIT / "scenarios" / "demo-week" / "outputs/reference/tile_anomalies.csv").exists()
+
     sys.path.insert(0, str(ROOT))
     from challenge import scenario_builder  # noqa: PLC0415 - import here to keep the kit tests standalone
 
-    from worker.main import DEFAULT_SCENARIOS  # noqa: PLC0415
-
-    row = next(r for r in DEFAULT_SCENARIOS if r[0] == "demo-week")
-    _slug, _name, _desc, seed, days, start, wallclock, *_flags = row
-    generated = tmp_path / "demo-week"
-    scenario_builder.generate_scenario(generated, scenario_id="demo-week", seed=seed, days=days,
-                                       start_date=start, global_wallclock_seconds=wallclock)
-    shipped = KIT / "scenarios" / "demo-week"
-    for path in sorted(p for p in generated.rglob("*") if p.is_file()):
-        rel = path.relative_to(generated)
-        assert (shipped / rel).is_file(), f"missing from the shipped kit: {rel}"
-        assert (shipped / rel).read_bytes() == path.read_bytes(), rel
+    once = tmp_path / "gen-a"
+    twice = tmp_path / "gen-b"
+    for target in (once, twice):
+        scenario_builder.generate_scenario(target, scenario_id="demo-week", seed=20261005, days=7,
+                                           start_date="2026-10-05", global_wallclock_seconds=900)
+    files_a = sorted(p.relative_to(once) for p in once.rglob("*") if p.is_file())
+    assert files_a == sorted(p.relative_to(twice) for p in twice.rglob("*") if p.is_file())
+    for rel in files_a:
+        assert (once / rel).read_bytes() == (twice / rel).read_bytes(), rel
+    assert (once / "outputs/reference/tile_anomalies.csv").is_file(), "the template now ships the anomaly mechanics"
 
 
 def test_kit_docs_and_layout():

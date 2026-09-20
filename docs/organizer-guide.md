@@ -125,3 +125,20 @@ python -m worker.main gen-scenario --slug eval-c \
 ```
 
 `.secrets/supabase.env` 里已经有 `SUPABASE_URL` 和 `SUPABASE_SERVICE_ROLE_KEY`。key 换了的话，去 Supabase 控制台 → Project Settings → API 取新的 service_role 值贴回去。
+
+## 重建正式比赛场景（异常机制版）
+
+正式赛场景启用完整异常机制（隐藏 nova/reddening 标签、仪器故障、效率抖动、上报通道、覆盖均匀度 0.35）。
+换种子重建（在配好 `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` 的机器上）：
+
+```bash
+python -m worker.main gen-scenario --slug eval-a --seed <新种子> --days 30 --start-date 2026-10-05 \
+  --wallclock 3600 --regions 8 --tiles-per-region 200 --coverage-weight 0.35 \
+  --nova-tags 10 --reddening-tags 10 --hidden-weather --hidden-forecasts
+```
+
+`tile_anomalies.csv` 会随场景上传，但不在任何公开文件名单里——存储策略按文件名放行，选手拿不到。
+`--nova-tags 0 --reddening-tags 0` 可以生成不带异常机制的场景（旧合约）。
+
+**不要重新执行 `seed`**：练习场景（demo-week / dev-fortnight / dev-reference）已在存储中冻结，
+与入门包捆绑副本逐字节一致；生成模板升级后重新生成会破坏这一致性。入门包测试用固定校验值锁死了这两份副本。

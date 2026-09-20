@@ -15,9 +15,11 @@ Windows, macOS and Linux are supported (verified on Windows 11 with Python 3.12 
 | `agent/` | Your agent. `my_strategy.py` is the one file most teams edit (`choose_action`); `minimal_agent.py` is the entry script; `decision_graph.py` holds the full pipeline and `anomaly_detection.py` the reference anomaly-reporting layer for those who want more. |
 | `run_baseline.command` / `.bat` / `.sh` | Double-click launchers: run the baseline on the bundled scenario and open the replay. |
 | `run_demo_week.command` / `.bat` / `.sh` | Same launchers on the seven-night demo scenario: about two seconds, replay short enough to read night by night. |
+| `run_finals_preview.command` / `.bat` / `.sh` | Same launchers on `scenarios/finals-preview/`: the finals mechanics rehearsal. |
 | `challenge/` | The public environment: contracts, calendar, tile geometry, weather, requests, workflow, scorer, replay renderer. Do not edit. |
 | `scenarios/dev-reference/` | Public reference scenario: 180 nights, 7,928 slots, 64 tiles, weather truth included. |
 | `scenarios/demo-week/` | Public one-week demo scenario: 7 nights, 294 slots, 64 tiles, 1 observation request, weather truth included. |
+| `scenarios/finals-preview/` | Finals-mechanics rehearsal: 7 nights with hidden nova/reddening tags (`tile_anomalies.csv` shipped here so local scoring works), an instrument fault, per-slot efficiency jitter, score feedback, the report channel and the coverage-evenness term. The unmodified kit scores about 8214.26 here and reports the fault correctly. |
 | `local_runner.py` | Runs an agent through the platform transport on a scenario and scores it. |
 | `score_decisions.py` | Re-scores a `decisions.csv` (public scenarios only), including its `report_*` rows. |
 | `make_scenario.py` | Generates new public practice scenarios from a seed. |
@@ -25,6 +27,16 @@ Windows, macOS and Linux are supported (verified on Windows 11 with Python 3.12 
 | `pack_agent.py` | Zips `agent/` into the submission package and validates it. |
 | `sac_submit.py` | Uploads a package or a results file to the platform and waits for the score. |
 | `SKILL.md` | Step-by-step instructions an AI coding assistant can follow. |
+
+## Two rule sets, one kit
+
+The platform's **practice phase** still runs the pre-anomaly rules: its scenarios (`dev-reference`,
+`demo-week`, `dev-fortnight`) carry no anomaly tags, publish no score feedback, accept no reports, and a
+repeat observation of a completed tile stays invalid there — local runs on the bundled copies reproduce the
+platform's practice scores exactly. The **online competition** scenarios enable the full mechanics described
+in this README (hidden tags, instrument faults, repeat observations banking the per-tile maximum, the
+`report` channel). `scenarios/finals-preview/` is the rehearsal copy of those rules; the kit's agent and
+runner speak both generations automatically, so one agent package works everywhere.
 
 ## Quick start
 
@@ -35,7 +47,7 @@ python3 local_runner.py --scenario scenarios/dev-reference --agent agent/minimal
 ```
 
 Standard output ends with a JSON summary (with `--quiet` it is the only output); on the reference scenario the shipped deterministic agent completes
-the survey (`"termination_reason": "survey_complete"`) with `total` ≈ 23430.57 in about 15 s of wall clock.
+the survey (`"termination_reason": "survey_complete"`) with `total` ≈ 12287.48 in about 15 s of wall clock.
 `run_output/` holds `decisions.csv` (the whole trace — anomaly reports appear as `report_*` action rows right
 after their carrier decision), `workflow_result.json`, `score_report.json`, `agent.log` (your agent's
 stderr) and `decision_replay.html` (open it in a browser to step through every night).
@@ -186,7 +198,7 @@ snapshots never carry `instrument_efficiency`, so the preview baseline is effici
 preview estimate and the realized `tile_last_finished` score isolates the hidden instrument side (efficiency
 jitter × fault multiplier × tag multiplier). The authoritative
 scorer integrates the real exposure segments during replay. The shipped deterministic minimal agent reaches
-about 23430 on the reference scenario (64 of 64 tiles, 17 of 18 requests, no penalties); a random feasible
+about 12287 on the reference scenario (64 of 64 tiles, 17 of 18 requests, no penalties); a random feasible
 policy scores far lower, mostly through missed REQUIRED tiles and invalid actions.
 
 ## Editing the agent
