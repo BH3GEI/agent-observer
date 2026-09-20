@@ -5,6 +5,7 @@ import { isSupabaseConfigured } from '../../lib/supabase'
 import { loadParticipantsWall, loadParticipantsStats, type WallEntry, type ParticipantsStats } from '../../lib/data'
 import { useAuth } from '../../stores/auth'
 import TierBadge from '../TierBadge.vue'
+import UserAvatar from '../UserAvatar.vue'
 
 const { t, tf } = useI18n()
 const { isLoggedIn } = useAuth()
@@ -23,6 +24,11 @@ onMounted(async () => {
 })
 
 const marquee = computed(() => entries.value.length >= 8)
+function lookingChip(e: WallEntry): string {
+  if (e.seeking === 'astro') return tf('home.participants.looking_astro', { n: e.seeking_count || 1 })
+  if (e.seeking === 'ai') return tf('home.participants.looking_ai', { n: e.seeking_count || 1 })
+  return e.looking_for_team ? t('home.participants.looking') : ''
+}
 const roleLabel = (role: string | null) => {
   if (!role) return ''
   const known = t('auth.role_options') as Record<string, string>
@@ -48,14 +54,14 @@ const statItems = computed(() => stats.value ? [
         </div>
       </div>
 
-      <div v-if="entries.length" class="mt-12" :class="marquee ? 'wall-marquee-clip reveal' : 'reveal-stagger'">
+      <div v-if="entries.length >= 3" class="mt-12" :class="marquee ? 'wall-marquee-clip reveal' : 'reveal-stagger'">
         <div :class="marquee ? 'wall-marquee' : 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'">
           <template v-if="marquee">
             <div class="wall-track" aria-hidden="false">
               <article v-for="e in entries" :key="e.id" class="wall-card">
                 <div class="wall-card-head">
-                  <h3>{{ e.name }}</h3>
-                  <span v-if="e.looking_for_team" class="wall-looking"><span class="live-dot h-1.5 w-1.5"></span>{{ t('home.participants.looking') }}</span>
+                  <UserAvatar :name="e.name" :github="e.github" /><h3>{{ e.name }}</h3>
+                  <span v-if="lookingChip(e)" class="wall-looking"><span class="live-dot h-1.5 w-1.5"></span>{{ lookingChip(e) }}</span>
                 </div>
                 <div class="wall-badges"><TierBadge kind="astro" :level="e.astro_level" /><TierBadge kind="ai" :level="e.ai_level" /></div>
                 <p v-if="e.blurb" class="wall-blurb">“{{ e.blurb }}”</p>
@@ -65,8 +71,8 @@ const statItems = computed(() => stats.value ? [
             <div class="wall-track" aria-hidden="true">
               <article v-for="e in entries" :key="`dup-${e.id}`" class="wall-card">
                 <div class="wall-card-head">
-                  <h3>{{ e.name }}</h3>
-                  <span v-if="e.looking_for_team" class="wall-looking"><span class="live-dot h-1.5 w-1.5"></span>{{ t('home.participants.looking') }}</span>
+                  <UserAvatar :name="e.name" :github="e.github" /><h3>{{ e.name }}</h3>
+                  <span v-if="lookingChip(e)" class="wall-looking"><span class="live-dot h-1.5 w-1.5"></span>{{ lookingChip(e) }}</span>
                 </div>
                 <div class="wall-badges"><TierBadge kind="astro" :level="e.astro_level" /><TierBadge kind="ai" :level="e.ai_level" /></div>
                 <p v-if="e.blurb" class="wall-blurb">“{{ e.blurb }}”</p>
@@ -77,8 +83,8 @@ const statItems = computed(() => stats.value ? [
           <template v-else>
             <article v-for="e in entries" :key="e.id" class="wall-card">
               <div class="wall-card-head">
-                <h3>{{ e.name }}</h3>
-                <span v-if="e.looking_for_team" class="wall-looking"><span class="live-dot h-1.5 w-1.5"></span>{{ t('home.participants.looking') }}</span>
+                <UserAvatar :name="e.name" :github="e.github" /><h3>{{ e.name }}</h3>
+                <span v-if="lookingChip(e)" class="wall-looking"><span class="live-dot h-1.5 w-1.5"></span>{{ lookingChip(e) }}</span>
               </div>
               <div class="wall-badges"><TierBadge kind="astro" :level="e.astro_level" /><TierBadge kind="ai" :level="e.ai_level" /></div>
               <p v-if="e.blurb" class="wall-blurb">“{{ e.blurb }}”</p>

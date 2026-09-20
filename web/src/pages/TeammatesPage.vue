@@ -7,6 +7,7 @@ import { loadParticipantsWall, revealTeammateContact, type WallEntry } from '../
 import { useAuth, initAuth, refreshMe } from '../stores/auth'
 import { useFlash } from '../stores/flash'
 import TierBadge from '../components/TierBadge.vue'
+import UserAvatar from '../components/UserAvatar.vue'
 
 const { t, tf } = useI18n()
 const i18n = useI18n()
@@ -22,7 +23,7 @@ const complementary = ref(true)
 const contacts = ref<Record<string, { contact: string; github: string } | null>>({})
 const contactBusy = ref<string | null>(null)
 
-const wallForm = ref({ show_on_wall: false, blurb: '', contact: '', looking_for_team: false })
+const wallForm = ref({ show_on_wall: false, blurb: '', contact: '', seeking: '', seeking_count: 1 })
 const wallBusy = ref(false)
 
 onMounted(async () => {
@@ -37,7 +38,7 @@ async function syncWallForm() {
     show_on_wall: Boolean(profile.show_on_wall),
     blurb: profile.blurb ?? '',
     contact: profile.contact ?? '',
-    looking_for_team: Boolean(profile.looking_for_team),
+    seeking: profile.seeking ?? '', seeking_count: Number(profile.seeking_count) || 1,
   }
 }
 
@@ -57,7 +58,9 @@ async function saveWall() {
       show_on_wall: wallForm.value.show_on_wall,
       blurb: wallForm.value.blurb.trim().slice(0, 160),
       contact: wallForm.value.contact.trim().slice(0, 200),
-      looking_for_team: wallForm.value.looking_for_team,
+      seeking: wallForm.value.seeking,
+      seeking_count: wallForm.value.seeking ? wallForm.value.seeking_count : 0,
+      looking_for_team: wallForm.value.seeking !== '',
     }).eq('id', me.value.id)
     if (error) throw error
     await refreshMe()
@@ -90,6 +93,11 @@ async function reveal(e: WallEntry) {
   finally { contactBusy.value = null }
 }
 
+function lookingChip(e: WallEntry): string {
+  if (e.seeking === 'astro') return tf('home.participants.looking_astro', { n: e.seeking_count || 1 })
+  if (e.seeking === 'ai') return tf('home.participants.looking_ai', { n: e.seeking_count || 1 })
+  return e.looking_for_team ? t('home.participants.looking') : ''
+}
 const roleLabel = (role: string | null) => {
   if (!role) return ''
   const known = t('auth.role_options') as Record<string, string>
@@ -114,7 +122,18 @@ const tierNames = (kind: 'astro' | 'ai') => t(`tiers.${kind}`) as string[]
           <label class="field"><span>{{ t('auth.contact') }}</span><input v-model="wallForm.contact" type="text" maxlength="200" :placeholder="t('auth.contact_ph')"></label>
         </div>
         <label class="check"><input v-model="wallForm.show_on_wall" type="checkbox" data-testid="wall-toggle"> {{ t('auth.show_on_wall') }}</label>
-        <label class="check"><input v-model="wallForm.looking_for_team" type="checkbox"> {{ t('auth.looking_for_team') }}</label>
+        <div class="grid-form">
+          <label class="field"><span>{{ t('auth.seeking_label') }}</span>
+            <select v-model="wallForm.seeking">
+              <option value="astro">{{ t('auth.seeking_astro') }}</option>
+              <option value="ai">{{ t('auth.seeking_ai') }}</option>
+              <option value="">{{ t('auth.seeking_none') }}</option>
+            </select>
+          </label>
+          <label v-if="wallForm.seeking" class="field"><span>{{ t('auth.seeking_count') }}</span>
+            <select v-model.number="wallForm.seeking_count"><option :value="1">1</option><option :value="2">2</option></select>
+          </label>
+        </div>
         <button class="btn primary sm" type="button" :disabled="wallBusy" @click="saveWall">{{ t('teammates.self_save') }}</button>
       </div>
       <div v-else class="notice mt-10">
@@ -122,7 +141,7 @@ const tierNames = (kind: 'astro' | 'ai') => t(`tiers.${kind}`) as string[]
         <router-link class="accent-l underline underline-offset-2" to="/register">{{ t('nav.register') }} →</router-link>
       </div>
 
-      <div class="wall-filters mt-12" data-testid="wall-filters">
+      <div v-if="entries.length >= 3" class="wall-filters mt-12" data-testid="wall-filters">
         <label class="field slim"><span>{{ t('teammates.filter_astro') }}</span>
           <select v-model.number="minAstro"><option v-for="(n, i) in tierNames('astro')" :key="i" :value="i">{{ i === 0 ? t('teammates.filter_any') : `≥ ${n}` }}</option></select>
         </label>
@@ -134,12 +153,16 @@ const tierNames = (kind: 'astro' | 'ai') => t(`tiers.${kind}`) as string[]
       </div>
 
       <p v-if="loading" class="text3 mt-10 text-sm">{{ t('common.loading') }}</p>
+      <div v-else-if="entries.length < 3" class="wall-empty mt-12">
+        <p class="wall-empty-title">{{ t('home.participants.empty_title') }}</p>
+        <p class="mt-2 text-sm text-[#9aa3b8]">{{ t('home.participants.empty_desc') }}</p>
+      </div>
       <div v-else-if="filtered.length" class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3" data-testid="wall-grid">
         <article v-for="e in filtered" :key="e.id" v-tilt class="wall-card wall-card-lg">
           <div class="wall-card-head">
-            <h3>{{ e.name }}</h3>
+            <UserAvatar :name="e.name" :github="e.github" /><h3>{{ e.name }}</h3>
             <span v-if="isLoggedIn && complementary && compScore(e) >= 2" class="wall-comp">{{ t('teammates.comp_chip') }}</span>
-            <span v-else-if="e.looking_for_team" class="wall-looking"><span class="live-dot h-1.5 w-1.5"></span>{{ t('home.participants.looking') }}</span>
+            <span v-else-if="lookingChip(e)" class="wall-looking"><span class="live-dot h-1.5 w-1.5"></span>{{ lookingChip(e) }}</span>
           </div>
           <div class="wall-badges"><TierBadge kind="astro" :level="e.astro_level" /><TierBadge kind="ai" :level="e.ai_level" /></div>
           <p v-if="e.blurb" class="wall-blurb">“{{ e.blurb }}”</p>

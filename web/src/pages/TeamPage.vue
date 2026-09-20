@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import UserAvatar from '../components/UserAvatar.vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from '../composables/useI18n'
 import { supabase } from '../lib/supabase'
@@ -20,9 +21,9 @@ const openTeams = ref<OpenTeam[]>([])
 const busy = ref(false)
 const loading = ref(true)
 const copied = ref(false)
-const createForm = ref({ name: '', max_size: 4, github_repo: '', project_idea: '' })
+const createForm = ref({ name: '', max_size: 3, github_repo: '', project_idea: '' })
 const joinForm = ref({ code: '' })
-const editForm = ref({ max_size: 4, github_repo: '', project_idea: '', is_locked: false })
+const editForm = ref({ max_size: 3, github_repo: '', project_idea: '', is_locked: false })
 const isLeader = computed(() => Boolean(team.value && me.value && team.value.leader_id === me.value.id))
 
 const errorText = (e: unknown) => describeError(e, i18n, ['team.errors', 'team'])
@@ -90,7 +91,7 @@ onMounted(load)
             <thead><tr><th>{{ t('common.name') }}</th><th>{{ t('auth.github') }}</th><th>{{ t('auth.affiliation') }}</th><th></th></tr></thead>
             <tbody>
               <tr v-for="m in members" :key="m.id">
-                <td>{{ m.name }} <span v-if="m.is_leader" class="pill accent ml-1">{{ t('team.leader') }}</span>
+                <td><UserAvatar :name="m.name" :github="m.github" /> {{ m.name }} <span v-if="m.is_leader" class="pill accent ml-1">{{ t('team.leader') }}</span>
                   <span class="wall-badges wall-badges-inline"><TierBadge kind="astro" :level="m.astro_level" /><TierBadge kind="ai" :level="m.ai_level" /></span>
                 </td>
                 <td class="m text-sm">{{ m.github || '—' }}</td>
@@ -110,7 +111,7 @@ onMounted(load)
           <div class="hd mt-10"><h3>{{ t('common.save') }}</h3></div>
           <form @submit.prevent="saveTeam">
             <div class="grid-form">
-              <label class="field"><span>{{ t('team.max_size') }}</span><input v-model.number="editForm.max_size" type="number" :min="members.length" max="8"></label>
+              <label class="field"><span>{{ t('team.max_size') }}</span><input v-model.number="editForm.max_size" type="number" :min="members.length" max="3"></label>
               <label class="field"><span>{{ t('team.github_repo') }}</span><input v-model="editForm.github_repo" type="text"></label>
               <label class="field full"><span>{{ t('team.project_idea') }}</span><textarea v-model="editForm.project_idea"></textarea></label>
             </div>
@@ -151,7 +152,7 @@ onMounted(load)
         <form @submit.prevent="createTeam">
           <div class="grid-form">
             <label class="field"><span>{{ t('team.name') }}</span><input data-testid="team-name-input" v-model="createForm.name" type="text" required minlength="2" maxlength="60"></label>
-            <label class="field"><span>{{ t('team.max_size') }}</span><input v-model.number="createForm.max_size" type="number" min="1" max="8"></label>
+            <label class="field"><span>{{ t('team.max_size') }}</span><input v-model.number="createForm.max_size" type="number" min="1" max="3"></label>
             <label class="field"><span>{{ t('team.github_repo') }}</span><input v-model="createForm.github_repo" type="text"></label>
             <label class="field"><span>{{ t('team.project_idea') }}</span><input v-model="createForm.project_idea" type="text"></label>
           </div>

@@ -225,6 +225,7 @@ export async function loadCreditsNote(): Promise<CreditsNote> {
 export interface WallEntry {
   id: string; name: string; role: string | null; affiliation: string | null; city: string | null; blurb: string | null
   astro_level: number; ai_level: number; looking_for_team: boolean; team_name: string | null; joined_at: string
+  github: string | null; seeking: string; seeking_count: number
 }
 export interface ParticipantsStats { total: number; on_wall: number; looking: number; teams: number }
 

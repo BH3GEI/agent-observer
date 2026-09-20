@@ -26,7 +26,7 @@ onMounted(async () => {
         <span class="poster-kicker">{{ t('home.credibility.kicker') }}</span>
         <h2 class="section-title distressed-type mt-8">{{ t('home.credibility.title') }}</h2>
       </div>
-      <div class="cards cards-3 reveal-stagger mt-14">
+      <div class="cards cards-3 cards-fit reveal-stagger mt-14">
         <article v-for="item in items" :key="item.name" v-tilt class="card card-lift">
           <span class="label accent">{{ item.role }}</span>
           <h3 class="mt-3">{{ item.name }}</h3>

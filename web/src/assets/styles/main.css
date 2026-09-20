@@ -829,7 +829,7 @@ details.plain summary { cursor: pointer; }
 .committee-card p { margin-top: .3rem; font-size: .7rem; line-height: 1.5; color: #aeb6c8; }
 
 .nav-drop-panel { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); min-width: 11rem; padding: .4rem 0;
-  border: 1px solid rgba(148,163,255,.25); background: rgba(6,9,18,.97); backdrop-filter: blur(8px); z-index: 60; }
+  border: 1px solid rgba(148,163,255,.25); background: rgba(6,9,18,.97); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 60; }
 .nav-drop-item { display: block; padding: .55rem 1.1rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .72rem;
   letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.55); transition: color .15s ease, background .15s ease; }
 .nav-drop-item:hover { color: #fff; background: rgba(49,94,251,.18); }
@@ -932,7 +932,7 @@ a:focus-visible, button:focus-visible, [role="tab"]:focus-visible, input:focus-v
 .reg-step-label { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: #cdd6ee; }
 
 .series-panel { position: absolute; top: 100%; left: -1rem; min-width: 21rem; z-index: 60;
-  border: 1px solid rgba(158,173,255,.28); background: rgba(8,12,24,.98); backdrop-filter: blur(10px); }
+  border: 1px solid rgba(158,173,255,.28); background: rgba(8,12,24,.98); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .series-head { display: flex; justify-content: space-between; gap: 2rem; padding: .7rem 1.1rem;
   border-bottom: 1px solid rgba(255,255,255,.14); font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.5); }
@@ -961,3 +961,25 @@ a:focus-visible, button:focus-visible, [role="tab"]:focus-visible, input:focus-v
   font-size: .72rem; font-weight: 700; color: #fff;
   background: linear-gradient(135deg, hsl(var(--team-hue, 220) 75% 55%), hsl(calc(var(--team-hue, 220) + 40) 70% 45%));
   box-shadow: 0 0 10px hsl(var(--team-hue, 220) 80% 60% / .45); }
+
+/* Star ranks on the register tier cards */
+.tier-option .tier-stars { display: flex; gap: .2rem; margin-bottom: .5rem; font-size: .72rem; line-height: 1; color: rgba(255,255,255,.2); }
+.tier-option .tier-stars b { font-weight: 400; transition: color .2s ease; }
+.tier-option .tier-stars b.on { color: #f5b942; text-shadow: 0 0 9px rgba(245,185,66,.4); }
+.tier-option.active .tier-stars b.on { color: #ffd27a; }
+
+/* User avatars: GitHub photo by default, letter disc as fallback */
+img.user-avatar { width: 30px; height: 30px; border-radius: 999px; object-fit: cover; border: 1px solid rgba(255,255,255,.28); background: #0b1222; display: inline-block; vertical-align: middle; flex: none; }
+.wall-card-head .user-avatar { margin-right: .55rem; }
+td .user-avatar, li .user-avatar { margin-right: .35rem; }
+i.user-avatar { vertical-align: middle; }
+
+/* Grids sized to their actual card count: no exposed gap-color cells */
+.cards-fit { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+/* The Playground mission card reads like an actual card */
+.mission-sheet { position: relative; }
+.mission-sheet::after { content: ''; position: absolute; inset: 9px; border: 1px dashed rgba(16,29,41,.3); pointer-events: none; }
+.mission-serial { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .66rem; letter-spacing: .2em; text-transform: uppercase; color: rgba(16,29,41,.6); border: 1px solid rgba(16,29,41,.35); padding: .32rem .6rem; }
+.mission-idx { display: inline-block; margin-right: .5rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-style: normal; font-size: .66rem; letter-spacing: .08em; color: #9c5c38; transform: translateY(-1px); }
+.mission-punch { height: 24px; max-width: 320px; opacity: .8; background: repeating-linear-gradient(90deg, #101d29 0 2px, transparent 2px 5px, #101d29 5px 6px, transparent 6px 12px, #101d29 12px 15px, transparent 15px 19px); }

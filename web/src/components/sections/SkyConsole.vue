@@ -5,10 +5,13 @@ import { replayActions, replayNights, replaySite, replaySlots, replayTiles, repl
 import { drawSkyMap, lstDeg, PAD, type ObservedMark } from '../../lib/skymap'
 import { OUTCOME_COLORS } from '../../lib/report'
 import { fmtUtc, num } from '../../lib/format'
+import { loadLeaderboard } from '../../lib/data'
+import { isSupabaseConfigured } from '../../lib/supabase'
 
 const { t, tf } = useI18n()
 const clock = useReplayClock()
 const canvas = ref<HTMLCanvasElement | null>(null)
+const champion = ref('')
 const hud = ref({ slot: '', night: '', date: '', utc: '', seeing: 0, transp: 0, sky: 0, eff: 0, open: true, score: 0, completed: 0, nightNo: 1 })
 /** What the replay is doing right now, so viewers who do not know the task can follow along. */
 const beat = ref<{ key: string; region: string; nightNo: number }>({ key: 'idle', region: '', nightNo: 1 })
@@ -100,6 +103,7 @@ function endTour() {
 }
 
 onMounted(() => {
+  if (isSupabaseConfigured) loadLeaderboard(null, 1).then(rows => { champion.value = rows[0]?.team_name ?? '' }).catch(() => { /* decorative */ })
   if (canvas.value) { observer = new ResizeObserver(() => render()); observer.observe(canvas.value) }
   loop()
   let seen = true
@@ -112,7 +116,7 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
 <template>
   <div class="sky-console" data-testid="sky-console" @mouseenter="clock.setPaused(true)" @mouseleave="clock.setPaused(false)">
     <div class="sky-console-head">
-      <span class="flex items-center gap-3"><span class="live-dot" :class="{ 'is-paused': paused || reduced }"></span>{{ t('hero.console.title') }}</span>
+      <span class="sky-live-title flex items-center gap-3"><span class="live-dot" :class="{ 'is-paused': paused || reduced }"></span><span>{{ t('hero.console.title') }}<b v-if="champion" class="sky-champ">@{{ champion }}</b></span></span>
       <span class="flex items-center gap-4">
         <span class="text-white/60">{{ paused ? t('hero.console.paused') : tf('hero.console.replay_note', { nights: replayTotals.nights, actions: replayActions.length }) }}</span>
         <button type="button" class="replay-toggle" :aria-pressed="paused" :disabled="reduced" @click="clock.setPaused(!paused)">{{ paused ? t('hero.console.resume') : t('hero.console.pause') }}</button>
@@ -273,4 +277,6 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
   .sky-hud > div { border-bottom: 0; }
   .sky-hud > div:last-child { border-right: 0; }
 }
+.sky-console-head .sky-live-title { font-size: 1.04rem; font-weight: 650; letter-spacing: .01em; color: #fff; text-transform: none; }
+.sky-console-head .sky-champ { color: #ffd27a; font-weight: 700; margin-left: .55rem; }
 </style>

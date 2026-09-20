@@ -136,7 +136,7 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
   width: 100%; height: 100%; object-fit: contain; object-position: center;
   opacity: .5;
   filter: saturate(1.2) contrast(1.22) brightness(1.12);
-  transform: translate3d(0, var(--parallax-y, 0px), 0);
+  transform: translate3d(0, var(--parallax-y, 0px), 0) scale(.8);
   transition: transform .18s linear;
 }
 .hero-beam {

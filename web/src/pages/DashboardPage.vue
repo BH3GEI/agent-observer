@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import UserAvatar from '../components/UserAvatar.vue'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from '../composables/useI18n'
@@ -110,7 +111,7 @@ onMounted(async () => {
             <dt>{{ t('team.invite_code') }}</dt><dd class="m">{{ team.invite_code }}</dd>
           </dl>
           <ul class="text2 mt-4 text-sm">
-            <li v-for="m in members" :key="m.id">{{ m.name }}<template v-if="m.is_leader"> · <span class="label accent">{{ t('team.leader') }}</span></template></li>
+            <li v-for="m in members" :key="m.id"><UserAvatar :name="m.name" :github="m.github" /> {{ m.name }}<template v-if="m.is_leader"> · <span class="label accent">{{ t('team.leader') }}</span></template></li>
           </ul>
         </div>
         <CreditsPanel :class="{ 'mt-8': Boolean(team) }" />

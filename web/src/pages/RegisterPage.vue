@@ -24,8 +24,8 @@ const busy = ref(false)
 const errors = ref<string[]>([])
 const sent = ref(false)
 const reg = ref({
-  name: '', email: '', password: '', password2: '', github: '', affiliation: '', looking_for_team: true, agree: false,
-  astro_level: 0, ai_level: 0, role: '', city: '', contact: '', heard_from: '', blurb: '', long_term: false, show_on_wall: true,
+  name: '', email: '', password: '', password2: '', github: '', affiliation: '', agree: false, seeking: '', seeking_count: 1,
+  astro_level: 0, ai_level: 0, role: '', city: '', contact: '', heard_from: '', blurb: '', show_on_wall: true,
 })
 const astroTiers = computed(() => t('tiers.astro') as string[])
 const aiTiers = computed(() => t('tiers.ai') as string[])
@@ -96,7 +96,8 @@ async function submitRegister() {
           name: reg.value.name.trim(),
           github: reg.value.github.trim().replace(/^@/, ''),
           affiliation: reg.value.affiliation.trim(),
-          looking_for_team: String(reg.value.looking_for_team),
+          seeking: reg.value.seeking,
+          seeking_count: String(reg.value.seeking_count),
           locale: locale.value,
           astro_level: String(reg.value.astro_level),
           ai_level: String(reg.value.ai_level),
@@ -105,7 +106,6 @@ async function submitRegister() {
           contact: reg.value.contact.trim(),
           heard_from: reg.value.heard_from,
           blurb: reg.value.blurb.trim(),
-          long_term: String(reg.value.long_term),
           show_on_wall: String(reg.value.show_on_wall),
         },
       },
@@ -217,7 +217,7 @@ async function submitForgot() {
               <legend class="label">{{ t('tiers.astro_label') }}</legend>
               <div class="tier-pick" role="radiogroup" data-testid="reg-astro">
                 <label v-for="(name, i) in astroTiers" :key="i" class="tier-option" :class="[`tier-astro-${i}`, { active: reg.astro_level === i }]">
-                  <input v-model.number="reg.astro_level" type="radio" name="astro_level" :value="i">
+                  <input v-model.number="reg.astro_level" type="radio" name="astro_level" :value="i"><span class="tier-stars" aria-hidden="true"><b v-for="n in 4" :key="n" :class="{ on: n <= i + 1 }">★</b></span>
                   <b>{{ name }}</b><small>{{ astroHints[i] }}</small>
                 </label>
               </div>
@@ -226,7 +226,7 @@ async function submitForgot() {
               <legend class="label">{{ t('tiers.ai_label') }}</legend>
               <div class="tier-pick" role="radiogroup" data-testid="reg-ai">
                 <label v-for="(name, i) in aiTiers" :key="i" class="tier-option" :class="[`tier-ai-${i}`, { active: reg.ai_level === i }]">
-                  <input v-model.number="reg.ai_level" type="radio" name="ai_level" :value="i">
+                  <input v-model.number="reg.ai_level" type="radio" name="ai_level" :value="i"><span class="tier-stars" aria-hidden="true"><b v-for="n in 4" :key="n" :class="{ on: n <= i + 1 }">★</b></span>
                   <b>{{ name }}</b><small>{{ aiHints[i] }}</small>
                 </label>
               </div>
@@ -247,8 +247,18 @@ async function submitForgot() {
             <label class="field"><span>{{ t('auth.blurb') }} · {{ t('common.optional') }}</span><input v-model="reg.blurb" type="text" maxlength="160" :placeholder="t('auth.blurb_ph')"></label>
 
             <label class="check"><input v-model="reg.show_on_wall" type="checkbox" data-testid="reg-wall"> {{ t('auth.show_on_wall') }}</label>
-            <label class="check"><input v-model="reg.looking_for_team" type="checkbox"> {{ t('auth.looking_for_team') }}</label>
-            <label class="check"><input v-model="reg.long_term" type="checkbox"> {{ t('auth.long_term') }}</label>
+            <div class="grid-form">
+              <label class="field"><span>{{ t('auth.seeking_label') }}</span>
+                <select v-model="reg.seeking" data-testid="reg-seeking">
+                  <option value="astro">{{ t('auth.seeking_astro') }}</option>
+                  <option value="ai">{{ t('auth.seeking_ai') }}</option>
+                  <option value="">{{ t('auth.seeking_none') }}</option>
+                </select>
+              </label>
+              <label v-if="reg.seeking" class="field"><span>{{ t('auth.seeking_count') }}</span>
+                <select v-model.number="reg.seeking_count"><option :value="1">1</option><option :value="2">2</option></select>
+              </label>
+            </div>
             <div class="mt-4 flex flex-wrap items-center gap-3">
               <button type="button" class="btn" @click="regStep = 1">← {{ t('auth.prev_step') }}</button>
               <button data-testid="reg-submit" class="btn primary" type="submit" :disabled="busy || !registrationOpen || !isSupabaseConfigured">{{ busy ? t('common.working') : t('auth.submit_register') }} →</button>

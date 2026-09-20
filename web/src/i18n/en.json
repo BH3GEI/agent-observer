@@ -259,7 +259,45 @@
           "desc": "Observe a tile, or wait. One action per slot, and the reason for it."
         }
       ],
-      "closing": "No astronomy background? No need to worry: in the October 1–4 online training, international astronomers and senior agent experts coach the practice together."
+      "closing": "No astronomy background? No need to worry: in the October 1–4 online training, international astronomers and senior agent experts coach the practice together.",
+      "cardKicker": "How the challenge arrives",
+      "cardTitle": "One Survey Mission Card",
+      "cardLede": "Every round of the challenge starts from a mission card. Everything that round holds you to is written on it:",
+      "cardItems": [
+        {
+          "term": "Science goal",
+          "desc": "What this survey is actually trying to answer."
+        },
+        {
+          "term": "Footprint",
+          "desc": "How much sky to cover, and how it divides into tiles."
+        },
+        {
+          "term": "Time budget",
+          "desc": "How many 900-second slots there are to spend."
+        },
+        {
+          "term": "Telescope site",
+          "desc": "Latitude, visibility limits, slot length, and the airmass constraint."
+        },
+        {
+          "term": "Available programs",
+          "desc": "Which of DARK, BRIGHT and BACKUP this round opens up."
+        },
+        {
+          "term": "Target classes",
+          "desc": "Which objects count toward yield, and what each is worth."
+        },
+        {
+          "term": "Observing constraints",
+          "desc": "What you may not do, and what crossing the line costs."
+        },
+        {
+          "term": "Scoring rule",
+          "desc": "How the score is computed and which penalties apply."
+        }
+      ],
+      "cardNote": "The authoritative input and output formats and the interface contract are defined by the mission card. The card and the public development data — tile catalogue, example weather scenarios, initial state and visual reports — are released before the hackathon begins."
     },
     "participate": {
       "kicker": "03 / How to participate",
@@ -363,7 +401,7 @@
     },
     "submission": {
       "kicker": "06 / Submission",
-      "title": "Two ways to enter a run",
+      "title": "How to enter a run",
       "items": [
         {
           "title": "Results file",
@@ -386,9 +424,9 @@
           "desc": "Global Open-Source Innovation Meetup. Awards Day is held at GOSIM Shenzhen on October 17, 2026."
         },
         {
-          "role": "Evaluation",
-          "name": "CosmosBench",
-          "desc": "This platform. Open scorer, fixed scenarios, sandboxed agent runs, live board."
+          "role": "Token sponsor",
+          "name": "KIMI",
+          "desc": "With thanks to the open-source LLM KIMI for the token sponsorship."
         }
       ],
       "committee": {
@@ -469,7 +507,9 @@
       "empty_desc": "Choose to display your card during registration and yours will be the first.",
       "cta_board": "Find teammates",
       "cta_wall_register": "Register",
-      "cta_wall_profile": "Manage my card"
+      "cta_wall_profile": "Manage my card",
+      "looking_astro": "Needs {n} astro teammate(s)",
+      "looking_ai": "Needs {n} agent teammate(s)"
     },
     "quest": {
       "kicker": "Participation path",
@@ -1185,7 +1225,7 @@
     "required_missing": "REQ missing"
   },
   "cta": {
-    "title": "Let your agent choose the next observation",
+    "title": "The next observation, decided by you and your agent",
     "tagline": "Same survey plan, weather replay, inserted requests, simulator, and scoring rule. The only variable is strategy.",
     "location": "Online development and CosmosBench evaluation · October 17 at GOSIM Shenzhen",
     "button": "Register now",
@@ -1286,7 +1326,6 @@
     "password2": "Repeat password",
     "github": "GitHub username",
     "affiliation": "Affiliation",
-    "looking_for_team": "I am looking for a team",
     "agree": "I have read the rules and the code of conduct.",
     "submit_register": "Create account",
     "submit_login": "Log in",
@@ -1346,7 +1385,6 @@
     "blurb": "One-line introduction",
     "blurb_ph": "Shown on the participants wall, e.g. experienced in agent development, seeking a partner with an astronomy background",
     "show_on_wall": "Display my card on the participants wall (can be withdrawn at any time)",
-    "long_term": "After the hackathon, I would like to stay involved in the open survey community",
     "role_options": {
       "student": "Student",
       "engineer": "Engineer",
@@ -1364,7 +1402,12 @@
     "step1_label": "Step 1 / 2 · Create the account",
     "step2_label": "Step 2 / 2 · Your participant card",
     "next_step": "Next",
-    "prev_step": "Back"
+    "prev_step": "Back",
+    "seeking_label": "Team-up intent",
+    "seeking_astro": "Looking for astronomy-background teammates",
+    "seeking_ai": "Looking for agent-background teammates",
+    "seeking_none": "I don't need teammates",
+    "seeking_count": "Preferred teammate count"
   },
   "mail": {
     "verify_subject": "Verify your Agentic Observer account",
@@ -1435,7 +1478,7 @@
     "create_title": "Create a team",
     "join_title": "Join with an invite code",
     "name": "Team name",
-    "max_size": "Max size (1–8)",
+    "max_size": "Max size (1–3)",
     "project_idea": "Approach (optional)",
     "github_repo": "Repository (optional)",
     "invite_code": "Invite code",
@@ -1473,7 +1516,7 @@
     "saved": "Team updated.",
     "not_in_team": "You are not on a team.",
     "leader_only": "Only the team leader can do this.",
-    "bad_size": "Team size must be between the current member count and 8."
+    "bad_size": "Team size must be between the current member count and 3."
   },
   "submit": {
     "title": "New submission",
@@ -1742,7 +1785,7 @@
       },
       {
         "q": "Can I compete alone?",
-        "a": "Yes. Create a team with a size of 1. Teams may have up to 8 members."
+        "a": "Yes. Create a team with a size of 1. Teams may have up to 3 members."
       },
       {
         "q": "Which languages can I use?",
@@ -1791,11 +1834,6 @@
       {
         "q": "Are there API credits for development?",
         "a": "Registered teams can claim sponsor API codes from the dashboard, one code per provider per team. Platform runs have network access, so the same key works in the .env of your package for hidden-weather runs as well as for local development."
-      },
-      {
-        "q": "Do practice and the online competition run the same rules?",
-        "a": "No — deliberately. Practice keeps the launch rules: no anomaly tags, no repeat observations, no reports, and your local scores match the platform exactly. The competition scenarios additionally enable the anomaly mechanics (hidden tags, an instrument fault, score feedback, the report channel, repeat observations banking the per-tile maximum). The starter kit speaks both rule sets automatically, so one package runs everywhere.",
-        "gated": true
       },
       {
         "q": "What is anomaly reporting? What if I get one wrong?",

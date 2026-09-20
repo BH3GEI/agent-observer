@@ -13,8 +13,8 @@ const i18n = useI18n()
 const flash = useFlash()
 const { me, refreshMe } = useAuth()
 const form = ref({
-  name: '', github: '', affiliation: '', role: '', looking_for_team: false, locale: 'zh' as Locale,
-  astro_level: 0, ai_level: 0, city: '', contact: '', blurb: '', long_term: false, show_on_wall: false,
+  name: '', github: '', affiliation: '', role: '', seeking: '', seeking_count: 1, locale: 'zh' as Locale,
+  astro_level: 0, ai_level: 0, city: '', contact: '', blurb: '', show_on_wall: false,
 })
 const astroTiers = computed(() => t('tiers.astro') as string[])
 const aiTiers = computed(() => t('tiers.ai') as string[])
@@ -29,10 +29,10 @@ onMounted(async () => {
   const profile = await refreshMe()
   if (profile) form.value = {
     name: profile.name ?? '', github: profile.github ?? '', affiliation: profile.affiliation ?? '', role: profile.role ?? '',
-    looking_for_team: Boolean(profile.looking_for_team), locale: profile.locale === 'en' ? 'en' : profile.locale === 'zh' ? 'zh' : locale.value,
+    seeking: profile.seeking ?? '', seeking_count: Number(profile.seeking_count) || 1, locale: profile.locale === 'en' ? 'en' : profile.locale === 'zh' ? 'zh' : locale.value,
     astro_level: Number(profile.astro_level ?? 0), ai_level: Number(profile.ai_level ?? 0),
     city: profile.city ?? '', contact: profile.contact ?? '', blurb: profile.blurb ?? '',
-    long_term: Boolean(profile.long_term), show_on_wall: Boolean(profile.show_on_wall),
+    show_on_wall: Boolean(profile.show_on_wall),
   }
   loading.value = false
 })
@@ -44,10 +44,11 @@ async function save() {
   try {
     const { error } = await supabase.from('profiles').update({
       name: form.value.name.trim(), github: form.value.github.trim().replace(/^@/, ''), affiliation: form.value.affiliation.trim(),
-      role: form.value.role.trim(), looking_for_team: form.value.looking_for_team, locale: form.value.locale,
+      role: form.value.role.trim(), locale: form.value.locale,
+      seeking: form.value.seeking, seeking_count: form.value.seeking ? form.value.seeking_count : 0, looking_for_team: form.value.seeking !== '',
       astro_level: form.value.astro_level, ai_level: form.value.ai_level,
       city: form.value.city.trim(), contact: form.value.contact.trim(), blurb: form.value.blurb.trim().slice(0, 160),
-      long_term: form.value.long_term, show_on_wall: form.value.show_on_wall,
+      show_on_wall: form.value.show_on_wall,
     }).eq('id', me.value.id)
     if (error) throw error
     setLocale(form.value.locale)
@@ -100,8 +101,18 @@ async function changePassword() {
           <label class="field"><span>{{ t('auth.blurb') }}</span><input v-model="form.blurb" type="text" maxlength="160" :placeholder="t('auth.blurb_ph')"></label>
           <div class="wall-badges mb-4"><TierBadge kind="astro" :level="form.astro_level" /><TierBadge kind="ai" :level="form.ai_level" /></div>
           <label class="check"><input v-model="form.show_on_wall" type="checkbox"> {{ t('auth.show_on_wall') }}</label>
-          <label class="check"><input v-model="form.looking_for_team" type="checkbox"> {{ t('auth.looking_for_team') }}</label>
-          <label class="check"><input v-model="form.long_term" type="checkbox"> {{ t('auth.long_term') }}</label>
+          <div class="grid-form">
+            <label class="field"><span>{{ t('auth.seeking_label') }}</span>
+              <select v-model="form.seeking">
+                <option value="astro">{{ t('auth.seeking_astro') }}</option>
+                <option value="ai">{{ t('auth.seeking_ai') }}</option>
+                <option value="">{{ t('auth.seeking_none') }}</option>
+              </select>
+            </label>
+            <label v-if="form.seeking" class="field"><span>{{ t('auth.seeking_count') }}</span>
+              <select v-model.number="form.seeking_count"><option :value="1">1</option><option :value="2">2</option></select>
+            </label>
+          </div>
           <p class="help mb-4">{{ t('profile.email_note') }} {{ t('profile.locale_note') }}</p>
           <button data-testid="profile-save" class="btn primary sm" type="submit" :disabled="busy">{{ t('profile.save') }}</button>
         </form>

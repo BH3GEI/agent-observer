@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useScrollReveal } from '../composables/useScrollReveal'
+useScrollReveal()
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from '../composables/useI18n'
 import { appUrl } from '../composables/api'
@@ -17,7 +19,7 @@ const GROUPS: ScenarioFileGroup[] = ['config', 'data', 'weather', 'forecasts', '
 
 const kit = [
   { n: '01', title: 'resources.kit', desc: 'resources.kit_desc', href: appUrl('/downloads/agent-observer-starter-kit.zip'), primary: true, label: 'common.download' },
-  { n: '02', title: 'resources.reference', desc: 'resources.reference_desc', href: 'https://github.com/upstreamlabs/agent-observer/tree/main/challenge/participant_agent', primary: false, label: 'common.view', view: true },
+  { n: '02', title: 'resources.reference', desc: 'resources.reference_desc', href: 'https://github.com/gosimfoundation/agent-observer/tree/main/challenge/participant_agent', primary: false, label: 'common.view', view: true },
   { n: '03', title: 'resources.scorer', desc: 'resources.scorer_desc', href: appUrl('/downloads/scoring_core.py'), primary: false, label: 'common.download' },
   { n: '04', title: 'resources.skill', desc: 'resources.skill_desc', href: appUrl('/skill.md'), primary: false, label: 'common.view', view: true },
   { n: '05', title: 'resources.docs', desc: 'resources.docs_desc', href: '/docs', primary: false, label: 'common.view', route: true },
