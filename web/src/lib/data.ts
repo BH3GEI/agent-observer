@@ -1,3 +1,7 @@
+import { readObjectText } from './storage'
+import { parseTilesCsv } from './skymap'
+import type { ScoreReport } from './report'
+import type { RawReplay } from '../composables/useReplayClock'
 import { supabase } from './supabase'
 
 export type PhaseStatus = 'open' | 'upcoming' | 'closed' | 'disabled'
@@ -245,4 +249,67 @@ export async function revealTeammateContact(id: string): Promise<{ contact: stri
   const { data, error } = await supabase.rpc('teammate_contact', { p_id: id })
   if (error) throw error
   return (data ?? null) as { contact: string; github: string } | null
+}
+
+export interface ChampionRun {
+  team_id: string; team_name: string; submission_id: number; leader_github: string | null
+  scenario_slug: string | null; report_path: string | null; score: number; scored_at: string | null
+}
+export async function loadChampionRun(): Promise<ChampionRun | null> {
+  const { data, error } = await supabase.rpc('champion_run')
+  if (error) throw error
+  return (data as ChampionRun | null) ?? null
+}
+
+function csvRecords(text: string): Record<string, string>[] {
+  const lines = text.replace(/^\ufeff/, '').trim().split(/\r?\n/)
+  if (lines.length < 2) return []
+  const head = lines[0]!.split(',').map(h => h.trim())
+  return lines.slice(1).map(line => {
+    const cells = line.split(',')
+    const row: Record<string, string> = {}
+    head.forEach((h, i) => { row[h] = cells[i] ?? '' })
+    return row
+  })
+}
+const measure = (value: string | undefined): number => {
+  const v = (value ?? '').trim()
+  return v ? Number(Number(v).toFixed(6)) : 0
+}
+
+/** The champion's real score report plus the scenario's public sky data, shaped for the console clock. */
+export async function loadChampionReplay(meta: ChampionRun): Promise<RawReplay | null> {
+  if (!meta.report_path || !meta.scenario_slug) return null
+  const slug = meta.scenario_slug
+  const [reportText, weatherText, tilesText, calendarText, scoreText] = await Promise.all([
+    readObjectText('results', meta.report_path),
+    readObjectText('scenarios', `${slug}/outputs/reference/weather.csv`),
+    readObjectText('scenarios', `${slug}/outputs/reference/tiles.csv`),
+    readObjectText('scenarios', `${slug}/config/calendar_config.json`),
+    readObjectText('scenarios', `${slug}/config/score_config.json`),
+  ])
+  const report = JSON.parse(reportText) as ScoreReport
+  const calendar = JSON.parse(calendarText) as { site: { latitude_deg: number; longitude_deg: number } }
+  const scoreCfg = JSON.parse(scoreText) as { minimum_altitude_deg?: number }
+  const tiles = parseTilesCsv(tilesText).map(t => ({ id: t.id, ra: t.ra, dec: t.dec, cls: t.cls, region: t.region, exp: t.exp ?? 900 }))
+  const weather = csvRecords(weatherText).map(w => ({
+    slot: w.slot_id ?? '', night: w.night_id ?? '', t: w.timestamp_utc ?? '',
+    open: ['true', '1', 'yes'].includes((w.is_observable ?? '').trim().toLowerCase()),
+    seeing: measure(w.seeing_arcsec), transp: measure(w.transparency), sky: measure(w.sky_quality), eff: measure(w.instrument_efficiency),
+  }))
+  const actions = report.actions.map(a => ({
+    i: a.decision_id, slot: a.slot_id, a: a.action === 'wait' ? 'wait' : 'observe',
+    tile: a.tile_id || '', program: a.program || '', outcome: String(a.outcome),
+    t: a.start_utc, dt: Math.round(a.elapsed_seconds),
+    score: Number((a.base_science_score + a.program_bonus_score).toFixed(4)), penalty: Number(a.penalty.toFixed(4)),
+  }))
+  if (!tiles.length || !weather.length || !actions.length) return null
+  return {
+    site: { lat: calendar.site.latitude_deg, lon: calendar.site.longitude_deg, min_alt: Number(scoreCfg.minimum_altitude_deg ?? 30) },
+    tiles, weather, actions,
+    score: { total: report.score.total, base_science: report.score.base_science },
+    completed: report.completion.completed_tiles.length,
+    required_missing: report.completion.required_missing,
+    nights: new Set(weather.map(w => w.night)).size,
+  }
 }

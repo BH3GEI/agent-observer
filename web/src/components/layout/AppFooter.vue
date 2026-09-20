@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from '../../composables/useI18n'
-import { useReplayClock } from '../../composables/useReplayClock'
+import { replayMeta, replaySlots, useReplayClock } from '../../composables/useReplayClock'
 const { t } = useI18n()
-const { state, slots } = useReplayClock()
-const slot = computed(() => slots[state.slotIndex] ?? slots[0]!)
+const { state } = useReplayClock()
+const slot = computed(() => { void replayMeta.version; return replaySlots[state.slotIndex] ?? replaySlots[0]! })
 const progressPct = computed(() => `${(state.progress * 100).toFixed(1)}%`)
 </script>
 

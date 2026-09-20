@@ -1,57 +1,74 @@
 import { onMounted, onUnmounted, reactive, readonly } from 'vue'
-import replay from '../content/demo/replay.json'
+import demoReplay from '../content/demo/replay.json'
 import { outcomeClass, type OutcomeClass } from '../lib/report'
 import { prefersReducedMotion, type SkySite, type SkyTile } from '../lib/skymap'
 
 /**
- * One shared clock for the published demo replay: a real 14-night run of the minimal agent
- * (548 committed actions, 537 slots). Loop progress 0…1 is mapped onto the *actions*, not onto
- * wall time: every observe gets a full share of the loop, every wait a small one, so long idle
- * runs (closed dome, nothing above 30°) flash by while exposures are visible. One loop ≈ 45 s.
- * The hero console and the footer slot ticker read the same clock, so they always agree.
+ * One shared clock for the replay the homepage console renders. It boots on the bundled demo run and is
+ * swapped live for the current champion's real submission once that loads (setReplayData) — the arrays
+ * below are live module bindings, so per-frame readers pick the swap up immediately; anything cached at
+ * setup time should re-derive from replayMeta.version.
+ *
+ * Loop progress 0…1 maps LINEARLY onto night time: every 900-second slot owns an equal share of the
+ * loop, so the replay advances at one steady pace with no fast-forward jumps. The daytime between two
+ * nights is skipped at a slot boundary — the moment the sky visibly rotates, which the narration and
+ * walkthrough call out.
  */
 export interface ReplaySlot { slot: string; night: string; t: string; startSec: number; open: boolean; seeing: number; transp: number; sky: number; eff: number }
 export interface ReplayAction {
   i: string; slot: string; a: 'observe' | 'wait'; tile: string; program: string; outcome: string; cls: OutcomeClass
   t: string; dt: number; score: number; penalty: number; startSec: number; doneSec: number
 }
+export interface RawReplayTile { id: string; ra: number; dec: number; cls: string; region: string; exp: number }
+export interface RawReplaySlot { slot: string; night: string; t: string; open: boolean; seeing: number; transp: number; sky: number; eff: number }
+export interface RawReplayAction { i: string; slot: string; a: string; tile: string; program: string; outcome: string; t: string; dt: number; score: number; penalty: number }
+export interface RawReplay {
+  site: SkySite
+  tiles: RawReplayTile[]
+  weather: RawReplaySlot[]
+  actions: RawReplayAction[]
+  score: { total: number; base_science: number }
+  completed: number
+  required_missing: string[]
+  nights: number
+}
 
 export const LOOP_MS = 75_000
 export const SLOT_SECONDS = 900
-const WAIT_WEIGHT = 0.12
-/** A run of consecutive waits shows the same picture over and over, so only the first few get their share of
- *  the loop and the rest are fast-forwarded. Without this a quiet night (nearly 40 waits) costs as much of the
- *  loop as a busy one and the console looks stuck. */
-const WAIT_RUN_SHOWN = Number.POSITIVE_INFINITY  // every wait plays at its normal share; no fast-forward jumps
-const WAIT_TAIL_WEIGHT = 0.012
-export const replaySite: SkySite = replay.site
-export const replayTiles: SkyTile[] = replay.tiles.map(t => ({ id: t.id, ra: t.ra, dec: t.dec, cls: t.cls === 'R' ? 'R' as const : 'F' as const, region: t.region, exp: t.exp }))
-export const replaySlots: ReplaySlot[] = replay.weather.map(w => ({ ...w, startSec: Date.parse(w.t) / 1000 }))
-export const replayActions: ReplayAction[] = replay.actions.map(a => {
-  const startSec = Date.parse(a.t) / 1000
-  const act = a.a === 'wait' ? 'wait' as const : 'observe' as const
-  return { ...a, a: act, cls: outcomeClass(a.outcome, act), startSec, doneSec: startSec + a.dt }
-})
-export const replayTotals = { finalScore: replay.score.total, baseScience: replay.score.base_science, completed: replay.completed, nights: replay.nights, requiredMissing: replay.required_missing.length }
 
-/** Nights in order, so the console can say which one it is showing. */
-export const replayNights: string[] = [...new Set(replaySlots.map(s => s.night))]
+export const replayMeta = reactive({ version: 0, source: 'demo' as 'demo' | 'champion', label: '' })
 
-// cumulative loop weights: action k spans [cum[k], cum[k+1]) of the loop
-const weights: number[] = []
-/** True where the action is in the fast-forwarded tail of a run of waits. */
-const skipped: boolean[] = []
-let waitRun = 0
-for (const a of replayActions) {
-  if (a.a !== 'wait') { waitRun = 0; weights.push(1); skipped.push(false); continue }
-  waitRun += 1
-  const tail = waitRun > WAIT_RUN_SHOWN
-  weights.push(tail ? WAIT_TAIL_WEIGHT : WAIT_WEIGHT)
-  skipped.push(tail)
+export let replaySite: SkySite = { lat: 0, lon: 0, min_alt: 30 }
+export let replayTiles: SkyTile[] = []
+export let replaySlots: ReplaySlot[] = []
+export let replayActions: ReplayAction[] = []
+export let replayTotals = { finalScore: 0, baseScience: 0, completed: 0, nights: 0, requiredMissing: 0 }
+export let replayNights: string[] = []
+let actionStarts: number[] = []
+let totalNightSec = 1
+
+export function setReplayData(raw: RawReplay, source: 'demo' | 'champion' = 'demo', label = '') {
+  replaySite = raw.site
+  replayTiles = raw.tiles.map(t => ({ id: t.id, ra: t.ra, dec: t.dec, cls: t.cls === 'R' ? 'R' as const : 'F' as const, region: t.region, exp: t.exp }))
+  replaySlots = raw.weather.map(w => ({ ...w, startSec: Date.parse(w.t) / 1000 }))
+  replayActions = raw.actions.map(a => {
+    const startSec = Date.parse(a.t) / 1000
+    const act = a.a === 'wait' ? 'wait' as const : 'observe' as const
+    return { ...a, a: act, cls: outcomeClass(a.outcome, act), startSec, doneSec: startSec + a.dt }
+  })
+  replayTotals = {
+    finalScore: raw.score.total, baseScience: raw.score.base_science,
+    completed: raw.completed, nights: raw.nights, requiredMissing: raw.required_missing.length,
+  }
+  replayNights = [...new Set(replaySlots.map(s => s.night))]
+  actionStarts = replayActions.map(a => a.startSec)
+  totalNightSec = Math.max(1, replaySlots.length * SLOT_SECONDS)
+  replayMeta.source = source
+  replayMeta.label = label
+  replayMeta.version += 1
+  tick()
 }
-const cum: number[] = [0]
-for (const w of weights) cum.push(cum[cum.length - 1]! + w)
-const TOTAL_WEIGHT = cum[cum.length - 1]!
+setReplayData(demoReplay as unknown as RawReplay, 'demo')
 
 const state = reactive({ progress: 0, slotIndex: 0, actionIndex: 0, paused: false, reduced: false })
 let base = 0, runningSince: number | null = null, users = 0, timer: number | undefined
@@ -73,18 +90,19 @@ export function slotIndexAt(nowSec: number): number {
   }
   return lo
 }
-/** Map loop progress onto the current action, replay time (unix seconds) and slot index. */
+/** Map loop progress onto replay time at one steady rate: progress spans the night slots uniformly. */
 export function replayTimeAt(progress: number): { actionIndex: number; slotIndex: number; nowSec: number; frac: number; fastForward: boolean } {
-  const v = Math.max(0, Math.min(TOTAL_WEIGHT - 1e-9, progress * TOTAL_WEIGHT))
+  const g = Math.max(0, Math.min(0.999999, progress)) * totalNightSec
+  const slotIndex = Math.min(replaySlots.length - 1, Math.floor(g / SLOT_SECONDS))
+  const nowSec = replaySlots[slotIndex]!.startSec + (g - slotIndex * SLOT_SECONDS)
   let lo = 0, hi = replayActions.length - 1
   while (lo < hi) {
     const mid = (lo + hi + 1) >> 1
-    if (cum[mid]! <= v) lo = mid; else hi = mid - 1
+    if (actionStarts[mid]! <= nowSec) lo = mid; else hi = mid - 1
   }
-  const frac = (v - cum[lo]!) / weights[lo]!
   const a = replayActions[lo]!
-  const nowSec = a.startSec + frac * Math.max(1, a.dt)
-  return { actionIndex: lo, slotIndex: slotIndexAt(nowSec), nowSec, frac, fastForward: skipped[lo]! }
+  const frac = Math.max(0, Math.min(1, (nowSec - a.startSec) / Math.max(1, a.dt)))
+  return { actionIndex: lo, slotIndex, nowSec, frac, fastForward: false }
 }
 function tick() {
   const p = replayProgress()
@@ -93,7 +111,8 @@ function tick() {
   state.slotIndex = at.slotIndex
   state.actionIndex = at.actionIndex
 }
-function seek(progress: number) {
+/** Jump the shared clock to a loop position (the console's drag bar). */
+export function seekReplay(progress: number) {
   const p = Math.max(0, Math.min(0.999999, progress))
   base = p * LOOP_MS
   if (runningSince != null) runningSince = performance.now()
@@ -123,5 +142,5 @@ function release() {
 export function useReplayClock() {
   onMounted(acquire)
   onUnmounted(release)
-  return { state: readonly(state), setPaused, seek, replayProgress, replayTimeAt, slots: replaySlots, actions: replayActions }
+  return { state: readonly(state), setPaused, seek: seekReplay, replayProgress, replayTimeAt }
 }

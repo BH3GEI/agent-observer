@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from '../../composables/useI18n'
-import { replayActions, replayNights, replaySite, replaySlots, replayTiles, replayTimeAt, replayTotals, useReplayClock, SLOT_SECONDS } from '../../composables/useReplayClock'
+import { replayActions, replayMeta, replayNights, replaySite, replaySlots, replayTiles, replayTimeAt, replayTotals, setReplayData, useReplayClock, SLOT_SECONDS } from '../../composables/useReplayClock'
 import { drawSkyMap, lstDeg, PAD, type ObservedMark } from '../../lib/skymap'
 import { OUTCOME_COLORS } from '../../lib/report'
 import { fmtUtc, num } from '../../lib/format'
-import { loadLeaderboard } from '../../lib/data'
+import { loadChampionRun, loadChampionReplay } from '../../lib/data'
+import UserAvatar from '../UserAvatar.vue'
 import { isSupabaseConfigured } from '../../lib/supabase'
 
 const { t, tf } = useI18n()
 const clock = useReplayClock()
 const canvas = ref<HTMLCanvasElement | null>(null)
 const champion = ref('')
+const championGithub = ref('')
 const progressUI = ref(0)
 const scrubbing = ref(false)
 const seekValue = computed(() => Math.round(progressUI.value * 1000))
@@ -27,8 +29,8 @@ const paused = computed(() => clock.state.paused)
 const reduced = computed(() => clock.state.reduced)
 let raf = 0, observer: ResizeObserver | undefined, shownScore = 0, lastProgress = 0
 const PULSE = SLOT_SECONDS * 2  // glow for two slots of replay time after a tile completes
-const nightIds = replayNights
-const tileById = new Map(replayTiles.map(tile => [tile.id, tile]))
+const nightIds = computed(() => { void replayMeta.version; return replayNights })
+const tileById = computed(() => { void replayMeta.version; return new Map(replayTiles.map(tile => [tile.id, tile])) })
 
 const narration = computed(() => tf(`hero.console.beat.${beat.value.key}`, { region: beat.value.region, night: beat.value.nightNo, nights: replayTotals.nights }))
 /** Where the meridian sits inside the canvas box, so the walkthrough can point at the line wherever it is. */
@@ -65,7 +67,7 @@ function beatFor(actionIndex: number, fastForward: boolean, open: boolean, night
   const nightChanged = Boolean(prev) && prev!.slot.split('-')[0] !== action.slot.split('-')[0]
   if (nightChanged) return { key: 'night_change', region: '', nightNo }
   if (action.a === 'observe') {
-    const tile = tileById.get(action.tile)
+    const tile = tileById.value.get(action.tile)
     const key = action.cls === 'completed' ? (tile?.cls === 'R' ? 'observe_required' : 'observe') : 'interrupted'
     return { key, region: tile?.region ?? '', nightNo }
   }
@@ -83,7 +85,7 @@ function render() {
   shownScore = reduced.value ? score : shownScore + (score - shownScore) * 0.18
   const slot = replaySlots[slotIndex]!
   const stamp = fmtUtc(new Date(nowSec * 1000).toISOString(), { seconds: true, short: true })
-  const nightNo = nightIds.indexOf(slot.night) + 1
+  const nightNo = nightIds.value.indexOf(slot.night) + 1
   hud.value = { slot: slot.slot, night: slot.night, date: stamp.slice(0, 5), utc: stamp.slice(6), seeing: slot.seeing, transp: slot.transp, sky: slot.sky, eff: slot.eff, open: slot.open, score: shownScore, completed, nightNo }
   beat.value = beatFor(actionIndex, fastForward, slot.open, nightNo)
   trackMeridian(nowSec)
@@ -100,6 +102,23 @@ const tourStep = ref(-1)
 const tourOpen = computed(() => tourStep.value >= 0)
 const currentStep = computed(() => TOUR_STEPS[tourStep.value] ?? null)
 
+let championTimer: number | undefined
+let championSubmission = 0
+async function refreshChampion() {
+  if (!isSupabaseConfigured) return
+  try {
+    const meta = await loadChampionRun()
+    if (!meta) return
+    champion.value = meta.team_name
+    championGithub.value = meta.leader_github ?? ''
+    if (!meta.report_path || meta.submission_id === championSubmission) return
+    const raw = await loadChampionReplay(meta)
+    if (!raw) return
+    championSubmission = meta.submission_id
+    setReplayData(raw, 'champion', meta.team_name)
+  } catch { /* keep whatever replay is currently loaded */ }
+}
+
 function startTour() { tourStep.value = 0; clock.setPaused(true) }
 function nextStep() {
   if (tourStep.value < TOUR_STEPS.length - 1) { tourStep.value += 1; return }
@@ -112,20 +131,21 @@ function endTour() {
 }
 
 onMounted(() => {
-  if (isSupabaseConfigured) loadLeaderboard(null, 1).then(rows => { champion.value = rows[0]?.team_name ?? '' }).catch(() => { /* decorative */ })
+  void refreshChampion()
+  championTimer = window.setInterval(() => { if (!document.hidden) void refreshChampion() }, 60_000)
   if (canvas.value) { observer = new ResizeObserver(() => render()); observer.observe(canvas.value) }
   loop()
   let seen = true
   try { seen = window.localStorage.getItem(TOUR_KEY) === '1' } catch { /* private mode: do not nag */ }
   if (!seen && !clock.state.reduced) startTour()
 })
-onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
+onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect(); if (championTimer) window.clearInterval(championTimer) })
 </script>
 
 <template>
-  <div class="sky-console" data-testid="sky-console" @mouseenter="clock.setPaused(true)" @mouseleave="clock.setPaused(false)">
+  <div class="sky-console" data-testid="sky-console" :data-replay-source="replayMeta.source" @mouseenter="clock.setPaused(true)" @mouseleave="clock.setPaused(false)">
     <div class="sky-console-head">
-      <span class="sky-live-title flex items-center gap-3"><span class="live-dot" :class="{ 'is-paused': paused || reduced }"></span><span>{{ t('hero.console.title') }}<b v-if="champion" class="sky-champ">@{{ champion }}</b></span></span>
+      <span class="sky-live-title flex items-center gap-3"><span class="live-dot" :class="{ 'is-paused': paused || reduced }"></span><span>{{ t('hero.console.title') }}<b v-if="champion" class="sky-champ"><UserAvatar :name="champion" :github="championGithub" />@{{ champion }}</b></span></span>
       <span class="flex items-center gap-4">
         <span class="text-white/60">{{ paused ? t('hero.console.paused') : tf('hero.console.replay_note', { nights: replayTotals.nights, actions: replayActions.length }) }}</span>
         <button type="button" class="replay-toggle" :aria-pressed="paused" :disabled="reduced" @click="clock.setPaused(!paused)">{{ paused ? t('hero.console.resume') : t('hero.console.pause') }}</button>
@@ -298,5 +318,6 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
   .sky-hud > div:last-child { border-right: 0; }
 }
 .sky-console-head .sky-live-title { font-size: 1.04rem; font-weight: 650; letter-spacing: .01em; color: #fff; text-transform: none; }
-.sky-console-head .sky-champ { color: #ffd27a; font-weight: 700; margin-left: .55rem; }
+.sky-console-head .sky-champ { display: inline-flex; align-items: center; gap: .4rem; color: #ffd27a; font-weight: 700; margin-left: .55rem; }
+.sky-champ :deep(.user-avatar) { width: 22px; height: 22px; font-size: .62rem; }
 </style>
