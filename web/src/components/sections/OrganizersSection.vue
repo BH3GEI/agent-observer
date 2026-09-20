@@ -7,6 +7,11 @@ import { loadAnnouncements, type Announcement } from '../../lib/data'
 import { fmtUtc } from '../../lib/format'
 
 const { t, pick } = useI18n()
+
+const orgLogos: Record<string, string> = {
+  'GOSIM Foundation': appUrl('media/gosim-logo.svg'),
+  KIMI: appUrl('media/kimi-logo.png'),
+}
 type Item = { role: string; name: string; desc: string }
 type Member = { photo: string; name: string; title: string; org: string }
 const items = computed(() => t('home.credibility.items') as Item[])
@@ -27,8 +32,9 @@ onMounted(async () => {
         <h2 class="section-title distressed-type mt-8">{{ t('home.credibility.title') }}</h2>
       </div>
       <div class="cards cards-3 cards-fit reveal-stagger mt-14">
-        <article v-for="item in items" :key="item.name" v-tilt class="card card-lift">
+        <article v-for="item in items" :key="item.name" v-tilt class="card card-lift org-card">
           <span class="label accent">{{ item.role }}</span>
+          <img v-if="orgLogos[item.name]" :src="orgLogos[item.name]" :alt="`${item.name} logo`" class="org-logo" loading="lazy">
           <h3 class="mt-3">{{ item.name }}</h3>
           <p>{{ item.desc }}</p>
         </article>

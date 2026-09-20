@@ -12,6 +12,14 @@ const { t, tf } = useI18n()
 const clock = useReplayClock()
 const canvas = ref<HTMLCanvasElement | null>(null)
 const champion = ref('')
+const progressUI = ref(0)
+const scrubbing = ref(false)
+const seekValue = computed(() => Math.round(progressUI.value * 1000))
+function onSeek(e: Event) {
+  const v = (e.target as HTMLInputElement).valueAsNumber / 1000
+  progressUI.value = v
+  clock.seek(v)
+}
 const hud = ref({ slot: '', night: '', date: '', utc: '', seeing: 0, transp: 0, sky: 0, eff: 0, open: true, score: 0, completed: 0, nightNo: 1 })
 /** What the replay is doing right now, so viewers who do not know the task can follow along. */
 const beat = ref<{ key: string; region: string; nightNo: number }>({ key: 'idle', region: '', nightNo: 1 })
@@ -71,6 +79,7 @@ function render() {
   const { slotIndex, nowSec, observed, score, completed, actionIndex, fastForward } = frameAt(progress)
   if (progress < lastProgress) shownScore = 0  // loop restarted
   lastProgress = progress
+  if (!scrubbing.value) progressUI.value = progress
   shownScore = reduced.value ? score : shownScore + (score - shownScore) * 0.18
   const slot = replaySlots[slotIndex]!
   const stamp = fmtUtc(new Date(nowSec * 1000).toISOString(), { seconds: true, short: true })
@@ -147,6 +156,14 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
         </div>
       </div>
     </div>
+    <div class="sky-seek">
+      <input
+        type="range" min="0" max="1000" step="1"
+        :value="seekValue" :disabled="reduced" :aria-label="t('hero.console.seek')"
+        @pointerdown="scrubbing = true" @pointerup="scrubbing = false" @pointercancel="scrubbing = false"
+        @input="onSeek"
+      >
+    </div>
     <p class="sky-narration" aria-live="polite" data-testid="sky-narration">
       <span class="sky-narration-dot" :class="{ 'is-wait': beat.key !== 'observe' && beat.key !== 'observe_required' }"></span>
       {{ narration }}
@@ -192,6 +209,9 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect() })
   font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: #a8a8a8;
 }
 .live-dot.is-paused { animation: none; opacity: .5; }
+.sky-seek { padding: .5rem .9rem .15rem; }
+.sky-seek input { display: block; width: 100%; height: 4px; margin: 0; accent-color: #315efb; cursor: pointer; }
+.sky-seek input:disabled { opacity: .35; cursor: default; }
 .replay-toggle {
   border: 1px solid rgba(255,255,255,.28);
   padding: 2px 10px;

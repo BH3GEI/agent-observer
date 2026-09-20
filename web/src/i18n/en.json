@@ -226,7 +226,8 @@
         "night_change": "Night {night} of {nights} — daytime skipped, the sky has come back round",
         "idle": "Starting up"
       },
-      "weather_help": "Seeing: how blurred stars are, lower is sharper (arcseconds). Transparency: how clear the atmosphere is, higher is better. Sky: how bright the night sky itself is. Instrument: how much the equipment is delivering right now."
+      "weather_help": "Seeing: how blurred stars are, lower is sharper (arcseconds). Transparency: how clear the atmosphere is, higher is better. Sky: how bright the night sky itself is. Instrument: how much the equipment is delivering right now.",
+      "seek": "Drag the replay position"
     },
     "pipeline_intro": "Milestones"
   },

@@ -16,13 +16,13 @@ export interface ReplayAction {
   t: string; dt: number; score: number; penalty: number; startSec: number; doneSec: number
 }
 
-export const LOOP_MS = 45_000
+export const LOOP_MS = 75_000
 export const SLOT_SECONDS = 900
 const WAIT_WEIGHT = 0.12
 /** A run of consecutive waits shows the same picture over and over, so only the first few get their share of
  *  the loop and the rest are fast-forwarded. Without this a quiet night (nearly 40 waits) costs as much of the
  *  loop as a busy one and the console looks stuck. */
-const WAIT_RUN_SHOWN = 4
+const WAIT_RUN_SHOWN = Number.POSITIVE_INFINITY  // every wait plays at its normal share; no fast-forward jumps
 const WAIT_TAIL_WEIGHT = 0.012
 export const replaySite: SkySite = replay.site
 export const replayTiles: SkyTile[] = replay.tiles.map(t => ({ id: t.id, ra: t.ra, dec: t.dec, cls: t.cls === 'R' ? 'R' as const : 'F' as const, region: t.region, exp: t.exp }))
@@ -93,6 +93,12 @@ function tick() {
   state.slotIndex = at.slotIndex
   state.actionIndex = at.actionIndex
 }
+function seek(progress: number) {
+  const p = Math.max(0, Math.min(0.999999, progress))
+  base = p * LOOP_MS
+  if (runningSince != null) runningSince = performance.now()
+  tick()
+}
 function setPaused(paused: boolean) {
   if (state.paused === paused) return
   state.paused = paused
@@ -117,5 +123,5 @@ function release() {
 export function useReplayClock() {
   onMounted(acquire)
   onUnmounted(release)
-  return { state: readonly(state), setPaused, replayProgress, replayTimeAt, slots: replaySlots, actions: replayActions }
+  return { state: readonly(state), setPaused, seek, replayProgress, replayTimeAt, slots: replaySlots, actions: replayActions }
 }

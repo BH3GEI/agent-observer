@@ -983,3 +983,8 @@ i.user-avatar { vertical-align: middle; }
 .mission-serial { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .66rem; letter-spacing: .2em; text-transform: uppercase; color: rgba(16,29,41,.6); border: 1px solid rgba(16,29,41,.35); padding: .32rem .6rem; }
 .mission-idx { display: inline-block; margin-right: .5rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-style: normal; font-size: .66rem; letter-spacing: .08em; color: #9c5c38; transform: translateY(-1px); }
 .mission-punch { height: 24px; max-width: 320px; opacity: .8; background: repeating-linear-gradient(90deg, #101d29 0 2px, transparent 2px 5px, #101d29 5px 6px, transparent 6px 12px, #101d29 12px 15px, transparent 15px 19px); }
+
+/* Organizer and sponsor cards carry their marks large, not as a small text block */
+.org-card { padding: 2.2rem 2rem 2rem; }
+.org-card .org-logo { height: 3.4rem; width: auto; max-width: 84%; object-fit: contain; object-position: left center; margin-top: 1.05rem; }
+.org-card h3 { font-size: 1.3rem; }
