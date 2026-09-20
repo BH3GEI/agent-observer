@@ -37,7 +37,7 @@ onMounted(async () => {
 })
 async function save() {
   const ok = await run(async () => {
-    const deadline = registrationDeadline.value ? new Date(registrationDeadline.value).toISOString() : null
+    const deadline: string | boolean = registrationDeadline.value ? new Date(registrationDeadline.value).toISOString() : false
     const { error } = await supabase.from('site_settings').upsert([
       { key: 'registration_open', value: registrationOpen.value },
       { key: 'registration_deadline', value: deadline },

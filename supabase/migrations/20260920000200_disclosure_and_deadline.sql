@@ -6,7 +6,7 @@
 
 insert into public.site_settings (key, value) values
   ('mechanics_public', 'true'::jsonb),
-  ('registration_deadline', 'null'::jsonb)
+  ('registration_deadline', 'false'::jsonb)
 on conflict (key) do nothing;
 
 drop policy if exists "settings public keys" on public.site_settings;
@@ -19,7 +19,7 @@ returns boolean language sql stable security definer set search_path = public as
   select coalesce((select value from public.site_settings where key = 'registration_open') <> 'false'::jsonb, true)
      and coalesce(
        (select case
-          when value = 'null'::jsonb or value is null then true
+          when value is null or jsonb_typeof(value) <> 'string' then true
           else now() < (value #>> '{}')::timestamptz
         end from public.site_settings where key = 'registration_deadline'), true);
 $$;

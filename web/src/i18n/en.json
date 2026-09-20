@@ -2,7 +2,7 @@
   "meta": {
     "title": "Agent Observer · GOSIM Hackathon",
     "description": "The GOSIM survey-agent hackathon: write an observing agent for a telescope that sees the published sky but not the real weather, and decides what to point at next every 15 minutes.",
-    "wordmark_note": "AGENT HACKATHON",
+    "wordmark_note": "Cosmos Hackathon",
     "brand": "Agent Observer",
     "pages": {
       "home": {

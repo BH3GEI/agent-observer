@@ -2,7 +2,7 @@
   "meta": {
     "title": "巡天智能体 · GOSIM 黑客松",
     "description": "GOSIM 智能巡天黑客松：为天文台写一个观测智能体——它看得到公开的天空状态，却看不到真实天气，每 15 分钟决定下一步拍哪片天。",
-    "wordmark_note": "AGENT HACKATHON",
+    "wordmark_note": "Cosmos Hackathon",
     "brand": "巡天智能体",
     "pages": {
       "home": {
