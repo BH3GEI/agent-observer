@@ -51,7 +51,7 @@ const cardItems = computed(() => t('home.mission.cardItems') as { term: string; 
           </div>
 
           <div class="reveal mt-12 paper-sheet p-7 md:p-10">
-            <span class="font-mono text-xs uppercase tracking-[.1em] text-[#315efb]">{{ pick('Entry requirement', '参赛要求') }}</span>
+            <span class="font-mono text-xs uppercase tracking-[.1em] text-[#315efb]">{{ pick('Online training', '线上培训') }}</span>
             <p class="relative z-10 mt-5 max-w-[22ch] text-xl font-semibold leading-relaxed tracking-[-.02em] md:text-3xl">{{ t('home.mission.closing') }}</p>
           </div>
         </div>
