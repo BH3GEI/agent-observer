@@ -19,6 +19,7 @@ const { state, refreshMe } = useAuth()
 const { registrationOpen } = useRegistrationOpen()
 
 const mode = ref<Mode>(readMode())
+const regStep = ref<1 | 2>(1)
 const busy = ref(false)
 const errors = ref<string[]>([])
 const sent = ref(false)
@@ -58,13 +59,7 @@ function readMode(): Mode {
 watch(() => route.query.mode, () => { mode.value = readMode(); errors.value = [] })
 watch(() => state.session, session => { if (session && !busy.value && route.path === '/register') router.replace(nextPath.value) }, { immediate: true })
 
-function setMode(next: Mode) {
-  errors.value = []
-  sent.value = false
-  router.replace({ path: '/register', query: { ...route.query, mode: next } })
-}
-
-async function submitRegister() {
+function nextStep() {
   errors.value = []
   if (!reg.value.name.trim()) errors.value.push(t('auth.errors.name_required'))
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(reg.value.email.trim())) errors.value.push(t('auth.errors.email_invalid'))
@@ -72,6 +67,21 @@ async function submitRegister() {
   if (reg.value.password.length > 128) errors.value.push(t('auth.errors.password_too_long'))
   if (reg.value.password !== reg.value.password2) errors.value.push(t('auth.errors.password_mismatch'))
   if (!reg.value.agree) errors.value.push(t('auth.errors.agree_required'))
+  if (errors.value.length) { void revealErrors(); return }
+  regStep.value = 2
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function setMode(next: Mode) {
+  errors.value = []
+  sent.value = false
+  regStep.value = 1
+  router.replace({ path: '/register', query: { ...route.query, mode: next } })
+}
+
+async function submitRegister() {
+  errors.value = []
+  if (!reg.value.contact.trim()) errors.value.push(t('auth.errors.contact_required'))
   if (!registrationOpen.value) errors.value.push(t('auth.errors.registration_closed'))
   if (!isSupabaseConfigured) errors.value.push(t('errors.not_configured'))
   if (errors.value.length) { void revealErrors(); return }
@@ -183,16 +193,24 @@ async function submitForgot() {
           </div>
           <div v-if="errors.length" ref="errorPanel" class="errors" role="alert" tabindex="-1"><ul class="list-disc pl-5"><li v-for="e in errors" :key="e">{{ e }}</li></ul></div>
 
-          <form v-if="mode === 'register'" @submit.prevent="submitRegister" novalidate>
+          <form v-if="mode === 'register'" @submit.prevent="regStep === 1 ? nextStep() : submitRegister()" novalidate>
             <div v-if="!registrationOpen" class="errors">{{ t('auth.closed_notice') }}</div>
-            <div class="grid-form">
+            <div class="reg-steps" aria-hidden="true">
+              <span class="reg-step-dot" :class="{ on: true }">1</span>
+              <span class="reg-step-line" :class="{ on: regStep === 2 }"></span>
+              <span class="reg-step-dot" :class="{ on: regStep === 2 }">2</span>
+              <span class="reg-step-label">{{ regStep === 1 ? t('auth.step1_label') : t('auth.step2_label') }}</span>
+            </div>
+            <div v-show="regStep === 1" class="grid-form">
               <label class="field"><span>{{ t('auth.name') }}</span><input data-testid="reg-name" v-model="reg.name" type="text" required maxlength="120" autocomplete="name"></label>
               <label class="field"><span>{{ t('auth.email') }}</span><input data-testid="reg-email" v-model="reg.email" type="email" required autocomplete="email"></label>
               <label class="field"><span>{{ t('auth.password') }}</span><input data-testid="reg-password" v-model="reg.password" type="password" required minlength="8" autocomplete="new-password"></label>
               <label class="field"><span>{{ t('auth.password2') }}</span><input data-testid="reg-password2" v-model="reg.password2" type="password" required minlength="8" autocomplete="new-password"></label>
-              <label class="field"><span>{{ t('auth.github') }} · {{ t('common.optional') }}</span><input v-model="reg.github" type="text" maxlength="120" autocomplete="username"></label>
-              <label class="field"><span>{{ t('auth.affiliation') }} · {{ t('common.optional') }}</span><input v-model="reg.affiliation" type="text" maxlength="200" autocomplete="organization"></label>
             </div>
+            <label v-show="regStep === 1" class="check"><input data-testid="reg-agree" v-model="reg.agree" type="checkbox"> <span>{{ t('auth.agree') }} <router-link class="accent-l underline underline-offset-2" to="/rules" target="_blank">{{ t('nav.rules') }} ↗</router-link></span></label>
+            <button v-show="regStep === 1" data-testid="reg-next" class="btn primary" type="submit" :disabled="busy || !registrationOpen || !isSupabaseConfigured">{{ t('auth.next_step') }} →</button>
+
+            <div v-show="regStep === 2">
             <div class="reg-divider"><span class="label accent-amber">{{ t('auth.about_you') }}</span><p class="help mt-1 mb-0">{{ t('auth.about_you_note') }}</p></div>
 
             <fieldset class="tier-fieldset">
@@ -219,7 +237,9 @@ async function submitForgot() {
                 <select v-model="reg.role"><option value="">{{ t('common.optional') }}</option><option v-for="[code, label] in roleOptions" :key="code" :value="code">{{ label }}</option></select>
               </label>
               <label class="field"><span>{{ t('auth.city') }} · {{ t('common.optional') }}</span><input v-model="reg.city" type="text" maxlength="120"></label>
-              <label class="field"><span>{{ t('auth.contact') }} · {{ t('common.optional') }}</span><input v-model="reg.contact" type="text" maxlength="200" :placeholder="t('auth.contact_ph')"></label>
+              <label class="field"><span>{{ t('auth.contact') }} · <b class="accent-l">{{ t('common.required') }}</b></span><input data-testid="reg-contact" v-model="reg.contact" type="text" required maxlength="200" :placeholder="t('auth.contact_ph')"></label>
+              <label class="field"><span>{{ t('auth.github') }} · {{ t('common.optional') }}</span><input v-model="reg.github" type="text" maxlength="120" autocomplete="username"></label>
+              <label class="field"><span>{{ t('auth.affiliation') }} · {{ t('common.optional') }}</span><input v-model="reg.affiliation" type="text" maxlength="200" autocomplete="organization"></label>
               <label class="field"><span>{{ t('auth.heard_from') }} · {{ t('common.optional') }}</span>
                 <select v-model="reg.heard_from"><option value="">—</option><option v-for="[code, label] in heardOptions" :key="code" :value="code">{{ label }}</option></select>
               </label>
@@ -229,8 +249,11 @@ async function submitForgot() {
             <label class="check"><input v-model="reg.show_on_wall" type="checkbox" data-testid="reg-wall"> {{ t('auth.show_on_wall') }}</label>
             <label class="check"><input v-model="reg.looking_for_team" type="checkbox"> {{ t('auth.looking_for_team') }}</label>
             <label class="check"><input v-model="reg.long_term" type="checkbox"> {{ t('auth.long_term') }}</label>
-            <label class="check"><input data-testid="reg-agree" v-model="reg.agree" type="checkbox"> <span>{{ t('auth.agree') }} <router-link class="accent-l underline underline-offset-2" to="/rules" target="_blank">{{ t('nav.rules') }} ↗</router-link></span></label>
-            <button data-testid="reg-submit" class="btn primary" type="submit" :disabled="busy || !registrationOpen || !isSupabaseConfigured">{{ busy ? t('common.working') : t('auth.submit_register') }} →</button>
+            <div class="mt-4 flex flex-wrap items-center gap-3">
+              <button type="button" class="btn" @click="regStep = 1">← {{ t('auth.prev_step') }}</button>
+              <button data-testid="reg-submit" class="btn primary" type="submit" :disabled="busy || !registrationOpen || !isSupabaseConfigured">{{ busy ? t('common.working') : t('auth.submit_register') }} →</button>
+            </div>
+            </div>
             <p class="text3 mt-6 text-sm">{{ t('auth.have_account') }} <button type="button" class="accent-l" @click="setMode('login')">{{ t('nav.login') }}</button></p>
           </form>
 

@@ -62,19 +62,37 @@ onMounted(async () => {
   <main class="poster-canvas">
     <PageHead :kicker="t('resources.kicker')" :title="t('resources.title')" :lede="t('resources.lede')" />
     <section class="section"><div class="wrap">
-      <div class="cards cards-5">
-        <article v-for="item in kit" :key="item.n" class="card">
-          <span class="label accent">{{ item.n }}</span>
-          <h3 class="mt-3">{{ t(item.title) }}</h3>
-          <p>{{ t(item.desc) }}</p>
-          <p class="mt-5">
-            <router-link v-if="item.route" class="btn sm" :to="item.href">{{ t(item.label) }} →</router-link>
-            <a v-else class="btn sm" :class="{ primary: item.primary }" :href="item.href" :download="item.view ? undefined : ''" :target="item.view ? '_blank' : undefined">{{ t(item.label) }} {{ item.view ? '→' : '↓' }}</a>
-          </p>
-        </article>
+      <div class="flow-band reveal">
+        <div class="flow-head"><span class="flow-step">1</span><div><h2>{{ t('resources.flow1') }}</h2><p>{{ t('resources.flow1_hint') }}</p></div></div>
+        <div class="cards cards-1">
+          <article v-tilt class="card card-lift flow-primary">
+            <span class="label accent">{{ kit[0].n }}</span>
+            <h3 class="mt-3">{{ t(kit[0].title) }}</h3>
+            <p>{{ t(kit[0].desc) }}</p>
+            <p class="mt-5"><a class="btn primary" :href="kit[0].href" download>{{ t(kit[0].label) }} ↓</a></p>
+          </article>
+        </div>
       </div>
 
-      <h2 class="label accent mt-20 mb-2">{{ t('resources.scenarios') }}</h2>
+      <div class="flow-band reveal mt-16">
+        <div class="flow-head"><span class="flow-step">2</span><div><h2>{{ t('resources.flow2') }}</h2><p>{{ t('resources.flow2_hint') }}</p></div></div>
+        <div class="cards cards-4 reveal-stagger">
+          <article v-for="item in kit.slice(1)" :key="item.n" v-tilt class="card card-lift">
+            <span class="label accent">{{ item.n }}</span>
+            <h3 class="mt-3">{{ t(item.title) }}</h3>
+            <p>{{ t(item.desc) }}</p>
+            <p class="mt-5">
+              <router-link v-if="item.route" class="btn sm" :to="item.href">{{ t(item.label) }} →</router-link>
+              <a v-else class="btn sm" :href="item.href" :download="item.view ? undefined : ''" :target="item.view ? '_blank' : undefined">{{ t(item.label) }} {{ item.view ? '→' : '↓' }}</a>
+            </p>
+          </article>
+        </div>
+      </div>
+
+      <div class="flow-band reveal mt-16">
+        <div class="flow-head"><span class="flow-step">3</span><div><h2>{{ t('resources.flow3') }}</h2><p>{{ t('resources.flow3_hint') }}</p></div></div>
+      </div>
+      <h2 class="label accent mt-8 mb-2">{{ t('resources.scenarios') }}</h2>
       <p class="text2 mb-6 max-w-3xl text-sm">{{ t('resources.scenarios_note') }}</p>
       <p v-if="loading" class="text3 text-sm">{{ t('common.loading') }}</p>
       <p v-else-if="!active.length" class="text3 text-sm">{{ t('common.no_data') }}</p>
@@ -122,13 +140,21 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.flow-head { display: flex; align-items: flex-start; gap: 1.1rem; margin-bottom: 1.4rem; }
+.flow-step { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; flex: none;
+  border: 1px solid rgba(251,191,36,.55); color: #fbbf24; font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 1.25rem; font-weight: 600; background: rgba(251,191,36,.08); }
+.flow-head h2 { font-size: 1.15rem; font-weight: 600; letter-spacing: -.01em; color: #f5f7ff; }
+.flow-head p { margin-top: .25rem; font-size: .85rem; color: #aeb6c8; }
+.flow-primary { border-color: rgba(251,191,36,.4); }
+.cards.cards-1 { grid-template-columns: minmax(0, 1fr); }
 .scenario-grid { display: grid; gap: 1.5rem; }
 @media (min-width: 1100px) { .scenario-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.scenario-card { border: 1px solid #3a3a3a; background: rgba(6,6,7,.7); padding: 1.5rem; min-width: 0; }
+.scenario-card { border: 1px solid rgba(158,173,255,.22); background: linear-gradient(180deg, rgba(38,48,86,.45), rgba(13,18,36,.9)); padding: 1.5rem; min-width: 0; }
 .scenario-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
 .scenario-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin: 1.25rem 0 0; border: 1px solid #2a2a2a; background: #2a2a2a; }
 @media (min-width: 640px) { .scenario-stats { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
-.scenario-stats > div { background: #0b0b0b; padding: .6rem .7rem; min-width: 0; }
+.scenario-stats > div { background: #10162c; padding: .6rem .7rem; min-width: 0; }
 .scenario-stats dt { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; color: #858585; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .scenario-stats dd { margin: .15rem 0 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .85rem; color: #f5f5f5; }
 .file-group { margin-top: 1.25rem; }

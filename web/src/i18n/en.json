@@ -501,7 +501,22 @@
           "to": "/brief#section-7"
         }
       ]
-    }
+    },
+    "rail": {
+      "top": "Top",
+      "quest": "Main quest",
+      "participants": "Participants",
+      "vision": "Vision",
+      "mission": "Mission",
+      "participate": "How to enter",
+      "prizes": "Prizes",
+      "evaluation": "Evaluation",
+      "submission": "Submission",
+      "board": "Leaderboard",
+      "organizers": "Organizers",
+      "cta": "Sign up"
+    },
+    "rail_label": "Page map"
   },
   "vision": {
     "pageTitle": "Agent Observer",
@@ -1300,7 +1315,8 @@
       "agree_required": "You must accept the rules.",
       "email_taken": "This email is already registered.",
       "bad_credentials": "Email or password is incorrect.",
-      "banned": "This account is suspended."
+      "banned": "This account is suspended.",
+      "contact_required": "Please leave a contact (WeChat ID or e-mail) — team-forming and event notices need it."
     },
     "reset_lede": "Choose a new password for your account.",
     "reset_done": "Password updated.",
@@ -1321,7 +1337,7 @@
     "about_you_note": "The two tiers go on your participant card — people with different strengths finding each other is how teams start.",
     "city": "City",
     "contact": "Contact",
-    "contact_ph": "WeChat ID or e-mail; visible to logged-in participants only",
+    "contact_ph": "WeChat ID or e-mail — for team contact and event notices; visible to logged-in participants only",
     "heard_from": "How did you hear about us",
     "blurb": "One-line introduction",
     "blurb_ph": "Shown on the participants wall, e.g. builds agents, looking for an astronomy partner",
@@ -1340,7 +1356,11 @@
       "gosim": "GOSIM official channels",
       "social": "Social media",
       "other": "Other"
-    }
+    },
+    "step1_label": "Step 1 / 2 · Create the account",
+    "step2_label": "Step 2 / 2 · Your participant card",
+    "next_step": "Next",
+    "prev_step": "Back"
   },
   "mail": {
     "verify_subject": "Verify your Agent Observer account",
@@ -1696,7 +1716,13 @@
       "events": "weather_events.csv: the directional disruption truth behind active_event_ids. Hidden on competition scenarios."
     },
     "scorer": "scoring_core.py",
-    "scorer_desc": "The frozen challenge-score-v3 scorer (with contracts.py and score_config.json next to it). Standard library only, Python 3.12."
+    "scorer_desc": "The frozen challenge-score-v3 scorer (with contracts.py and score_config.json next to it). Standard library only, Python 3.12.",
+    "flow1": "Step 1 · Grab the kit and run",
+    "flow1_hint": "The only download you need: unzip, double-click, a score in seconds.",
+    "flow2": "Step 2 · Write your own strategy",
+    "flow2_hint": "Editing one function gets you on the board; these are the reference and the manual.",
+    "flow3": "Step 3 · Fetch data when you need it",
+    "flow3_hint": "What each scenario publishes or hides, at a glance; competition material is never public."
   },
   "faq": {
     "kicker": "FAQ",

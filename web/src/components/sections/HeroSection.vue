@@ -7,6 +7,7 @@ import { useRegistrationOpen } from '../../composables/useRegistrationOpen'
 import { usePhaseClock } from '../../composables/usePhaseClock'
 import { fmtUtc } from '../../lib/format'
 import SkyConsole from './SkyConsole.vue'
+import HeroGalaxy from './HeroGalaxy.vue'
 
 const { t, tf, pick, locale } = useI18n()
 const { isLoggedIn } = useAuth()
@@ -42,6 +43,7 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
     </div>
     <div class="hero-grid-lines" aria-hidden="true"></div>
     <div class="hero-beam" aria-hidden="true"></div>
+    <HeroGalaxy />
 
     <div class="relative z-10 mx-auto max-w-[1600px] px-5 md:px-10 xl:px-14">
       <div class="hero-grid">
@@ -103,7 +105,7 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
 
       <div class="hero-metrics hero-metrics-strong grid grid-cols-2 border-t border-white/22 md:grid-cols-4 reveal reveal-delay-3">
         <div v-for="(metric, index) in metrics" :key="metric.label" class="hero-metric border-white/16 py-5 md:py-6" :class="{ 'border-r': index % 2 === 0 || index < 3, 'md:border-r-0': index === 3 }">
-          <b class="hero-metric-value block text-[clamp(1.7rem,2.8vw,2.6rem)] font-semibold leading-[1.05] tracking-[-.04em]">{{ metric.value }}</b>
+          <b v-countup class="hero-metric-value block text-[clamp(1.7rem,2.8vw,2.6rem)] font-semibold leading-[1.05] tracking-[-.04em]">{{ metric.value }}</b>
           <span class="mt-2 block font-mono text-[.7rem] uppercase leading-snug tracking-[.06em] text-white/50">{{ metric.label }}</span>
         </div>
       </div>
@@ -132,8 +134,8 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
 }
 .hero-wash-video {
   width: 100%; height: 100%; object-fit: cover;
-  opacity: .55;
-  filter: saturate(1.15) contrast(1.24) brightness(1.08);
+  opacity: .42;
+  filter: saturate(1.2) contrast(1.22) brightness(1.12);
   transform: translate3d(0, var(--parallax-y, 0px), 0) scale(1.08);
   transition: transform .18s linear;
 }

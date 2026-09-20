@@ -26,6 +26,7 @@ const current = computed(() => (!isLoggedIn.value ? 0 : !me.value?.team ? 1 : 2)
           v-for="(level, i) in levels"
           :key="level.title"
           :to="level.to"
+          v-tilt
           class="quest-card"
           :class="{ current: i === current, done: i < current }"
         >

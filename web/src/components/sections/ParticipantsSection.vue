@@ -45,7 +45,7 @@ const statItems = computed(() => stats.value ? [
           <p class="lede mt-5 max-w-2xl">{{ t('home.participants.lede') }}</p>
         </div>
         <div v-if="statItems.length" class="wall-stats">
-          <div v-for="s in statItems" :key="s.l"><b>{{ s.v }}</b><span>{{ s.l }}</span></div>
+          <div v-for="s in statItems" :key="s.l"><b v-countup>{{ s.v }}</b><span>{{ s.l }}</span></div>
         </div>
       </div>
 

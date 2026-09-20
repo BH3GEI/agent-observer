@@ -27,7 +27,7 @@ onMounted(async () => {
         <h2 class="section-title distressed-type mt-8">{{ t('home.credibility.title') }}</h2>
       </div>
       <div class="cards cards-3 reveal-stagger mt-14">
-        <article v-for="item in items" :key="item.name" class="card card-lift">
+        <article v-for="item in items" :key="item.name" v-tilt class="card card-lift">
           <span class="label accent">{{ item.role }}</span>
           <h3 class="mt-3">{{ item.name }}</h3>
           <p>{{ item.desc }}</p>
@@ -39,7 +39,7 @@ onMounted(async () => {
         </div>
         <p class="mt-5 max-w-2xl text-[0.9rem] leading-relaxed text-[#bdbdbd]">{{ t('home.credibility.committee.intro') }}</p>
         <div class="reveal-stagger mt-10 grid grid-cols-3 gap-3 sm:grid-cols-4 md:gap-4 lg:grid-cols-7">
-          <figure v-for="m in committee" :key="m.photo" class="card card-lift committee-card">
+          <figure v-for="m in committee" :key="m.photo" v-tilt class="card card-lift committee-card">
             <img :src="appUrl(`media/committee/${m.photo}.webp`)" :alt="m.name" class="aspect-[3/4] w-full object-cover" loading="lazy" />
             <figcaption class="mt-4">
               <h3>{{ m.name }}</h3>

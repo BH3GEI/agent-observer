@@ -501,7 +501,22 @@
           "to": "/brief#section-7"
         }
       ]
-    }
+    },
+    "rail": {
+      "top": "封面",
+      "quest": "通关路线",
+      "participants": "选手墙",
+      "vision": "愿景",
+      "mission": "赛题",
+      "participate": "如何参赛",
+      "prizes": "奖项",
+      "evaluation": "测评",
+      "submission": "提交",
+      "board": "排行榜",
+      "organizers": "主办与委员会",
+      "cta": "报名"
+    },
+    "rail_label": "页面导航"
   },
   "vision": {
     "pageTitle": "巡天智能体",
@@ -1300,7 +1315,8 @@
       "agree_required": "需要同意规则。",
       "email_taken": "该邮箱已注册。",
       "bad_credentials": "邮箱或密码错误。",
-      "banned": "该账号已被停用。"
+      "banned": "该账号已被停用。",
+      "contact_required": "请留一个联系方式（微信号或邮箱），组队和赛务通知需要它。"
     },
     "reset_lede": "为你的账户设置新密码。",
     "reset_done": "密码已更新。",
@@ -1321,7 +1337,7 @@
     "about_you_note": "两个段位会显示在你的选手名片上——不同段位的人互相找得到，正是组队的起点。",
     "city": "城市",
     "contact": "联系方式",
-    "contact_ph": "微信号或邮箱，仅登录选手可见",
+    "contact_ph": "微信号或邮箱——组队联系和赛务通知用，仅登录选手可见",
     "heard_from": "从哪里听说比赛",
     "blurb": "一句话介绍自己",
     "blurb_ph": "会显示在选手墙上，例如：会写 Agent，想找懂天文的搭子",
@@ -1340,7 +1356,11 @@
       "gosim": "GOSIM 官方渠道",
       "social": "社交媒体",
       "other": "其他"
-    }
+    },
+    "step1_label": "第 1 / 2 步 · 创建账号",
+    "step2_label": "第 2 / 2 步 · 你的选手名片",
+    "next_step": "下一步",
+    "prev_step": "上一步"
   },
   "mail": {
     "verify_subject": "验证你的巡天智能体账号",
@@ -1696,7 +1716,13 @@
       "events": "weather_events.csv：active_event_ids 背后的方向性干扰真值。比赛场景隐藏。"
     },
     "scorer": "scoring_core.py",
-    "scorer_desc": "冻结的 challenge-score-v3 评分器（旁边还有 contracts.py 与 score_config.json）。仅标准库，Python 3.12。"
+    "scorer_desc": "冻结的 challenge-score-v3 评分器（旁边还有 contracts.py 与 score_config.json）。仅标准库，Python 3.12。",
+    "flow1": "第一步 · 拿包就跑",
+    "flow1_hint": "只需要这一个下载：解压、双击、十几秒出分。",
+    "flow2": "第二步 · 写你自己的策略",
+    "flow2_hint": "改一个函数就能上榜；这些是抄作业和查手册的地方。",
+    "flow3": "第三步 · 需要数据再来拿",
+    "flow3_hint": "每个场景哪些文件公开、哪些隐藏，一目了然；正式赛材料永不公开。"
   },
   "faq": {
     "kicker": "常见问题",
