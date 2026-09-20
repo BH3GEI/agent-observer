@@ -26,17 +26,22 @@ const phasePill = computed(() => {
 
 const items = [
   { key: 'nav.start', to: '/start' },
+  { key: 'nav.leaderboard', to: '/leaderboard' },
+  { key: 'nav.teammates', to: '/teammates' },
+]
+const handbook = [
   { key: 'nav.brief', to: '/brief' },
   { key: 'nav.rules', to: '/rules' },
   { key: 'nav.docs', to: '/docs' },
   { key: 'nav.resources', to: '/resources' },
-  { key: 'nav.leaderboard', to: '/leaderboard' },
-  { key: 'nav.teammates', to: '/teammates' },
   { key: 'nav.faq', to: '/faq' },
+  { key: 'nav.announcements', to: '/announcements' },
 ]
+const handbookOpen = ref(false)
 const isActive = (to: string) => route.path === to || route.path.startsWith(`${to}/`)
+const handbookActive = () => handbook.some(item => isActive(item.to))
 const dashActive = () => ['/dashboard', '/team', '/submit', '/submissions', '/profile'].some(p => route.path.startsWith(p))
-watch(() => route.fullPath, () => { mobileOpen.value = false })
+watch(() => route.fullPath, () => { mobileOpen.value = false; handbookOpen.value = false })
 
 async function logout() {
   mobileOpen.value = false
@@ -63,6 +68,14 @@ async function logout() {
           class="inline-flex h-10 items-center font-mono text-xs uppercase tracking-[.06em] transition-colors hover:text-[#78a6ff]"
           :class="isActive(item.to) ? 'text-[#78a6ff]' : 'text-white/50'"
         >{{ t(item.key) }}</router-link>
+        <div class="nav-drop relative" @mouseenter="handbookOpen = true" @mouseleave="handbookOpen = false">
+          <button type="button" class="inline-flex h-10 items-center gap-1 font-mono text-xs uppercase tracking-[.06em] transition-colors hover:text-[#78a6ff]" :class="handbookActive() ? 'text-[#78a6ff]' : 'text-white/50'" :aria-expanded="handbookOpen" @click="handbookOpen = !handbookOpen">
+            {{ t('nav.handbook') }} <span aria-hidden="true" class="text-[.6rem]">▾</span>
+          </button>
+          <div v-show="handbookOpen" class="nav-drop-panel">
+            <router-link v-for="item in handbook" :key="item.to" :to="item.to" class="nav-drop-item" :class="{ active: isActive(item.to) }">{{ t(item.key) }}</router-link>
+          </div>
+        </div>
         <router-link v-if="isLoggedIn" to="/dashboard" class="inline-flex h-10 items-center font-mono text-xs uppercase tracking-[.06em] transition-colors hover:text-[#78a6ff]" :class="dashActive() ? 'text-[#78a6ff]' : 'text-white/50'">{{ t('nav.dashboard') }}</router-link>
         <router-link v-if="isAdmin" to="/admin" class="inline-flex h-10 items-center font-mono text-xs uppercase tracking-[.06em] transition-colors hover:text-[#78a6ff]" :class="route.path.startsWith('/admin') ? 'text-[#78a6ff]' : 'text-white/50'">{{ t('nav.admin') }}</router-link>
       </nav>
@@ -85,7 +98,8 @@ async function logout() {
       <router-link v-for="item in items" :key="item.to" :to="item.to" class="block border-b border-white/10 py-3 text-base text-white/60 transition-colors hover:text-white">{{ t(item.key) }}</router-link>
       <router-link v-if="isLoggedIn" to="/dashboard" class="block border-b border-white/10 py-3 text-base text-white/60 transition-colors hover:text-white">{{ t('nav.dashboard') }}</router-link>
       <router-link v-if="isAdmin" to="/admin" class="block border-b border-white/10 py-3 text-base text-white/60 transition-colors hover:text-white">{{ t('nav.admin') }}</router-link>
-      <router-link to="/announcements" class="block border-b border-white/10 py-3 text-base text-white/60 transition-colors hover:text-white">{{ t('nav.announcements') }}</router-link>
+      <p class="mt-4 mb-1 font-mono text-[.62rem] uppercase tracking-[.14em] text-white/35">{{ t('nav.handbook') }}</p>
+      <router-link v-for="item in handbook" :key="item.to" :to="item.to" class="block border-b border-white/10 py-3 text-base text-white/60 transition-colors hover:text-white">{{ t(item.key) }}</router-link>
       <button v-if="isLoggedIn" type="button" @click="logout" class="mt-3 block w-full border border-white/35 px-4 py-3 text-center font-mono text-xs font-semibold uppercase tracking-widest text-[#f5f5f5]">{{ t('nav.logout') }}</button>
       <template v-else>
         <router-link v-if="registrationOpen" to="/register" class="cosmos-register-link mt-3 block border px-4 py-3 text-center font-mono text-xs font-semibold uppercase tracking-widest">{{ t('nav.register') }}</router-link>

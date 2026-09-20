@@ -58,6 +58,7 @@ const sections = computed(() => t('vision.sections') as Section[])
 
     <article class="mx-auto max-w-[1400px] px-5 pt-12 md:px-10 md:pt-20 xl:px-14">
       <section
+        :id="`section-${index + 1}`"
         v-for="(section, index) in sections"
         :key="index"
         class="vision-section reveal grid scroll-mt-24 border-t border-white/20 py-16 md:py-24 lg:grid-cols-[12rem_1fr] lg:gap-16"

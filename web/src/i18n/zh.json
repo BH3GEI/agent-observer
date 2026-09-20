@@ -108,7 +108,8 @@
     "menu": "菜单",
     "registration_closed": "报名已截止",
     "reset": "重置密码",
-    "teammates": "找队友"
+    "teammates": "找队友",
+    "handbook": "手册"
   },
   "hero": {
     "eyebrow": "GOSIM 黑客松 · 智能巡天",
@@ -467,6 +468,39 @@
       "cta_board": "去找队友",
       "cta_wall_register": "报名并上墙",
       "cta_wall_profile": "管理我的名片"
+    },
+    "quest": {
+      "kicker": "通关路线",
+      "note": "全程线上 · 一个人也能打",
+      "current_chip": "当前任务",
+      "done_chip": "✓ 已完成",
+      "locked_chip": "接下来",
+      "levels": [
+        {
+          "title": "报名建号",
+          "desc": "填姓名邮箱密码，选好你的天文段位和 AI 段位，顺手上一下选手墙。",
+          "time": "约 2 分钟",
+          "to": "/register"
+        },
+        {
+          "title": "建队伍",
+          "desc": "一个人参赛也要建队——成绩按队伍记。缺搭子就去找队友页按段位捞人。",
+          "time": "约 1 分钟",
+          "to": "/team"
+        },
+        {
+          "title": "跑通基线，改一个函数",
+          "desc": "下载入门包双击运行，15 秒出分；然后只改 my_strategy.py 一个文件，上传冲练习榜。",
+          "time": "约 20 分钟",
+          "to": "/start"
+        },
+        {
+          "title": "冲正式赛",
+          "desc": "10 月 5–7 日开打：隐藏天气 + 异常机制。先用 run_finals_preview 演练抓故障和报标签。",
+          "time": "10 月 5 日",
+          "to": "/brief#section-7"
+        }
+      ]
     }
   },
   "vision": {

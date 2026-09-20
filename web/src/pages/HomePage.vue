@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useScrollReveal } from '../composables/useScrollReveal'
 import HeroSection from '../components/sections/HeroSection.vue'
+import QuestSection from '../components/sections/QuestSection.vue'
 import ParticipantsSection from '../components/sections/ParticipantsSection.vue'
 import SimpleVisionSection from '../components/sections/SimpleVisionSection.vue'
 import SimpleMissionSection from '../components/sections/SimpleMissionSection.vue'
@@ -18,6 +19,7 @@ useScrollReveal()
 <template>
   <main>
     <HeroSection />
+    <QuestSection />
     <ParticipantsSection />
     <SimpleVisionSection />
     <SimpleMissionSection />

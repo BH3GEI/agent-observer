@@ -827,3 +827,25 @@ details.plain summary { cursor: pointer; }
 .committee-card h3 { font-size: .92rem; letter-spacing: -.01em; }
 .committee-card figcaption { margin-top: .65rem; }
 .committee-card p { margin-top: .3rem; font-size: .7rem; line-height: 1.5; color: #aeb6c8; }
+
+.nav-drop-panel { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); min-width: 11rem; padding: .4rem 0;
+  border: 1px solid rgba(148,163,255,.25); background: rgba(6,9,18,.97); backdrop-filter: blur(8px); z-index: 60; }
+.nav-drop-item { display: block; padding: .55rem 1.1rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .72rem;
+  letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.55); transition: color .15s ease, background .15s ease; }
+.nav-drop-item:hover { color: #fff; background: rgba(49,94,251,.18); }
+.nav-drop-item.active { color: #78a6ff; }
+
+.quest-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
+@media (min-width: 1024px) { .quest-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.quest-card { position: relative; display: block; border: 1px solid rgba(148,163,255,.18); padding: 1.1rem 1.2rem;
+  background: linear-gradient(180deg, rgba(26,34,64,.5), rgba(8,11,24,.9)); transition: border-color .2s ease, transform .2s ease; }
+.quest-card:hover { border-color: rgba(148,163,255,.45); transform: translateY(-2px); }
+.quest-card .quest-step { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .66rem; letter-spacing: .1em; color: rgba(255,255,255,.45); }
+.quest-card h3 { margin-top: .5rem; font-size: 1rem; font-weight: 600; letter-spacing: -.01em; color: #f5f7ff; }
+.quest-card p { margin-top: .4rem; font-size: .8rem; line-height: 1.55; color: #aeb6c8; }
+.quest-card .quest-time { position: absolute; top: 1rem; right: 1.1rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .62rem; color: rgba(255,255,255,.4); }
+.quest-card.current { border-color: rgba(251,191,36,.65); box-shadow: 0 0 24px rgba(251,191,36,.12); }
+.quest-card.current .quest-chip { color: #fbbf24; }
+.quest-card.done { opacity: .62; }
+.quest-card.done h3 { text-decoration: line-through; text-decoration-color: rgba(255,255,255,.4); }
+.quest-chip { display: inline-block; margin-top: .6rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .64rem; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.45); }

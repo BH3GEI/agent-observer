@@ -108,7 +108,8 @@
     "menu": "Menu",
     "registration_closed": "Registration closed",
     "reset": "Reset password",
-    "teammates": "Teammates"
+    "teammates": "Teammates",
+    "handbook": "Handbook"
   },
   "hero": {
     "eyebrow": "GOSIM Hackathon · Intelligent Survey Operations",
@@ -467,6 +468,39 @@
       "cta_board": "Find teammates",
       "cta_wall_register": "Register and get on the wall",
       "cta_wall_profile": "Manage my card"
+    },
+    "quest": {
+      "kicker": "Main quest",
+      "note": "Fully online · solo-friendly",
+      "current_chip": "Current quest",
+      "done_chip": "✓ Done",
+      "locked_chip": "Up next",
+      "levels": [
+        {
+          "title": "Sign up",
+          "desc": "Name, e-mail, password — pick your astronomy and AI tiers and claim a spot on the wall.",
+          "time": "~2 min",
+          "to": "/register"
+        },
+        {
+          "title": "Form a team",
+          "desc": "Even solo players need a team — scores are per team. Missing a partner? Fish by tier on the teammates board.",
+          "time": "~1 min",
+          "to": "/team"
+        },
+        {
+          "title": "Run the baseline, edit one function",
+          "desc": "Download the kit, double-click, score in 15 s; then edit just my_strategy.py and climb the practice board.",
+          "time": "~20 min",
+          "to": "/start"
+        },
+        {
+          "title": "Take on the finals",
+          "desc": "Oct 5–7: hidden weather plus the anomaly game. Rehearse catching faults with run_finals_preview first.",
+          "time": "Oct 5",
+          "to": "/brief#section-7"
+        }
+      ]
     }
   },
   "vision": {
