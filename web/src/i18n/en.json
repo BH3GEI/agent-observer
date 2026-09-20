@@ -10,7 +10,7 @@
         "description": "The GOSIM survey-agent hackathon: write an observing agent for a telescope that sees the published sky but not the real weather, and decides what to point at next every 15 minutes."
       },
       "brief": {
-        "title": "Competition brief",
+        "title": "Full event brief",
         "description": "Mission, timeline, prizes and evaluation of the Agentic Observer hackathon."
       },
       "rules": {
@@ -89,7 +89,7 @@
   },
   "nav": {
     "start": "Get started",
-    "brief": "Event brief",
+    "brief": "Full event brief",
     "rules": "Rules",
     "docs": "Docs",
     "resources": "Resources",
@@ -168,7 +168,7 @@
     "cta": "Mission card coming soon",
     "cta_register": "Register now",
     "cta_dashboard": "Open dashboard",
-    "cta_brief": "Competition brief",
+    "cta_brief": "Full event brief",
     "metrics": [
       {
         "value": "$5,500",

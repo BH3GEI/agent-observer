@@ -22,13 +22,6 @@ const cards = computed(() => t('home.mission.cards') as Card[])
           <h2 class="section-title distressed-type mt-10">{{ t('home.mission.title') }}</h2>
           <p class="mt-7 max-w-xl text-base leading-relaxed text-text-secondary md:text-lg">{{ t('home.mission.lede') }}</p>
 
-          <div class="mission-900 mt-14 border-y poster-rule py-8">
-            <div class="text-[clamp(3rem,6.5vw,6.75rem)] font-semibold leading-[1.02] tracking-[-.055em] text-[#f5f5f5]"><CountUp :value="900" :duration="1100" /></div>
-            <div class="mt-7 flex justify-between font-mono text-xs uppercase tracking-[.1em] text-[#315efb]">
-              <span>{{ pick('seconds', '秒') }}</span>
-              <span>{{ pick('per slot · one global clock', '每时隙 · 一个全局时钟') }}</span>
-            </div>
-          </div>
         </div>
 
         <div class="relative z-10">
