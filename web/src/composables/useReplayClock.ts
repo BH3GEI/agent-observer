@@ -68,8 +68,6 @@ export function setReplayData(raw: RawReplay, source: 'demo' | 'champion' = 'dem
   replayMeta.version += 1
   tick()
 }
-setReplayData(demoReplay as unknown as RawReplay, 'demo')
-
 const state = reactive({ progress: 0, slotIndex: 0, actionIndex: 0, paused: false, reduced: false })
 let base = 0, runningSince: number | null = null, users = 0, timer: number | undefined
 
@@ -138,6 +136,8 @@ function release() {
   timer = undefined
   runningSince = null
 }
+
+setReplayData(demoReplay as unknown as RawReplay, 'demo')
 
 export function useReplayClock() {
   onMounted(acquire)
