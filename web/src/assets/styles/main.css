@@ -954,3 +954,10 @@ a:focus-visible, button:focus-visible, [role="tab"]:focus-visible, input:focus-v
   box-shadow: 0 10px 34px rgba(63,94,251,.45); animation: register-pulse 3.2s ease-in-out infinite; }
 @keyframes register-pulse { 0%, 100% { box-shadow: 0 10px 34px rgba(63,94,251,.45); } 50% { box-shadow: 0 10px 44px rgba(124,92,255,.6); } }
 @media (prefers-reduced-motion: reduce) { .register-float { animation: none; } }
+
+.team-cell { display: inline-flex; align-items: center; gap: .55rem; }
+.team-avatar { display: inline-grid; place-items: center; width: 1.55rem; height: 1.55rem; flex: none;
+  border-radius: 50% !important; font-style: normal; font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+  font-size: .72rem; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, hsl(var(--team-hue, 220) 75% 55%), hsl(calc(var(--team-hue, 220) + 40) 70% 45%));
+  box-shadow: 0 0 10px hsl(var(--team-hue, 220) 80% 60% / .45); }

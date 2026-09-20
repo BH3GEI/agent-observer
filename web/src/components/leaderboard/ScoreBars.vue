@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { teamAvatar } from '../../lib/format'
 import { computed } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import type { LeaderboardEntry } from '../../lib/data'
@@ -29,7 +30,7 @@ const tooltip = (e: LeaderboardEntry) => tf('leaderboard.chart.tooltip', { score
     <ol class="score-bars-list">
       <li v-for="row in top" :key="row.team_id" class="score-bar-row" :class="{ me: isMe(row) }" data-testid="score-bar">
         <span class="rank">{{ row.rank }}</span>
-        <span class="name"><span class="truncate">{{ row.team_name }}</span><span v-if="isMe(row)" class="tag">{{ t('leaderboard.chart.your_team') }}</span></span>
+        <span class="name"><i class="team-avatar" :style="`--team-hue:${teamAvatar(row.team_name).hue}`">{{ teamAvatar(row.team_name).initial }}</i><span class="truncate">{{ row.team_name }}</span><span v-if="isMe(row)" class="tag">{{ t('leaderboard.chart.your_team') }}</span></span>
         <span class="track" :title="tooltip(row)">
           <i class="base" :style="{ width: widthPct(Math.max(0, row.base_science)) }"></i>
           <i class="bonus" :style="{ left: widthPct(Math.max(0, row.base_science)), width: widthPct(Math.max(0, row.program_bonus)) }"></i>
@@ -45,7 +46,7 @@ const tooltip = (e: LeaderboardEntry) => tf('leaderboard.chart.tooltip', { score
       <ol class="score-bars-list">
         <li class="score-bar-row me" data-testid="score-bar-me">
           <span class="rank">{{ outside.rank }}</span>
-          <span class="name"><span class="truncate">{{ outside.team_name }}</span><span class="tag">{{ t('leaderboard.chart.your_team') }}</span></span>
+          <span class="name"><i class="team-avatar" :style="`--team-hue:${teamAvatar(outside.team_name).hue}`">{{ teamAvatar(outside.team_name).initial }}</i><span class="truncate">{{ outside.team_name }}</span><span class="tag">{{ t('leaderboard.chart.your_team') }}</span></span>
           <span class="track" :title="tooltip(outside)">
             <i class="base" :style="{ width: widthPct(Math.max(0, outside.base_science)) }"></i>
             <i class="bonus" :style="{ left: widthPct(Math.max(0, outside.base_science)), width: widthPct(Math.max(0, outside.program_bonus)) }"></i>

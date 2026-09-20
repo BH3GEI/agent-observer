@@ -186,7 +186,7 @@
     ],
     "side_note": "台址 31.96°N / 每 15 分钟一次决策 / 全程共用一个总时长",
     "console": {
-      "title": "实时巡天回放",
+      "title": "「冠军」的真实回放渲染",
       "replay_note": "公开练习场 {nights} 夜 · {actions} 次决策",
       "paused": "已暂停",
       "pause": "暂停",
@@ -389,11 +389,6 @@
           "role": "评测",
           "name": "CosmosBench",
           "desc": "即本平台：开放评分器、固定场景、沙箱运行智能体、实时榜单。"
-        },
-        {
-          "role": "科学背景",
-          "name": "DESI 式巡天",
-          "desc": "台址纬度 31.96°，180 晚太阳历上的 900 秒时隙，DARK / BRIGHT / BACKUP 三种观测项目，必做 / 可选两类天区，LRG / ELG / QSO / BGS 四种目标类别。"
         }
       ],
       "committee": {

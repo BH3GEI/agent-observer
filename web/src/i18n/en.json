@@ -186,7 +186,7 @@
     ],
     "side_note": "Site 31.96°N / a decision every 15 minutes / one time budget for the whole run",
     "console": {
-      "title": "Live survey replay",
+      "title": "The champion's real replay render",
       "replay_note": "Public practice field · {nights} nights · {actions} decisions",
       "paused": "Paused",
       "pause": "Pause",
@@ -389,11 +389,6 @@
           "role": "Evaluation",
           "name": "CosmosBench",
           "desc": "This platform. Open scorer, fixed scenarios, sandboxed agent runs, live board."
-        },
-        {
-          "role": "Science setting",
-          "name": "DESI-style survey",
-          "desc": "Site latitude 31.96°, 900-second slots over a 180-night solar calendar, DARK / BRIGHT / BACKUP programs, REQUIRED / FLEXIBLE tiles, LRG / ELG / QSO / BGS target classes."
         }
       ],
       "committee": {

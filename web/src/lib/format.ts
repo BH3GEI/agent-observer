@@ -35,3 +35,10 @@ export function bytes(n: number): string {
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`
   return `${(n / 1024 / 1024).toFixed(1)} MB`
 }
+
+export function teamAvatar(name: string): { initial: string; hue: number } {
+  const trimmed = (name || '?').trim()
+  let hash = 0
+  for (const ch of trimmed) hash = (hash * 31 + ch.codePointAt(0)!) >>> 0
+  return { initial: [...trimmed][0]!.toUpperCase(), hue: hash % 360 }
+}

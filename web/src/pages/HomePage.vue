@@ -19,6 +19,7 @@ useScrollReveal()
 const railSections = [
   { id: 'top', key: 'home.rail.top' },
   { id: 'quest', key: 'home.rail.quest' },
+  { id: 'board', key: 'home.rail.board' },
   { id: 'participants', key: 'home.rail.participants' },
   { id: 'vision', key: 'home.rail.vision' },
   { id: 'mission', key: 'home.rail.mission' },
@@ -26,7 +27,6 @@ const railSections = [
   { id: 'prizes', key: 'home.rail.prizes' },
   { id: 'evaluation', key: 'home.rail.evaluation' },
   { id: 'submission', key: 'home.rail.submission' },
-  { id: 'board', key: 'home.rail.board' },
   { id: 'organizers', key: 'home.rail.organizers' },
   { id: 'cta', key: 'home.rail.cta' },
 ]
@@ -37,6 +37,7 @@ const railSections = [
     <SectionRail :sections="railSections" />
     <HeroSection />
     <QuestSection />
+    <LeaderboardSection id="board" class="section-tint-b" />
     <ParticipantsSection />
     <SimpleVisionSection id="vision" class="section-tint-b" />
     <SimpleMissionSection id="mission" />
@@ -44,7 +45,6 @@ const railSections = [
     <PrizeSection id="prizes" />
     <EvaluationSection id="evaluation" class="section-tint-b" />
     <SubmissionSection id="submission" />
-    <LeaderboardSection id="board" class="section-tint-b" />
     <OrganizersSection />
     <CtaSection id="cta" />
   </main>
