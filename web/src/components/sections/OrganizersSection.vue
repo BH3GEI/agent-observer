@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from '../../composables/useI18n'
+import { appUrl } from '../../composables/api'
 import { isSupabaseConfigured } from '../../lib/supabase'
 import { loadAnnouncements, type Announcement } from '../../lib/data'
 import { fmtUtc } from '../../lib/format'
 
 const { t, pick } = useI18n()
 type Item = { role: string; name: string; desc: string }
+type Member = { photo: string; name: string; title: string; org: string }
 const items = computed(() => t('home.credibility.items') as Item[])
+const committee = computed(() => t('home.credibility.committee.members') as Member[])
 const announcements = ref<Announcement[]>([])
 
 onMounted(async () => {
@@ -29,6 +32,21 @@ onMounted(async () => {
           <h3 class="mt-3">{{ item.name }}</h3>
           <p>{{ item.desc }}</p>
         </article>
+      </div>
+      <div class="reveal mt-16">
+        <div class="rule-b pb-3">
+          <span class="label accent">{{ t('home.credibility.committee.kicker') }}</span>
+        </div>
+        <p class="mt-5 max-w-2xl text-[0.9rem] leading-relaxed text-[#bdbdbd]">{{ t('home.credibility.committee.intro') }}</p>
+        <div class="reveal-stagger mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-6">
+          <figure v-for="m in committee" :key="m.photo" class="card card-lift">
+            <img :src="appUrl(`media/committee/${m.photo}.jpg`)" :alt="m.name" class="aspect-[3/4] w-full object-cover" loading="lazy" />
+            <figcaption class="mt-4">
+              <h3>{{ m.name }}</h3>
+              <p>{{ m.title }} · {{ m.org }}</p>
+            </figcaption>
+          </figure>
+        </div>
       </div>
       <div v-if="announcements.length" class="reveal mt-14">
         <div class="flex items-center justify-between gap-4 rule-b pb-3">

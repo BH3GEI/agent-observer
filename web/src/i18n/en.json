@@ -379,7 +379,49 @@
           "name": "DESI-style survey",
           "desc": "Site latitude 31.96°, 900-second slots over a 180-night solar calendar, DARK / BRIGHT / BACKUP programs, REQUIRED / FLEXIBLE tiles, LRG / ELG / QSO / BGS target classes."
         }
-      ]
+      ],
+      "committee": {
+        "kicker": "Science committee",
+        "intro": "Six researchers in survey astronomy stand behind the mission design, the scenarios and the scoring.",
+        "members": [
+          {
+            "photo": "zhongxu-zhai",
+            "name": "Zhongxu Zhai",
+            "title": "Associate Professor",
+            "org": "Department of Astronomy, Shanghai Jiao Tong University"
+          },
+          {
+            "photo": "wei-wang",
+            "name": "Wei Wang",
+            "title": "Professor",
+            "org": "Shanghai Jiao Tong University"
+          },
+          {
+            "photo": "dezi-liu",
+            "name": "Dezi Liu",
+            "title": "Associate Researcher",
+            "org": "South-Western Institute for Astronomy Research, Yunnan University"
+          },
+          {
+            "photo": "xiangkun-liu",
+            "name": "Xiangkun Liu",
+            "title": "Professor",
+            "org": "South-Western Institute for Astronomy Research, Yunnan University"
+          },
+          {
+            "photo": "huanyuan-shan",
+            "name": "Huanyuan Shan",
+            "title": "Professor",
+            "org": "Shanghai Astronomical Observatory, Chinese Academy of Sciences"
+          },
+          {
+            "photo": "ting-tan",
+            "name": "Ting Tan",
+            "title": "Postdoctoral Researcher",
+            "org": "Université Paris-Saclay"
+          }
+        ]
+      }
     },
     "stats_labels": {
       "teams": "registered teams",

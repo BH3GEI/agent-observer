@@ -379,7 +379,49 @@
           "name": "DESI 式巡天",
           "desc": "台址纬度 31.96°，180 晚太阳历上的 900 秒时隙，DARK / BRIGHT / BACKUP 三种观测项目，必做 / 可选两类天区，LRG / ELG / QSO / BGS 四种目标类别。"
         }
-      ]
+      ],
+      "committee": {
+        "kicker": "科学委员会",
+        "intro": "赛题、场景与计分背后的天文学，由六位巡天领域的研究者把关。",
+        "members": [
+          {
+            "photo": "zhongxu-zhai",
+            "name": "翟忠旭",
+            "title": "副教授",
+            "org": "上海交通大学天文系"
+          },
+          {
+            "photo": "wei-wang",
+            "name": "王伟",
+            "title": "教授",
+            "org": "上海交通大学"
+          },
+          {
+            "photo": "dezi-liu",
+            "name": "刘德子",
+            "title": "副研究员",
+            "org": "云南大学 中国西南天文研究所"
+          },
+          {
+            "photo": "xiangkun-liu",
+            "name": "刘项琨",
+            "title": "教授",
+            "org": "云南大学 中国西南天文研究所"
+          },
+          {
+            "photo": "huanyuan-shan",
+            "name": "陕欢源",
+            "title": "研究员",
+            "org": "中国科学院上海天文台"
+          },
+          {
+            "photo": "ting-tan",
+            "name": "谭铤",
+            "title": "博士后",
+            "org": "巴黎-萨克雷大学"
+          }
+        ]
+      }
     },
     "stats_labels": {
       "teams": "已报名队伍",
