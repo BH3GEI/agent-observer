@@ -15,7 +15,7 @@ const bars = computed(() => {
   return props.actions.map(a => ({ a, cls: outcomeClass(a.outcome, a.action), width: `${((weightOf(a) / total) * 100).toFixed(3)}%` }))
 })
 const counts = computed(() => {
-  const out: Record<OutcomeClass, number> = { completed: 0, wait: 0, interrupted: 0, unsafe: 0, invalid: 0 }
+  const out: Record<OutcomeClass, number> = { completed: 0, wait: 0, interrupted: 0, unsafe: 0, invalid: 0, report: 0 }
   for (const b of bars.value) out[b.cls]++
   return out
 })

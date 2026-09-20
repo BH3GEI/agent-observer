@@ -156,7 +156,7 @@ Reading a snapshot never advances time; only a committed action does. A short ex
 |---|---|
 | `run_challenge.py --wallclock-seconds 60 --agent-command <venv python> -B participant_agent/minimal_agent.py` (deterministic) | `survey_complete` in 12.7 s / 12.0 s (two runs), 7,943 decisions, 90 completed exposures, 7,852 waits, all 64 tiles done, 9 requests completed, total **12,287.48**, identical `decisions.csv` both runs |
 | `ChallengeWorkflow()` load | 0.09 s; snapshot build 0.12 s at a week boundary, negligible otherwise |
-| Shipped `outputs/workflow_reference` (ReferenceAgent, `--wallclock-seconds 2`) | 817 actions before `global_wallclock_expired`, total −376.05 (7 REQUIRED missed) |
+| Shipped `outputs/workflow_reference` (ReferenceAgent, `--wallclock-seconds 2`) | 638 actions before `global_wallclock_expired`, total 589.484228 (7 REQUIRED missed); the single `decisions.csv` is the whole audit trail — `report_*` rows live in it, there is no separate `report.csv` |
 | Shipped `live_week_validation` (deepseek-v4-flash, 7 nights) | 265 decisions (47 model / 218 deterministic waits), 151.8 s, mean 0.56 s, max 14.7 s, total −1,939.05 (9 REQUIRED still missing) |
 
 Extrapolation for an LLM agent over 180 nights: ~7,900 decisions, but the LLM is invoked only when candidates exist (~100–1,200 calls) → roughly 15–60 min, inside the 7,200 s budget. Note the catalog is tiny relative to the calendar: a good agent finishes all 64 tiles in about 3 weeks and idles for 160 nights.
@@ -231,7 +231,7 @@ Feasible with the workflow as the runner, but several things must change:
 ## 5. Unclear / inconsistent items in the package
 
 1. **Missing tooling**: no generator for `decision_replay.html`; no script producing `validation_summary.json`, `termination_reason="validation_horizon_reached"`, or the extra `commit_log` fields (`latency_seconds`, `decision_source`, `night_id`) — `challenge_workflow.py` cannot produce them. `live_week_validation/workflow_result.json` has `global_wallclock_seconds: null`, which `ChallengeWorkflow.run` never emits.
-2. `outputs/reference/score_report.json` and `outputs/workflow_reference/*` are a **2-second truncated** ReferenceAgent run (`global_wallclock_expired` at night 19, total −376), not a reference solution.
+2. `outputs/reference/score_report.json` and `outputs/workflow_reference/*` are a **2-second truncated** ReferenceAgent run (`global_wallclock_expired` at night 19, 638 actions, total 589.484228, 7 REQUIRED missed), not a reference solution. Their whole audit trail is the one `decisions.csv` (accepted reports, if any, are `report_*` rows in it); no separate `report.csv` is written.
 3. `participant_agent/.env_example` is a duplicate of `.env.example` (differs only by a trailing blank line).
 4. `tile_windows.csv` in `outputs/reference` is a 3-day sample (135 rows) but is listed in `scenario_manifest.json`; the scorer/workflow never read it (they call `get_tile_windows` live).
 5. `scenario_config.json` uses `competition.per_decision_timeout`; `workflow_config.json` uses `per_decision_timeout_seconds` + `synthetic_timeout_action`; `global_wallclock_seconds` is duplicated in both files (7200 int vs 7200.0).

@@ -11,11 +11,14 @@ Three steps: run it → edit one file → upload it. No command line and no thir
 | Linux | run `./run_baseline.sh` in a terminal |
 
 After about 15 seconds a web page opens: the replay of the baseline agent over 180 nights of the public scenario.
-The terminal ends with the score, about **12287** for the unmodified kit, with `termination_reason = survey_complete`.
+The terminal ends with the score, about **23430** for the unmodified kit, with `termination_reason = survey_complete`.
 
 For a first look, use `run_demo_week` (`.command` / `.bat` / `.sh`) instead: same pipeline and same scorer over a
 seven-night scenario. It finishes in about two seconds and the replay is short enough to follow night by night.
 Its results go to `demo_week_output/`.
+Note: seven nights is short, so the shipped anomaly detector only gets part of the hidden tags right there — it can
+miss some and file a wrong tag report. That is expected: it is a demonstration detector, not a calibrated solution,
+and the 180-night scenario is the one where it reports all four tags.
 
 ## Step 2 · Edit one file
 

@@ -1,5 +1,5 @@
 {
-  "schema_version": "directional-weather-v1",
+  "schema_version": "directional-weather-v2",
   "seed": 20261005,
   "quality": {
     "seeing_arcsec": {
@@ -28,6 +28,8 @@
     },
     "instrument_efficiency": {
       "nominal": 1.0,
+      "jitter_minimum": 0.9,
+      "jitter_maximum": 1.0,
       "minimum": 0.1,
       "maximum": 1.0
     },
@@ -140,11 +142,26 @@
       "transparency_multiplier": 0.15,
       "sky_quality_multiplier": 0.25,
       "instrument_efficiency_multiplier": 0.8
+    },
+    "instrument_fault": {
+      "count": 1,
+      "persists_until_survey_end": true,
+      "instrument_efficiency_multiplier_range": [
+        0.4,
+        0.7
+      ],
+      "scope_weights": {
+        "REGION_SET": 1.0
+      },
+      "force_close": false,
+      "seeing_multiplier": 1.0,
+      "transparency_multiplier": 1.0,
+      "sky_quality_multiplier": 1.0
     }
   },
   "score_interface": {
     "airmass_exponent": 1.0,
     "maximum_weather_quality": 3.0,
-    "formula": "H(is_observable) * instrument_efficiency * transparency * sky_quality / (seeing_arcsec * airmass)"
+    "formula": "score: H(is_observable) * instrument_efficiency * transparency * sky_quality / (seeing_arcsec * airmass); program bands use the same quality without instrument_efficiency"
   }
 }

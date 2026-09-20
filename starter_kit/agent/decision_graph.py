@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import Mapping
 
+from anomaly_detection import AnomalyDetector
 from scoring_preview import CandidatePreview, preview_actions
 from state import DecisionState
 
@@ -79,7 +80,8 @@ def _parse_object(text: str) -> dict[str, object]:
 
 def _prepare(state: DecisionState) -> dict[str, object]:
     previews = preview_actions(
-        state["snapshot"], state["initial_publication"]["scoring_contract"]
+        state["snapshot"], state["initial_publication"]["scoring_contract"],
+        state.get("tile_best_scores"),
     )
     top = previews[: state["top_k"]]
     return {
@@ -250,7 +252,7 @@ def build_decision_graph(model: object | None):
 
 
 class MinimalDecisionAgent:
-    """Stateless facade that invokes the graph once for each current snapshot."""
+    """Stateful facade: anomaly tracking plus one graph invocation per snapshot."""
 
     def __init__(self, initial_publication: dict, model: object | None, top_k: int) -> None:
         if top_k < 1:
@@ -258,16 +260,51 @@ class MinimalDecisionAgent:
         self.initial_publication = initial_publication
         self.top_k = top_k
         self.memory: dict = {}  # handed to my_strategy.choose_action on every decision; persists for the run
+        self.detector = AnomalyDetector(initial_publication)
         self.graph = build_decision_graph(model)
 
     def decide(self, snapshot: dict) -> dict[str, object]:
+        reports = self.detector.process_snapshot(snapshot)
+        snapshot = self.detector.filter_fault_scope(snapshot)
         result = self.graph.invoke(
             {
                 "initial_publication": self.initial_publication,
                 "snapshot": snapshot,
                 "top_k": self.top_k,
                 "memory": self.memory,
+                "tile_best_scores": self.detector.bests,
             }
         )
-        return result["decision"]
+        decision = result["decision"]
+        # When nothing on the board gains anything, spend the slot confirming a
+        # suspect tile: a second read separates permanent tags from weather edges.
+        suspect = self.detector.top_suspect(result["previews"])
+        if suspect is not None and (
+            not result["previews"] or result["previews"][0].estimated_gain_per_second <= 0
+        ):
+            decision = {
+                "action": "observe", "tile_id": suspect.tile_id, "program": suspect.program,
+                "request_id": suspect.request_id,
+                "reason": "repeat observation to confirm an anomalous realized-score deviation",
+                "decision_source": "detector",
+            }
+        if decision["action"] == "observe":
+            row = next(
+                (
+                    item
+                    for item in result["previews"]
+                    if (item.tile_id, item.program, item.request_id)
+                    == (decision["tile_id"], decision["program"], decision["request_id"])
+                ),
+                None,
+            )
+            self.detector.note_observation(
+                decision["tile_id"], self.detector.potential_of(row) if row is not None else None,
+                under_cold_wave=self.detector.under_cold_wave(snapshot),
+            )
+        else:
+            self.detector.note_observation(None, None)
+        if reports:
+            decision = {**decision, "reports": reports}
+        return decision
 

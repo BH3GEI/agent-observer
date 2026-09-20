@@ -26,7 +26,7 @@
 | Windows | `run_baseline.bat`（先去 [python.org](https://www.python.org/downloads/) 装 Python 3.12，**安装时记得勾上 Add python.exe to PATH**） |
 | Linux | 终端里运行 `./run_baseline.sh` |
 
-约 15 秒后会自动弹出一个网页，那是基线智能体在 180 个观测夜上的回放。终端最后一段是分数：**基线大约 12287 分**，`termination_reason` 显示 `survey_complete` 就说明一切正常。
+约 15 秒后会自动弹出一个网页，那是基线智能体在 180 个观测夜上的回放。终端最后一段是分数：**基线大约 23430 分**，`termination_reason` 显示 `survey_complete` 就说明一切正常。
 
 > **想先快速看一眼？** 把文件名里的 `run_baseline` 换成 `run_demo_week`，是 7 个观测夜的演示场景，2 秒跑完，回放也更容易一夜一夜看清楚。
 

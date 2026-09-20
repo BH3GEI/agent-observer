@@ -90,7 +90,7 @@ def test_resources_docs_rules_v3(page: Page, site):
 
     page.goto(base + "/docs")
     expect(page.locator("[data-testid=protocol-explorer]")).to_be_visible()
-    expect(page.locator("article")).to_contain_text("participant-agent-protocol-v1")
+    expect(page.locator("article")).to_contain_text("participant-agent-protocol-v2")
     expect(page.locator("article")).to_contain_text("global_wallclock_seconds")
     expect(page.locator("article")).to_contain_text("request_id,reason")
     page.click("[data-testid=lang-toggle]")

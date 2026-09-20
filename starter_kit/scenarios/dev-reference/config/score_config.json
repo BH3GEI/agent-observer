@@ -10,7 +10,10 @@
     "flexible_shortfall_per_tile": 100.0
   },
   "flexible_quota_per_region": 4,
-  "one_ordinary_credit_per_tile": true,
   "interrupted_exposure_science_score": 0.0,
+  "repeat_observation": {"tile_score_aggregation": "max"},
+  "reporting": {"reward_correct": 100.0, "penalty_wrong": 150.0, "fault_misreport_free_allowance": 1, "fault_misreport_penalty": 100.0},
+  "anomaly_tags": {"nova_factor": 1.5, "reddening_factor": 0.8},
+  "fault_response": {"response_latency_days": 1, "repair_duration_days": 2},
   "coefficient_status": "provisional organizer calibration values"
 }
