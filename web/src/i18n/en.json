@@ -386,8 +386,8 @@
         }
       ],
       "committee": {
-        "kicker": "Science committee",
-        "intro": "Six researchers in survey astronomy stand behind the mission design, the scenarios and the scoring.",
+        "kicker": "Scientific committee",
+        "intro": "Seven scientists from astronomy and physics research institutions form the Survey Telescope Scientific Committee, standing behind the mission design, the scenarios and the scoring.",
         "members": [
           {
             "photo": "zhongxu-zhai",
@@ -399,33 +399,46 @@
             "photo": "wei-wang",
             "name": "Wei Wang",
             "title": "Professor",
-            "org": "Shanghai Jiao Tong University"
+            "org": "Department of Physics, Shanghai Jiao Tong University"
           },
           {
             "photo": "dezi-liu",
             "name": "Dezi Liu",
             "title": "Associate Researcher",
-            "org": "South-Western Institute for Astronomy Research, Yunnan University"
+            "org": "Southwest Institute for Astronomy Research, Yunnan University"
           },
           {
             "photo": "xiangkun-liu",
             "name": "Xiangkun Liu",
             "title": "Professor",
-            "org": "South-Western Institute for Astronomy Research, Yunnan University"
+            "org": "Southwest Institute for Astronomy Research, Yunnan University"
           },
           {
             "photo": "huanyuan-shan",
             "name": "Huanyuan Shan",
-            "title": "Professor",
+            "title": "Research Professor",
             "org": "Shanghai Astronomical Observatory, Chinese Academy of Sciences"
           },
           {
             "photo": "ting-tan",
             "name": "Ting Tan",
             "title": "Postdoctoral Researcher",
-            "org": "Université Paris-Saclay"
+            "org": "Université Paris-Saclay · French Alternative Energies and Atomic Energy Commission"
+          },
+          {
+            "photo": "yifei-luo",
+            "name": "Yifei Luo",
+            "title": "Postdoctoral Researcher",
+            "org": "Lawrence Berkeley National Laboratory"
           }
         ]
+      },
+      "octos": {
+        "kicker": "Agent technology support",
+        "title": "Supported by the team behind the open-source agent OS Octos",
+        "desc": "The Octos technical team provides agent technology support for this event.",
+        "cta": "Visit Octos on GitHub",
+        "logoAlt": "Octos logo"
       }
     },
     "stats_labels": {

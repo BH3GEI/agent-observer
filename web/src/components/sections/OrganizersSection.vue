@@ -40,13 +40,22 @@ onMounted(async () => {
         <p class="mt-5 max-w-2xl text-[0.9rem] leading-relaxed text-[#bdbdbd]">{{ t('home.credibility.committee.intro') }}</p>
         <div class="reveal-stagger mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-6">
           <figure v-for="m in committee" :key="m.photo" class="card card-lift">
-            <img :src="appUrl(`media/committee/${m.photo}.jpg`)" :alt="m.name" class="aspect-[3/4] w-full object-cover" loading="lazy" />
+            <img :src="appUrl(`media/committee/${m.photo}.webp`)" :alt="m.name" class="aspect-[3/4] w-full object-cover" loading="lazy" />
             <figcaption class="mt-4">
               <h3>{{ m.name }}</h3>
               <p>{{ m.title }} · {{ m.org }}</p>
             </figcaption>
           </figure>
         </div>
+        <a class="octos-card card card-lift mt-6 flex flex-wrap items-center gap-6" href="https://github.com/octos-org/" target="_blank" rel="noopener" :aria-label="t('home.credibility.octos.cta')">
+          <img :src="appUrl('media/octos-logo.webp')" :alt="t('home.credibility.octos.logoAlt')" class="h-14 w-auto object-contain md:h-16" loading="lazy" />
+          <span class="min-w-0 flex-1">
+            <span class="label accent-amber block">{{ t('home.credibility.octos.kicker') }}</span>
+            <h3 class="mt-2">{{ t('home.credibility.octos.title') }}</h3>
+            <p>{{ t('home.credibility.octos.desc') }}</p>
+          </span>
+          <span class="label accent whitespace-nowrap">{{ t('home.credibility.octos.cta') }} ↗</span>
+        </a>
       </div>
       <div v-if="announcements.length" class="reveal mt-14">
         <div class="flex items-center justify-between gap-4 rule-b pb-3">
