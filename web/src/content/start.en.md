@@ -26,7 +26,7 @@ Open the folder and double-click the file for your machine:
 | Windows | `run_baseline.bat` (first install Python 3.12 from [python.org](https://www.python.org/downloads/) and **tick "Add python.exe to PATH"**) |
 | Linux | run `./run_baseline.sh` in a terminal |
 
-After about fifteen seconds a page opens in your browser: that is the baseline agent's replay over 180 observing nights. The last block in the terminal is the score — the baseline lands around **23430**, and `termination_reason` should read `survey_complete`.
+After about fifteen seconds a page opens in your browser: that is the baseline agent's replay over 180 observing nights. The last block in the terminal is the score — the baseline lands around **12287**, and `termination_reason` should read `survey_complete`.
 
 > **Want a faster first look?** Replace `run_baseline` with `run_demo_week` in the filename: a seven-night demo that finishes in about two seconds, with a replay short enough to read night by night.
 
@@ -64,6 +64,14 @@ After uploading you see your queue position and evaluation progress; a score usu
 - **Run log** — your program's real output on the platform
 
 The leaderboard lives under **Leaderboard** in the top navigation and updates live.
+
+## Extra credit · Want the finals points? Learn to catch anomalies
+
+The competition scenarios hide three kinds of anomaly: tiles with hidden tags (nova ×1.5, reddening ×0.8 on realized score), one unannounced instrument fault (a region's efficiency collapses), plus slight nightly efficiency jitter. Finding and reporting them earns points, crying wolf costs points — this is where the finals separate the field. Practice has none of it.
+
+To rehearse, double-click **`run_finals_preview`** in the kit (same usage as above). It finishes in about a second at a baseline of **~8214**; open the replay and `decisions.csv` to see the sample agent's own `report_instrument_failure` row. To teach your strategy the same trick, start from the worked example in `agent/anomaly_detection.py` — the snapshot's `tile_last_finished` (the realized score of your last exposure) is where every clue begins.
+
+Details live in the Brief's finals-mechanics section and on the Rules page.
 
 ## Stuck?
 

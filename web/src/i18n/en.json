@@ -623,7 +623,18 @@
         "formula": "total = base_science + program_bonus + request_reward\n      - unsafe_observation - invalid_action - avoidable_wait\n      - required_miss - flexible_shortfall - request_miss"
       },
       {
-        "kicker": "07 / Glossary",
+        "kicker": "07 / Finals mechanics",
+        "title": "Anomalies hidden in the survey: find them, report them",
+        "paragraphs": [
+          "The competition scenarios hide three kinds of anomaly. A few tiles carry hidden tags: a nova tile's realized score is 1.5× the public estimate, a reddening tile only 0.8×. Once during the survey an unannounced instrument fault drops the instrument efficiency of one region to 40–70% — no forecast will show it. Nightly instrument efficiency also jitters slightly on its own, so a single deviation proves nothing; a persistent one is the signal.",
+          "You find anomalies by reconciliation. After every exposure the snapshot's tile_last_finished reports the realized score; estimate the same exposure with the public scoring formula and compare. A tile that keeps coming in high is probably a nova; consistently low, reddening; a whole region collapsing at once, an instrument fault. Any tile may be re-observed (the per-tile maximum is banked), so spending a slot on a confirmation repeat is a legitimate move.",
+          "Once confirmed, report it. Attach a reports array to a decision response — reports never consume slot time. A correct tag report is +100, a wrong one −150. A correct fault report gets the affected region published in the night bulletin one day later and repaired after two — the only way a fault ends early; excess false alarms cost −100 each. Reading your own data and daring to call it is exactly where the finals separate the field.",
+          "Practice is untouched: practice scenarios contain no anomalies, their rules and scores are exactly what they were at launch, and previously uploaded packages keep running. To rehearse, download the starter kit and double-click run_finals_preview — seven nights with the full mechanics on, where the sample agent performs the complete find-fault → report → publication loop in front of you, at a baseline around 8214."
+        ],
+        "highlight": "The new mechanics run only on the competition scenarios; practice rules and scores are unchanged, byte for byte."
+      },
+      {
+        "kicker": "08 / Glossary",
         "title": "A little astronomy is enough",
         "paragraphs": [
           "You do not need an astronomy background to read the state dictionary and reason about it. A Tile is a patch of sky observed in one pointing; the Footprint is the full survey area; Targets are the object counts inside each tile. High-priority tiles carry extra scientific weight, nearly complete tiles are one exposure from completion, and under-covered regions are lagging behind the rest of the footprint.",
@@ -633,7 +644,7 @@
         "actionCode": "return {\n    \"action\": \"observe\",\n    \"tile_id\": \"T00037\",\n    \"program\": \"DARK\",\n    \"request_id\": \"\",\n    \"reason\": \"highest preview estimate\",\n}"
       },
       {
-        "kicker": "08 / Timeline",
+        "kicker": "09 / Timeline",
         "title": "Three stages from training to awards",
         "paragraphs": [
           "The event has three stages: online training from October 1–4, online competition from October 5–7, and Awards Day at GOSIM Shenzhen on October 17.",
@@ -1716,6 +1727,18 @@
       {
         "q": "Are there API credits for development?",
         "a": "Registered teams can claim sponsor API codes from the dashboard, one code per provider per team. Platform runs have network access, so the same key works in the .env of your package for hidden-weather runs as well as for local development."
+      },
+      {
+        "q": "Do practice and the online competition run the same rules?",
+        "a": "No — deliberately. Practice keeps the launch rules: no anomaly tags, no repeat observations, no reports, and your local scores match the platform exactly. The competition scenarios additionally enable the anomaly mechanics (hidden tags, an instrument fault, score feedback, the report channel, repeat observations banking the per-tile maximum). The starter kit speaks both rule sets automatically, so one package runs everywhere."
+      },
+      {
+        "q": "What is anomaly reporting? What if I get one wrong?",
+        "a": "On the competition scenarios a few tiles carry hidden tags (nova ×1.5 / reddening ×0.8) and one unannounced instrument fault occurs. An agent reports by attaching a reports array to a decision response — no slot time consumed. A correct tag report is +100, a wrong one −150; a correct fault report triggers publication and repair, and false alarms beyond the allowance cost −100 each. See the finals-mechanics section of the Brief and the Rules page."
+      },
+      {
+        "q": "Where do I rehearse the finals mechanics?",
+        "a": "Re-download the starter kit and double-click run_finals_preview (or run local_runner --scenario scenarios/finals-preview). This seven-night scenario has the full mechanics on and ships its anomaly-tag file so local scoring works; the sample agent scores about 8214 and finds and reports the instrument fault on its own. Practice scenarios (demo-week, dev-reference…) keep the old rules — nothing to re-adapt."
       }
     ]
   },

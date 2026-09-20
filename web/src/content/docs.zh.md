@@ -15,7 +15,7 @@
 
 ### 最短路径（不需要任何工具）
 
-1. 在「资源」页下载[入门包 agent-observer-starter-kit.zip](/resources)并解压，双击 `run_baseline.command`（macOS）、`run_baseline.bat`（Windows，先从 python.org 安装 Python 3.12）或运行 `./run_baseline.sh`（Linux）。基线在自带场景上约 23430 分，回放会在浏览器里打开。想先快速看一遍，把文件名换成 `run_demo_week`：7 晚的演示场景，约 2 秒跑完，同一套流程和评分器，结果写在 `demo_week_output/`。
+1. 在「资源」页下载[入门包 agent-observer-starter-kit.zip](/resources)并解压，双击 `run_baseline.command`（macOS）、`run_baseline.bat`（Windows，先从 python.org 安装 Python 3.12）或运行 `./run_baseline.sh`（Linux）。基线在自带场景上约 12287 分，回放会在浏览器里打开。想先快速看一遍，把文件名换成 `run_demo_week`：7 晚的演示场景，约 2 秒跑完，同一套流程和评分器，结果写在 `demo_week_output/`。
 2. 修改 `agent/my_strategy.py`：`choose_action(candidates, snapshot, memory)` 收到按估计收益排好序的合法候选，返回要观测的那个，或返回 `None` 等待。再双击一次比较分数。
 3. 在「提交」页选择「智能体运行」，把这一个文件拖进去即可，平台会自动补齐入门包其余文件；拖整个 `agent` 文件夹（浏览器内打包）或 `.zip` 也可以。
 

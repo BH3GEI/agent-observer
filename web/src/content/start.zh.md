@@ -26,7 +26,7 @@
 | Windows | `run_baseline.bat`（先去 [python.org](https://www.python.org/downloads/) 装 Python 3.12，**安装时记得勾上 Add python.exe to PATH**） |
 | Linux | 终端里运行 `./run_baseline.sh` |
 
-约 15 秒后会自动弹出一个网页，那是基线智能体在 180 个观测夜上的回放。终端最后一段是分数：**基线大约 23430 分**，`termination_reason` 显示 `survey_complete` 就说明一切正常。
+约 15 秒后会自动弹出一个网页，那是基线智能体在 180 个观测夜上的回放。终端最后一段是分数：**基线大约 12287 分**，`termination_reason` 显示 `survey_complete` 就说明一切正常。
 
 > **想先快速看一眼？** 把文件名里的 `run_baseline` 换成 `run_demo_week`，是 7 个观测夜的演示场景，2 秒跑完，回放也更容易一夜一夜看清楚。
 
@@ -64,6 +64,14 @@
 - **运行日志** —— 程序在平台上的真实输出
 
 排行榜在顶部导航「排行榜」里，实时更新。
+
+## 进阶 · 想拿正式赛的分？先学会抓异常
+
+正式比赛场景里埋了三种异常：带隐藏标签的天区（nova 真实得分 ×1.5、reddening ×0.8）、一次不广播的仪器故障（某片区域效率骤降），以及每晚的效率小抖动。发现并上报它们有加分，乱报有扣分——这是正式赛拉开差距的地方，练习赛完全没有这些。
+
+演练方法：在入门包里双击 **`run_finals_preview`**（用法和上面完全一样）。约一秒跑完，基线 **约 8214 分**；打开回放和 `decisions.csv`，能看到示例智能体自己完成的 `report_instrument_failure` 上报行。想让你的策略也能抓异常，看 `agent/anomaly_detection.py` 里的现成示例——快照里的 `tile_last_finished`（上次曝光的真实得分）就是全部线索的起点。
+
+规则细节在「赛事说明 · 正式赛新机制」一节和「规则」页。
 
 ## 卡住了？
 

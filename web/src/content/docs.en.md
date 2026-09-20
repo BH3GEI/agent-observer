@@ -15,7 +15,7 @@ Sponsor API credits are handed out as redeem codes: once your team is registered
 
 ### The short path (no tooling)
 
-1. Download the [starter kit agent-observer-starter-kit.zip](/resources), unzip it, and double-click `run_baseline.command` (macOS), `run_baseline.bat` (Windows, after installing Python 3.12 from python.org) or run `./run_baseline.sh` (Linux). The baseline scores about 23430 on the bundled scenario and the replay opens in your browser. For a faster first look use `run_demo_week` instead: a seven-night demo scenario, about two seconds, same pipeline and same scorer, results in `demo_week_output/`.
+1. Download the [starter kit agent-observer-starter-kit.zip](/resources), unzip it, and double-click `run_baseline.command` (macOS), `run_baseline.bat` (Windows, after installing Python 3.12 from python.org) or run `./run_baseline.sh` (Linux). The baseline scores about 12287 on the bundled scenario and the replay opens in your browser. For a faster first look use `run_demo_week` instead: a seven-night demo scenario, about two seconds, same pipeline and same scorer, results in `demo_week_output/`.
 2. Edit `agent/my_strategy.py`: its `choose_action(candidates, snapshot, memory)` receives the legal candidates ranked best-first and returns the one to observe, or `None` to wait. Run the launcher again to compare.
 3. On the Submit page choose *Agent run* and drop that single file. The platform wraps it with the rest of the starter agent; dropping the whole `agent` folder (packaged in the browser) or a `.zip` works too.
 
