@@ -220,9 +220,9 @@ python3 sac_submit.py --phase online --kind agent --file my_agent.zip --wait
 
 `sac_submit.py` 读取 `SAC_URL`、`SAC_KEY`、`SAC_EMAIL`、`SAC_PASSWORD`（见「资源」页），`--wait` 轮询直到评测结束。
 
-## 8. 练习赛与线上比赛
+## 8. Playground与线上比赛
 
-| | 练习赛 | 线上比赛 |
+| | Playground | 线上比赛 |
 |---|---|---|
 | 场景 | `demo-week`（7 晚演示）、`dev-fortnight`（14 晚）与 `dev-reference`（180 晚，公开示例）；天气、预报、事件全部公开 | `eval-a`、`eval-b`（各 30 晚）；天气、预报、事件隐藏 |
 | 提交 | 结果文件或智能体程序包，每队每天 50 次 | 仅智能体程序包，每队每天 10 次 |
@@ -232,10 +232,10 @@ python3 sac_submit.py --phase online --kind agent --file my_agent.zip --wait
 
 两种提交方式对应两种用途，平台都支持：
 
-- **结果文件（`decisions.csv`）**：你在本地用模拟器回放天气跑完整场，把决策序列交给评分器。天气公开时这条路最短，本地分数与平台分数一致，所以练习赛接受这种方式。
+- **结果文件（`decisions.csv`）**：你在本地用模拟器回放天气跑完整场，把决策序列交给评分器。天气公开时这条路最短，本地分数与平台分数一致，所以Playground接受这种方式。
 - **智能体程序包**：你上传程序和依赖，平台在隐藏天气的场景上运行它，每次只交给它当前时隙能看到的快照。参赛者拿不到未来天气，也就无法按整段天气做全局优化，所以线上比赛只接受这种方式。
 
-两种方式经过同一个评分器和同一份 `score_config.json`，报告格式相同，因此练习赛调出来的策略可以直接进比赛。
+两种方式经过同一个评分器和同一份 `score_config.json`，报告格式相同，因此Playground调出来的策略可以直接进比赛。
 
 ## 9. 策略提示
 
