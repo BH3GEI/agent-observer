@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from '../composables/useI18n'
+import { usePublicSettings } from '../composables/usePublicSettings'
 import PageHead from '../components/layout/PageHead.vue'
 const { t, pick } = useI18n()
 type Item = { q: string; a: string }
-const items = computed(() => t('faq.items') as Item[])
+const { mechanicsPublic } = usePublicSettings()
+const items = computed(() => (t('faq.items') as (Item & { gated?: boolean })[])
+  .filter(item => mechanicsPublic.value || !item.gated))
 </script>
 
 <template>

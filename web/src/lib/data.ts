@@ -139,13 +139,28 @@ export async function loadAnnouncements(limit?: number): Promise<Announcement[]>
   return (data ?? []) as Announcement[]
 }
 
-export async function loadRegistrationOpen(): Promise<boolean> {
+export interface PublicSettings { registrationOpen: boolean; registrationDeadline: string | null; mechanicsPublic: boolean }
+
+export async function loadPublicSettings(): Promise<PublicSettings> {
+  const fallback: PublicSettings = { registrationOpen: true, registrationDeadline: null, mechanicsPublic: true }
   try {
-    const { data, error } = await supabase.from('site_settings').select('value').eq('key', 'registration_open').maybeSingle()
-    if (error || !data) return true
-    const value = (data as { value: unknown }).value
-    return value === false || value === 'false' ? false : Boolean(value ?? true)
-  } catch { return true }
+    const { data, error } = await supabase.from('site_settings').select('key, value')
+      .in('key', ['registration_open', 'registration_deadline', 'mechanics_public'])
+    if (error || !data) return fallback
+    const map = Object.fromEntries((data as { key: string; value: unknown }[]).map(row => [row.key, row.value]))
+    const openFlag = !(map.registration_open === false || map.registration_open === 'false')
+    const deadline = typeof map.registration_deadline === 'string' ? map.registration_deadline : null
+    const beforeDeadline = !deadline || Date.now() < Date.parse(deadline)
+    return {
+      registrationOpen: openFlag && beforeDeadline,
+      registrationDeadline: deadline,
+      mechanicsPublic: !(map.mechanics_public === false || map.mechanics_public === 'false'),
+    }
+  } catch { return fallback }
+}
+
+export async function loadRegistrationOpen(): Promise<boolean> {
+  return (await loadPublicSettings()).registrationOpen
 }
 
 export async function loadLeaderboard(phaseSlug: string | null, limit = 500): Promise<LeaderboardEntry[]> {

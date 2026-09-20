@@ -498,7 +498,8 @@
           "title": "Take on the finals",
           "desc": "Oct 5–7: hidden weather plus the anomaly game. Rehearse catching faults with run_finals_preview first.",
           "time": "Oct 5",
-          "to": "/brief#section-7"
+          "to": "/brief#section-7",
+          "desc_gated": "Oct 5–7: hidden weather replays, your package runs on the platform, mean of two scenarios."
         }
       ]
     },
@@ -680,7 +681,8 @@
           "Once confirmed, report it. Attach a reports array to a decision response — reports never consume slot time. A correct tag report is +100, a wrong one −150. A correct fault report gets the affected region published in the night bulletin one day later and repaired after two — the only way a fault ends early; excess false alarms cost −100 each. Reading your own data and daring to call it is exactly where the finals separate the field.",
           "Practice is untouched: practice scenarios contain no anomalies, their rules and scores are exactly what they were at launch, and previously uploaded packages keep running. To rehearse, download the starter kit and double-click run_finals_preview — seven nights with the full mechanics on, where the sample agent performs the complete find-fault → report → publication loop in front of you, at a baseline around 8214."
         ],
-        "highlight": "The new mechanics run only on the competition scenarios; practice rules and scores are unchanged, byte for byte."
+        "highlight": "The new mechanics run only on the competition scenarios; practice rules and scores are unchanged, byte for byte.",
+        "gated": true
       },
       {
         "kicker": "08 / Glossary",
@@ -1790,15 +1792,18 @@
       },
       {
         "q": "Do practice and the online competition run the same rules?",
-        "a": "No — deliberately. Practice keeps the launch rules: no anomaly tags, no repeat observations, no reports, and your local scores match the platform exactly. The competition scenarios additionally enable the anomaly mechanics (hidden tags, an instrument fault, score feedback, the report channel, repeat observations banking the per-tile maximum). The starter kit speaks both rule sets automatically, so one package runs everywhere."
+        "a": "No — deliberately. Practice keeps the launch rules: no anomaly tags, no repeat observations, no reports, and your local scores match the platform exactly. The competition scenarios additionally enable the anomaly mechanics (hidden tags, an instrument fault, score feedback, the report channel, repeat observations banking the per-tile maximum). The starter kit speaks both rule sets automatically, so one package runs everywhere.",
+        "gated": true
       },
       {
         "q": "What is anomaly reporting? What if I get one wrong?",
-        "a": "On the competition scenarios a few tiles carry hidden tags (nova ×1.5 / reddening ×0.8) and one unannounced instrument fault occurs. An agent reports by attaching a reports array to a decision response — no slot time consumed. A correct tag report is +100, a wrong one −150; a correct fault report triggers publication and repair, and false alarms beyond the allowance cost −100 each. See the finals-mechanics section of the Brief and the Rules page."
+        "a": "On the competition scenarios a few tiles carry hidden tags (nova ×1.5 / reddening ×0.8) and one unannounced instrument fault occurs. An agent reports by attaching a reports array to a decision response — no slot time consumed. A correct tag report is +100, a wrong one −150; a correct fault report triggers publication and repair, and false alarms beyond the allowance cost −100 each. See the finals-mechanics section of the Brief and the Rules page.",
+        "gated": true
       },
       {
         "q": "Where do I rehearse the finals mechanics?",
-        "a": "Re-download the starter kit and double-click run_finals_preview (or run local_runner --scenario scenarios/finals-preview). This seven-night scenario has the full mechanics on and ships its anomaly-tag file so local scoring works; the sample agent scores about 8214 and finds and reports the instrument fault on its own. Practice scenarios (demo-week, dev-reference…) keep the old rules — nothing to re-adapt."
+        "a": "Re-download the starter kit and double-click run_finals_preview (or run local_runner --scenario scenarios/finals-preview). This seven-night scenario has the full mechanics on and ships its anomaly-tag file so local scoring works; the sample agent scores about 8214 and finds and reports the instrument fault on its own. Practice scenarios (demo-week, dev-reference…) keep the old rules — nothing to re-adapt.",
+        "gated": true
       }
     ]
   },
@@ -2033,7 +2038,9 @@
       "credits_note": "API credits note",
       "credits_note_hint": "Shown at the top of the dashboard credits panel. Leave empty to hide.",
       "credits_note_en": "note (en)",
-      "credits_note_zh": "note (zh)"
+      "credits_note_zh": "note (zh)",
+      "mechanics_public": "Show the finals mechanics on the site (tutorial section / FAQ / walkthrough step)",
+      "registration_deadline": "Registration deadline (new sign-ups stop automatically; existing logins unaffected; empty = none)"
     },
     "worker": {
       "title": "Evaluation worker",

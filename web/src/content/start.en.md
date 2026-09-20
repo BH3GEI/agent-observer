@@ -65,6 +65,7 @@ After uploading you see your queue position and evaluation progress; a score usu
 
 The leaderboard lives under **Leaderboard** in the top navigation and updates live.
 
+<!-- mechanics:start -->
 ## Extra credit · Want the finals points? Learn to catch anomalies
 
 The competition scenarios hide three kinds of anomaly: tiles with hidden tags (nova ×1.5, reddening ×0.8 on realized score), one unannounced instrument fault (a region's efficiency collapses), plus slight nightly efficiency jitter. Finding and reporting them earns points, crying wolf costs points — this is where the finals separate the field. Practice has none of it.
@@ -73,6 +74,7 @@ To rehearse, double-click **`run_finals_preview`** in the kit (same usage as abo
 
 Details live in the Brief's finals-mechanics section and on the Rules page.
 
+<!-- mechanics:end -->
 ## Stuck?
 
 | Situation | What to do |

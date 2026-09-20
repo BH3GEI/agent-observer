@@ -5,6 +5,7 @@ import { useScrollReveal } from '../composables/useScrollReveal'
 import domeImage from '../assets/images/cosmos-dome.jpg'
 import { useAuth } from '../stores/auth'
 import { useRegistrationOpen } from '../composables/useRegistrationOpen'
+import { usePublicSettings } from '../composables/usePublicSettings'
 
 useScrollReveal()
 const { t, pick } = useI18n()
@@ -26,7 +27,10 @@ type Section = {
   rounds?: { number: string; name: string; dates: string; format: string; challenge: string; participants: string }[]
 }
 
-const sections = computed(() => t('vision.sections') as Section[])
+const { mechanicsPublic } = usePublicSettings()
+const sections = computed(() => (t('vision.sections') as (Section & { gated?: boolean })[])
+  .filter(section => mechanicsPublic.value || !section.gated))
+const kickerText = (kicker: string) => kicker.replace(/^\d+ \/ /, '')
 </script>
 
 <template>
@@ -65,7 +69,7 @@ const sections = computed(() => t('vision.sections') as Section[])
       >
         <aside class="mb-10 lg:mb-0">
           <div class="vision-number font-mono text-xs text-[#315efb]">0{{ index + 1 }}</div>
-          <span class="mt-8 inline-block font-mono text-xs uppercase tracking-[.1em] text-text-tertiary">{{ section.kicker }}</span>
+          <span class="mt-8 inline-block font-mono text-xs uppercase tracking-[.1em] text-text-tertiary">{{ kickerText(section.kicker) }}</span>
         </aside>
 
         <div>

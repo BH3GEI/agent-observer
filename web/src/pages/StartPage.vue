@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from '../composables/useI18n'
+import { usePublicSettings } from '../composables/usePublicSettings'
 import { useAuth } from '../stores/auth'
 import PageHead from '../components/layout/PageHead.vue'
 import MarkdownArticle from '../components/content/MarkdownArticle.vue'
@@ -11,7 +12,11 @@ import startZh from '../content/start.zh.md?raw'
  *  Deliberately lighter than the Docs page, which is the engineer's reference. */
 const { t, pick } = useI18n()
 const { isLoggedIn } = useAuth()
-const source = computed(() => pick(startEn, startZh))
+const { mechanicsPublic } = usePublicSettings()
+const source = computed(() => {
+  const text = pick(startEn, startZh)
+  return mechanicsPublic.value ? text : text.replace(/<!-- mechanics:start -->[\s\S]*?<!-- mechanics:end -->/g, '')
+})
 </script>
 
 <template>
