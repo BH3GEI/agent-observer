@@ -22,6 +22,11 @@ const cardItems = computed(() => t('home.mission.cardItems') as { term: string; 
           <h2 class="section-title distressed-type mt-10">{{ t('home.mission.title') }}</h2>
           <p class="mt-7 max-w-xl text-base leading-relaxed text-text-secondary md:text-lg">{{ t('home.mission.lede') }}</p>
 
+          <div class="reveal mt-14 paper-sheet p-7 md:p-10">
+            <span class="font-mono text-xs uppercase tracking-[.1em] text-[#315efb]">{{ pick('Online training', '线上培训') }}</span>
+            <p class="relative z-10 mt-5 max-w-[24ch] text-xl font-semibold leading-relaxed tracking-[-.02em] md:text-2xl">{{ t('home.mission.closing') }}</p>
+          </div>
+
         </div>
 
         <div class="relative z-10">
@@ -50,10 +55,6 @@ const cardItems = computed(() => t('home.mission.cardItems') as { term: string; 
             <p class="relative z-10 mt-8 border-t border-[#101d29]/20 pt-5 text-xs leading-relaxed text-[#101d29]/65">{{ t('home.mission.cardNote') }}</p>
           </div>
 
-          <div class="reveal mt-12 paper-sheet p-7 md:p-10">
-            <span class="font-mono text-xs uppercase tracking-[.1em] text-[#315efb]">{{ pick('Online training', '线上培训') }}</span>
-            <p class="relative z-10 mt-5 max-w-[22ch] text-xl font-semibold leading-relaxed tracking-[-.02em] md:text-3xl">{{ t('home.mission.closing') }}</p>
-          </div>
         </div>
       </div>
     </div>
