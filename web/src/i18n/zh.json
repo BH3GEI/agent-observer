@@ -330,7 +330,7 @@
     },
     "evaluation": {
       "kicker": "05 / 评测",
-      "title": "评分规则公开、赛前冻结",
+      "title": "客观公开的评分规则",
       "lede": "评分程序在开赛前公开并冻结，之后不再改动。一次观测能得多少分，由当时的天气和月光条件决定；在合适的夜晚安排合适的观测项目、按时完成临时观测请求，会获得额外加分；违规操作会被扣分。全部公式、参数与评分器源码均可下载——你在本地算出的分数，与平台公布的分数完全一致。",
       "formula": "total = base_science + program_bonus + request_reward\n      − unsafe_observation − invalid_action − avoidable_wait\n      − required_miss − flexible_shortfall − request_miss\nbase  = Σ_segments V_tile · (dt / t_nominal) · combined\ncombined = min(eff · transp · sky / (seeing · airmass), 3) · lunar",
       "criteria": [
@@ -368,10 +368,6 @@
         {
           "title": "结果文件",
           "desc": "在自己电脑上跑过入门包？上传它生成的 decisions.csv（限天气公开的练习场景），几秒钟出分。"
-        },
-        {
-          "title": "智能体程序包",
-          "desc": "只改了 agent/my_strategy.py？直接拖这一个文件；或者把整个 agent 文件夹拖进来，网站替你打包、平台替你补齐标准文件。运行在我们的机器上，用隐藏天气评测。"
         },
         {
           "title": "限制",
@@ -674,7 +670,7 @@
       },
       {
         "kicker": "06 / 计分",
-        "title": "科学、可复现、可检视的评测",
+        "title": "评分与模拟环境如何工作",
         "paragraphs": [
           "一次拍成的曝光能得多少分，取决于当时的大气条件和月光；拍中当晚该拍的项目、完成临时请求还能再加分。扣分有六类：不安全的观测、无效动作、本可避免的等待、必做天区（REQUIRED）未完成、各分区可选天区（FLEXIBLE）缺额、请求过期。好的智能体要在眼前的产出与整场覆盖、天气风险、请求的截止时间和总时长之间反复权衡。",
           "评测遵循开放科学原则：固定数据与固定计分，让每份观测结果都按同一标准评估；可读的结果文件便于检查最终产出；开发天气与最终评测天气分离，比较的是泛化能力，而不是针对已知场景调参。",

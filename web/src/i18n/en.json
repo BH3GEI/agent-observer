@@ -330,7 +330,7 @@
     },
     "evaluation": {
       "kicker": "05 / Evaluation",
-      "title": "Scoring rules: public, frozen before the competition",
+      "title": "Objective, public scoring rules",
       "lede": "The scoring program is published and frozen before the competition starts and never changes afterwards. What one observation earns depends on the weather and moonlight at that moment; scheduling the right program on the right night and completing temporary observation requests on time earn extra credit, while rule violations cost points. Every formula, constant and the scorer's source code are downloadable — the score you compute locally matches the platform exactly.",
       "formula": "total = base_science + program_bonus + request_reward\n      − unsafe_observation − invalid_action − avoidable_wait\n      − required_miss − flexible_shortfall − request_miss\nbase  = Σ_segments V_tile · (dt / t_nominal) · combined\ncombined = min(eff · transp · sky / (seeing · airmass), 3) · lunar",
       "criteria": [
@@ -368,10 +368,6 @@
         {
           "title": "Results file",
           "desc": "Ran the kit on your own computer? Upload the decisions.csv it produced (practice scenarios with public weather). Scored within seconds."
-        },
-        {
-          "title": "Agent package",
-          "desc": "Changed only agent/my_strategy.py? Drop that single file, or drop your whole agent folder: the website packages it and the platform fills in the standard files. The run happens on our machines against hidden weather."
         },
         {
           "title": "Limits",
@@ -674,7 +670,7 @@
       },
       {
         "kicker": "06 / Scoring",
-        "title": "Scientific, reproducible, inspectable evaluation",
+        "title": "How scoring and the simulated environment work",
         "paragraphs": [
           "What a completed exposure earns depends on the atmosphere and the moon at the time; matching the night's programme and answering a request add more on top. Six things cost you: unsafe observations, invalid actions, avoidable waiting, unfinished must-do patches (REQUIRED), optional shortfall per region (FLEXIBLE), and expired requests. A good agent keeps trading immediate output against coverage, weather risk, request deadlines and the time budget.",
           "Evaluation follows open-science principles: fixed data and fixed scoring let every submitted observation result be evaluated consistently; readable result artifacts make outcomes inspectable; separate development and final-evaluation weather compare generalization instead of tuning to a known scenario.",
