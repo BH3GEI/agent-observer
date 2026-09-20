@@ -93,7 +93,8 @@ def generate_tile_anomalies(tile_config: Mapping, tile_ids: Sequence[str]) -> li
 
 def generate_scenario(root: Path, *, scenario_id: str, seed: int, days: int = 180, start_date: str | None = None,
                       global_wallclock_seconds: int = 7200, tile_overrides: dict | None = None, base: Path = EXAMPLE3_ROOT,
-                      window_days: int = 3, coverage_bonus_weight: float | None = None) -> dict:
+                      window_days: int = 3, coverage_bonus_weight: float | None = None,
+                      anomaly_overrides: dict | None = None) -> dict:
     """Create a complete scenario directory from the reference configs with a new seed (deterministic)."""
     root = Path(root)
     if root.exists():
@@ -120,6 +121,11 @@ def generate_scenario(root: Path, *, scenario_id: str, seed: int, days: int = 18
         c["catalog"]["time_limited_window_days"] = max(1, min(int(c["catalog"].get("time_limited_window_days", 14)), max(1, days - 1)))
         for k, v in (tile_overrides or {}).items():
             c["catalog"][k] = v
+        if anomaly_overrides is not None:
+            if any(int(v) > 0 for v in anomaly_overrides.values()):
+                c.setdefault("anomaly_tags", {}).update({k: int(v) for k, v in anomaly_overrides.items()})
+            else:
+                c.pop("anomaly_tags", None)
     def _weather(c):
         c["seed"] = seed
         # forecasts need a few nights of headroom beyond their horizon
@@ -206,14 +212,20 @@ def main(argv=None) -> int:
     g = sub.add_parser("generate"); g.add_argument("root", type=Path); g.add_argument("--scenario-id", required=True); g.add_argument("--seed", type=int, required=True)
     g.add_argument("--days", type=int, default=180); g.add_argument("--start-date"); g.add_argument("--wallclock", type=int, default=7200)
     g.add_argument("--regions", type=int); g.add_argument("--tiles-per-region", type=int)
+    g.add_argument("--coverage-weight", type=float, default=None)
+    g.add_argument("--nova-tags", type=int, default=None); g.add_argument("--reddening-tags", type=int, default=None)
     v = sub.add_parser("validate"); v.add_argument("root", type=Path)
     a = p.parse_args(argv)
     if a.cmd == "generate":
         ov = {}
         if a.regions: ov["n_regions"] = a.regions
         if a.tiles_per_region: ov["tiles_per_region"] = a.tiles_per_region
+        an = {}
+        if a.nova_tags is not None: an["nova_count"] = a.nova_tags
+        if a.reddening_tags is not None: an["reddening_count"] = a.reddening_tags
         info = generate_scenario(a.root, scenario_id=a.scenario_id, seed=a.seed, days=a.days, start_date=a.start_date,
-                                 global_wallclock_seconds=a.wallclock, tile_overrides=ov)
+                                 global_wallclock_seconds=a.wallclock, tile_overrides=ov,
+                                 coverage_bonus_weight=a.coverage_weight, anomaly_overrides=an or None)
     else:
         info = describe_scenario(a.root)
     info = {k: v for k, v in info.items() if k != "manifest"}

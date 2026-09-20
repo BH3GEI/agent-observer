@@ -9,6 +9,10 @@ PROTOCOL_VERSION = "participant-agent-protocol-v2"
 INITIAL_PUBLICATION_VERSION = "initial-publication-v2"
 DECISION_SNAPSHOT_VERSION = "decision-snapshot-v3"
 
+# Practice scenarios still speak the pre-anomaly contract; this agent accepts both.
+ACCEPTED_PROTOCOL_VERSIONS = ("participant-agent-protocol-v1", PROTOCOL_VERSION)
+ACCEPTED_SNAPSHOT_VERSIONS = ("decision-snapshot-v2", DECISION_SNAPSHOT_VERSION)
+
 
 class ProtocolError(ValueError):
     """Raised when the platform sends an unsupported or malformed message."""
@@ -16,7 +20,7 @@ class ProtocolError(ValueError):
 
 def parse_platform_message(message: Mapping[str, object]) -> tuple[str, dict]:
     """Validate an input envelope and return its message type and payload."""
-    if message.get("protocol_version") != PROTOCOL_VERSION:
+    if message.get("protocol_version") not in ACCEPTED_PROTOCOL_VERSIONS:
         raise ProtocolError("unsupported participant protocol_version")
     message_type = str(message.get("message_type", ""))
     payload = message.get("payload")
@@ -26,7 +30,7 @@ def parse_platform_message(message: Mapping[str, object]) -> tuple[str, dict]:
         if payload.get("schema_version") != INITIAL_PUBLICATION_VERSION:
             raise ProtocolError("unsupported initial publication schema_version")
     elif message_type == "decision_request":
-        if payload.get("schema_version") != DECISION_SNAPSHOT_VERSION:
+        if payload.get("schema_version") not in ACCEPTED_SNAPSHOT_VERSIONS:
             raise ProtocolError("unsupported decision snapshot schema_version")
         if int(message.get("decision_sequence", -1)) != int(
             payload.get("decision_sequence", -2)

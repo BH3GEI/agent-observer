@@ -16,6 +16,19 @@ INITIAL_PUBLICATION_VERSION = "initial-publication-v2"
 DECISION_SNAPSHOT_VERSION = "decision-snapshot-v3"
 WORKFLOW_RESULT_VERSION = "workflow-result-v2"
 
+# Scenarios without the anomaly-mechanics config sections keep speaking the pre-anomaly
+# contract, so agents built and submitted before the mechanics release keep working.
+LEGACY_PARTICIPANT_PROTOCOL_VERSION = "participant-agent-protocol-v1"
+LEGACY_DECISION_SNAPSHOT_VERSION = "decision-snapshot-v2"
+ACCEPTED_PROTOCOL_VERSIONS = (LEGACY_PARTICIPANT_PROTOCOL_VERSION, PARTICIPANT_PROTOCOL_VERSION)
+
+ANOMALY_CONFIG_SECTIONS = ("repeat_observation", "reporting", "anomaly_tags", "fault_response")
+
+
+def anomaly_mechanics_enabled(score_config) -> bool:
+    """The single switch: a scenario opts into the anomaly mechanics through its score config."""
+    return any(section in score_config for section in ANOMALY_CONFIG_SECTIONS)
+
 NIGHT_COLUMNS = [
     "night_id",
     "night_date",

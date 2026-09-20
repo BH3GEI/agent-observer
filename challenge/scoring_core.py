@@ -12,6 +12,7 @@ from typing import Mapping, Sequence
 
 from .contracts import (
     ANOMALY_TAG_VALUES,
+    anomaly_mechanics_enabled,
     DECISION_COLUMNS,
     REPORT_ACTIONS,
     TARGET_COLUMNS,
@@ -44,7 +45,7 @@ class Decision:
         return {key: getattr(self, key) for key in DECISION_COLUMNS}
 
 
-def load_decisions(path: Path) -> list[Decision]:
+def load_decisions(path: Path, *, allow_reports: bool = True) -> list[Decision]:
     rows = []
     seen = set()
     for row in read_exact_csv(path, DECISION_COLUMNS):
@@ -53,6 +54,8 @@ def load_decisions(path: Path) -> list[Decision]:
             raise ValueError("decision_id must be non-empty and unique")
         if item.action not in {"observe", "wait", *REPORT_ACTIONS}:
             raise ValueError(f"{item.decision_id}: unknown action {item.action!r}")
+        if item.action in REPORT_ACTIONS and not allow_reports:
+            raise ValueError(f"{item.decision_id}: action must be observe or wait")
         if item.action == "wait" and (item.tile_id or item.program or item.request_id):
             raise ValueError(f"{item.decision_id}: wait must not name tile, program, or request")
         if item.action == "observe" and (not item.tile_id or item.program not in PROGRAMS):
@@ -156,6 +159,7 @@ class ChallengeScorer:
         self.requests = {item.request_id: item for item in requests}
         self.request_tiles = {key: dict(value) for key, value in request_tiles.items()}
         self.config = score_config
+        self.mechanics = anomaly_mechanics_enabled(score_config)
         self.tile_anomalies = {key: frozenset(value) for key, value in (tile_anomalies or {}).items()}
         tag_config = score_config.get("anomaly_tags", {})
         self._tag_factors = {
@@ -239,6 +243,8 @@ class ChallengeScorer:
             if tile.tile_id not in self.completed_tiles:
                 if self._can_complete_from(tile, self.slot_index, self.offset_seconds):
                     return True
+                continue
+            if not self.mechanics:
                 continue
             # A completed tile stays actionable while a repeat started now could beat its banked best.
             best = self.tile_best_scores.get(tile.tile_id)
@@ -352,6 +358,8 @@ class ChallengeScorer:
         return action
 
     def apply_decision(self, decision: Decision) -> dict[str, object]:
+        if decision.action in REPORT_ACTIONS and not self.mechanics:
+            return self._invalid(decision, "unknown_action")
         if decision.action in REPORT_ACTIONS:
             # Report rows ride the trace: they never touch the slot cursor and act
             # at the current cursor time (right after their carrier decision).
@@ -402,6 +410,8 @@ class ChallengeScorer:
         request = self.requests.get(decision.request_id) if decision.request_id else None
         if decision.request_id and (request is None or tile.tile_id not in self.request_tiles.get(decision.request_id, {}) or not request.available_from_utc <= started < request.deadline_utc):
             return self._invalid(decision, "invalid_request_tag")
+        if not self.mechanics and tile.tile_id in self.completed_tiles and request is None:
+            return self._invalid(decision, "duplicate_tile")
         initial_weather = self.weather.get_effective_conditions(slot.slot_id, tile.tile_id)
         if not initial_weather["is_observable"]:
             return self._invalid(decision, "unsafe_observation", unsafe=True)
@@ -432,7 +442,7 @@ class ChallengeScorer:
             )
             lunar_quality = float(geometry["lunar_quality_factor"])
             combined_quality = atmospheric_quality * lunar_quality
-            band = self._quality_band(band_quality * lunar_quality)
+            band = self._quality_band((band_quality if self.mechanics else atmospheric_quality) * lunar_quality)
             base = (
                 self.tile_values[tile.tile_id]
                 * seconds
@@ -458,14 +468,25 @@ class ChallengeScorer:
             action_penalty = float(self.config["penalties"]["invalid_action"])
             self.penalties["invalid_action"] += action_penalty
         if completed:
-            # Completion banks once, on the first legal observation; the tile's
-            # science contribution is the per-observation maximum and only grows.
-            self.completed_tiles.add(tile.tile_id)
-            banked = self.tile_best_scores.get(tile.tile_id, (0.0, 0.0))
-            if pending_base + pending_bonus > banked[0] + banked[1]:
-                self.base_science_score += pending_base - banked[0]
-                self.program_bonus_score += pending_bonus - banked[1]
-                self.tile_best_scores[tile.tile_id] = (pending_base, pending_bonus)
+            if not self.mechanics:
+                # Pre-anomaly semantics: ordinary science/completion credit banks once.
+                if tile.tile_id not in self.completed_tiles:
+                    self.completed_tiles.add(tile.tile_id)
+                    self.base_science_score += pending_base
+                    self.program_bonus_score += pending_bonus
+                else:
+                    # A request-tagged revisit is operationally valid but cannot
+                    # duplicate the tile's ordinary science/completion credit.
+                    pending_base = pending_bonus = 0.0
+            else:
+                # Completion banks once, on the first legal observation; the tile's
+                # science contribution is the per-observation maximum and only grows.
+                self.completed_tiles.add(tile.tile_id)
+                banked = self.tile_best_scores.get(tile.tile_id, (0.0, 0.0))
+                if pending_base + pending_bonus > banked[0] + banked[1]:
+                    self.base_science_score += pending_base - banked[0]
+                    self.program_bonus_score += pending_bonus - banked[1]
+                    self.tile_best_scores[tile.tile_id] = (pending_base, pending_bonus)
             if request is not None:
                 self.request_visits[(request.request_id, tile.tile_id)] += 1
         else:
@@ -622,7 +643,7 @@ class ChallengeScorer:
 
 def score_files(root: Path, decisions_path: Path, output_path: Path, termination_reason: str = "trace_complete") -> dict[str, object]:
     scorer = ChallengeScorer.from_files(root)
-    for decision in load_decisions(decisions_path):
+    for decision in load_decisions(decisions_path, allow_reports=scorer.mechanics):
         scorer.apply_decision(decision)
     report = scorer.finalize(termination_reason)
     report["input_sha256"] = {"decisions": sha256_file(decisions_path), "score_config": sha256_file(root / "config" / "score_config.json")}

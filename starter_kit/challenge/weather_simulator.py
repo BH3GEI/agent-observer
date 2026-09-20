@@ -32,6 +32,7 @@ from .tile_geometry_simulator import TileGeometrySimulator
 
 
 SCHEMA_VERSION = "directional-weather-v2"
+LEGACY_SCHEMA_VERSION = "directional-weather-v1"
 CONDITIONS = ("rainy", "cloudy", "smoggy", "rocket_launch", "cold_wave", "tornado", "instrument_fault")
 UNFORECASTABLE_CONDITIONS = ("instrument_fault",)
 FORECASTABLE_CONDITIONS = tuple(c for c in CONDITIONS if c not in UNFORECASTABLE_CONDITIONS)
@@ -182,9 +183,10 @@ class Forecast:
 def load_config(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as handle:
         config = json.load(handle)
-    if config.get("schema_version") != SCHEMA_VERSION:
+    if config.get("schema_version") not in (LEGACY_SCHEMA_VERSION, SCHEMA_VERSION):
         raise ValueError("unsupported weather schema_version")
-    if set(config["events"]) != set(CONDITIONS):
+    # v1 configs predate instrument_fault; every condition they do define must be known.
+    if not set(config["events"]) <= set(CONDITIONS) or not set(config["events"]) >= set(FORECASTABLE_CONDITIONS):
         raise ValueError("weather config must define every condition exactly once")
     for definition in config["events"].values():
         scopes = definition["scope_weights"]
@@ -295,6 +297,8 @@ def generate_events(config: Mapping, slots: Sequence[Slot], tile_ids: Sequence[s
     sequence = 0
     fault_intervals: list[tuple[datetime, datetime]] = []
     for condition in CONDITIONS:
+        if condition not in config["events"]:
+            continue
         definition = config["events"][condition]
         for occurrence in range(int(definition["count"])):
             sequence += 1

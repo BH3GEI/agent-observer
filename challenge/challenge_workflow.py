@@ -12,10 +12,11 @@ from typing import Callable, Mapping
 
 from .contracts import (
     write_text_lf,
+    ACCEPTED_PROTOCOL_VERSIONS,
     DECISION_COLUMNS,
     DECISION_SNAPSHOT_VERSION,
     INITIAL_PUBLICATION_VERSION,
-    PARTICIPANT_PROTOCOL_VERSION,
+    LEGACY_DECISION_SNAPSHOT_VERSION,
     REPORT_KINDS,
     TARGET_COLUMNS,
     WORKFLOW_RESULT_VERSION,
@@ -73,6 +74,7 @@ class ChallengeWorkflow:
             root / "outputs" / "reference" / "targets.csv", TARGET_COLUMNS
         )
         self.clock = clock
+        self.mechanics = self.scorer.mechanics
         self.committed: list[Decision] = []
         self.commit_log: list[dict[str, object]] = []
         self._row_seq = 0
@@ -219,7 +221,8 @@ class ChallengeWorkflow:
         candidates = []
         for row in active_windows:
             tile_id = str(row["tile_id"])
-            conditions = _public_weather(self.scorer.weather.get_effective_conditions(slot.slot_id, tile_id, include_instrument_faults=False))
+            conditions = (_public_weather(self.scorer.weather.get_effective_conditions(slot.slot_id, tile_id, include_instrument_faults=False))
+                          if self.mechanics else self.scorer.weather.get_effective_conditions(slot.slot_id, tile_id))
             geometry = self.scorer.geometry.get_tile_geometry(tile_id, moment)
             if float(geometry["altitude_deg"]) < float(
                 self.scorer.geometry.tile_config["geometry"]["minimum_altitude_deg"]
@@ -235,10 +238,10 @@ class ChallengeWorkflow:
         night_index = sorted(self.scorer.geometry.nights).index(slot.night_id)
         night_open = self.scorer.offset_seconds == 0 and slot == self.scorer.geometry.slots_by_night[slot.night_id][0]
         snapshot = {
-            "schema_version": DECISION_SNAPSHOT_VERSION, "decision_sequence": sequence,
+            "schema_version": DECISION_SNAPSHOT_VERSION if self.mechanics else LEGACY_DECISION_SNAPSHOT_VERSION, "decision_sequence": sequence,
             "cursor": {"slot_id": slot.slot_id, "night_id": slot.night_id, "timestamp_utc": format_utc(moment), "slot_offset_seconds": self.scorer.offset_seconds},
-            "current_site_weather": _public_weather(self.scorer.weather.get_effective_conditions(slot.slot_id, include_instrument_faults=False)),
-            "tile_last_finished": self._last_finished,
+            "current_site_weather": (_public_weather(self.scorer.weather.get_effective_conditions(slot.slot_id, include_instrument_faults=False))
+                                     if self.mechanics else self.scorer.weather.get_effective_conditions(slot.slot_id)),
             "candidate_tiles": candidates,
             "active_requests": self._active_requests(moment),
             "night_start": {"night": night.csv_row(), "tile_windows": self._night_windows(slot.night_id)} if night_open else None,
@@ -257,15 +260,17 @@ class ChallengeWorkflow:
                 ),
             },
         }
-        if night_open:
-            fault_status = self._fault_status(moment)
-            if fault_status is not None:
-                snapshot["fault_status"] = fault_status
+        if self.mechanics:
+            snapshot["tile_last_finished"] = self._last_finished
+            if night_open:
+                fault_status = self._fault_status(moment)
+                if fault_status is not None:
+                    snapshot["fault_status"] = fault_status
         return snapshot
 
     def _decision_from_response(self, sequence: int, slot_id: str, response: Mapping[str, object]) -> tuple[Decision, list[dict[str, str]], int]:
         """Validate one response; malformed report entries are dropped (counted), never the action."""
-        if "protocol_version" in response and response["protocol_version"] != PARTICIPANT_PROTOCOL_VERSION:
+        if "protocol_version" in response and response["protocol_version"] not in ACCEPTED_PROTOCOL_VERSIONS:
             raise ValueError("unsupported participant protocol_version")
         if "message_type" in response and response["message_type"] != "decision_response":
             raise ValueError("agent response message_type must be decision_response")
@@ -282,6 +287,10 @@ class ChallengeWorkflow:
             tile_id = program = request_id = ""
         reports, dropped = [], 0
         raw_reports = response.get("reports", [])
+        if not self.mechanics:
+            # Legacy scenarios have nothing to report against; note and drop.
+            dropped = len(raw_reports) if isinstance(raw_reports, list) else 1
+            raw_reports = []
         for entry in raw_reports if isinstance(raw_reports, list) else []:
             if not isinstance(entry, Mapping):
                 dropped += 1

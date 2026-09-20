@@ -18,7 +18,7 @@ def score(
     termination_reason: str,
 ) -> dict[str, object]:
     scorer = ChallengeScorer.from_files(EXAMPLE3_ROOT)
-    for decision in load_decisions(decisions_path):
+    for decision in load_decisions(decisions_path, allow_reports=scorer.mechanics):
         scorer.apply_decision(decision)
     report = scorer.finalize(termination_reason)
     governed = {

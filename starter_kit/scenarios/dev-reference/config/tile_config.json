@@ -19,10 +19,6 @@
     "altitude_exponent": 1.0,
     "maximum_penalty": 0.75
   },
-  "anomaly_tags": {
-    "nova_count": 2,
-    "reddening_count": 2
-  },
   "target_models": {
     "LRG": {
       "mean_count_per_tile": 60,

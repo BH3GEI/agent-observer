@@ -19,7 +19,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 KIT = ROOT / "starter_kit"
 PY = sys.executable
-BASELINE_TOTAL = 23430.568406  # deterministic minimal agent, scenarios/dev-reference, survey_complete
+BASELINE_TOTAL = 12287.478365  # deterministic minimal agent, scenarios/dev-reference, survey_complete
 
 
 def run(script: str, *args: str, cwd: Path = KIT, timeout: int = 240) -> subprocess.CompletedProcess:

@@ -149,7 +149,7 @@ def preview_actions(
     (observing one beats a penalised avoidable wait) but never outrank
     unfinished or request-valuable work.
     """
-    if snapshot.get("schema_version") != "decision-snapshot-v3":
+    if snapshot.get("schema_version") not in ("decision-snapshot-v2", "decision-snapshot-v3"):
         raise ValueError("unsupported decision snapshot schema_version")
     score_config = scoring_contract["score_config"]
     if score_config.get("schema_version") != "challenge-score-v3":
@@ -172,6 +172,10 @@ def preview_actions(
         tile_id = str(candidate["tile_id"])
         already_completed = bool(candidate["already_completed"])
         request_options = _request_options(snapshot, tile_id)
+        if already_completed and tile_best_scores is None and not request_options:
+            # Pre-anomaly semantics: without a realized-best ledger a repeat is
+            # never a candidate (and would be an invalid duplicate on the platform).
+            continue
         action_options: Sequence[tuple[str, float]] = request_options or [("", 0.0)]
         atmospheric, lunar, combined = _combined_quality(
             candidate, weather_interface

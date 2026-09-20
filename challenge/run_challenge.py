@@ -16,7 +16,7 @@ import time
 from pathlib import Path
 
 from .challenge_workflow import ChallengeWorkflow, GlobalDeadlineExpired
-from .contracts import PARTICIPANT_PROTOCOL_VERSION
+from .contracts import LEGACY_PARTICIPANT_PROTOCOL_VERSION, PARTICIPANT_PROTOCOL_VERSION
 from .project_paths import EXAMPLE3_ROOT
 
 
@@ -26,7 +26,7 @@ class ReferenceAgent:
 
     def __call__(self, snapshot, deadline_monotonic):
         candidates = [item for item in snapshot["candidate_tiles"] if item["effective_weather"]["is_observable"] and not item["already_completed"]]
-        if not candidates:
+        if not candidates and snapshot.get("schema_version") == "decision-snapshot-v3":
             # Repeat observations are legal and bank the per-tile maximum: an
             # observable completed tile beats an avoidable wait.
             candidates = [item for item in snapshot["candidate_tiles"] if item["effective_weather"]["is_observable"]]
@@ -49,13 +49,15 @@ class ReferenceAgent:
 class JsonLineAgentProcess:
     """Persistent JSON-Lines agent transport with cutoff cancellation."""
 
-    def __init__(self, command: list[str], initialization_timeout_seconds: float = 30.0) -> None:
+    def __init__(self, command: list[str], initialization_timeout_seconds: float = 30.0, *,
+                 protocol_version: str = PARTICIPANT_PROTOCOL_VERSION) -> None:
         if not command:
             raise ValueError("agent command cannot be empty")
         if initialization_timeout_seconds <= 0:
             raise ValueError("initialization timeout must be positive")
         self.command = command
         self.initialization_timeout_seconds = initialization_timeout_seconds
+        self.protocol_version = protocol_version
         self.process: subprocess.Popen[bytes] | None = None
         self._stdout_buffer = b""
         # Windows has no select() on pipes and no non-blocking pipe mode: a reader thread feeds a queue
@@ -143,7 +145,7 @@ class JsonLineAgentProcess:
         """Send the one-time public bootstrap message before the competition clock."""
         self._write_message(
             {
-                "protocol_version": PARTICIPANT_PROTOCOL_VERSION,
+                "protocol_version": self.protocol_version,
                 "message_type": "initialize",
                 "payload": publication,
             },
@@ -156,7 +158,7 @@ class JsonLineAgentProcess:
             raise RuntimeError("agent process pipes are unavailable")
         self._write_message(
             {
-                "protocol_version": PARTICIPANT_PROTOCOL_VERSION,
+                "protocol_version": self.protocol_version,
                 "message_type": "decision_request",
                 "decision_sequence": snapshot["decision_sequence"],
                 "payload": snapshot,

@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Optional
 
 from challenge.challenge_workflow import ChallengeWorkflow, GlobalDeadlineExpired
-from challenge.contracts import PARTICIPANT_PROTOCOL_VERSION
+from challenge.contracts import LEGACY_PARTICIPANT_PROTOCOL_VERSION, PARTICIPANT_PROTOCOL_VERSION
 from challenge.run_challenge import JsonLineAgentProcess
 
 from .config import get_settings
@@ -115,8 +115,10 @@ def prepare_environment(agent_dir: Path, entry: Path, log) -> tuple[str, dict]:
 class SandboxedAgentProcess(JsonLineAgentProcess):
     """JsonLineAgentProcess with the platform's isolation: scrubbed env, own cwd, rlimits, stderr to a log, optional docker."""
 
-    def __init__(self, command: list[str], *, agent_dir: Path, env: dict[str, str], log_file, initialization_timeout_seconds: float = 30.0):
-        super().__init__(command, initialization_timeout_seconds)
+    def __init__(self, command: list[str], *, agent_dir: Path, env: dict[str, str], log_file, initialization_timeout_seconds: float = 30.0,
+                 protocol_version: str | None = None):
+        super().__init__(command, initialization_timeout_seconds,
+                         **({"protocol_version": protocol_version} if protocol_version else {}))
         self.agent_dir = agent_dir
         self.env = env
         self.log_file = log_file
@@ -175,7 +177,7 @@ def run_agent_package(agent_dir: Path, scenario_root: Path, out_dir: Path, *, wa
         dotenv = load_dotenv(entry.parent / ".env")
         env = {"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": str(scratch), "TMPDIR": str(scratch), "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8",
                "PYTHONUNBUFFERED": "1", "PYTHONDONTWRITEBYTECODE": "1", "PYTHONIOENCODING": "utf-8",
-               "PARTICIPANT_PROTOCOL": PARTICIPANT_PROTOCOL_VERSION, "SAC_SCENARIO": (scenario_meta or {}).get("slug", ""),
+               "SAC_SCENARIO": (scenario_meta or {}).get("slug", ""),
                "SAC_WALLCLOCK_SECONDS": str(int(wallclock_seconds))}
         if s.agent_proxy:
             env.update({"HTTPS_PROXY": s.agent_proxy, "HTTP_PROXY": s.agent_proxy, "https_proxy": s.agent_proxy, "http_proxy": s.agent_proxy})
@@ -191,8 +193,11 @@ def run_agent_package(agent_dir: Path, scenario_root: Path, out_dir: Path, *, wa
             command = ["python", "-B", str(entry.relative_to(agent_dir))]
         else:
             command = [python, "-B", str(entry)]
-        provider = SandboxedAgentProcess(command, agent_dir=agent_dir, env=env, log_file=log, initialization_timeout_seconds=s.agent_init_timeout_seconds)
         workflow = ChallengeWorkflow(root=scenario_root)
+        protocol_version = PARTICIPANT_PROTOCOL_VERSION if workflow.mechanics else LEGACY_PARTICIPANT_PROTOCOL_VERSION
+        env["PARTICIPANT_PROTOCOL"] = protocol_version
+        provider = SandboxedAgentProcess(command, agent_dir=agent_dir, env=env, log_file=log,
+                                         initialization_timeout_seconds=s.agent_init_timeout_seconds, protocol_version=protocol_version)
         started = time.monotonic()
         try:
             result = workflow.run(provider, wallclock_seconds=wallclock_seconds)

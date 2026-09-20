@@ -10,13 +10,13 @@
       "sha256": "78b64e63aa136ad480cee24e0c47e2aefd83026ae781c1e4d3b30abdf614523e"
     },
     "config/score_config.json": {
-      "sha256": "6b68aa51a2f6f34508c2c64b95742fbae4937f830e16e6925efb5ec8213323e9"
+      "sha256": "e83a3c8b254bfd1a516f5a7e31f8b4338d8a1b306d4983346734364c36f7c4f6"
     },
     "config/tile_config.json": {
-      "sha256": "c8fb9ec58577108cae7b5edc0247bfc8e223f2262aa3053e18b172ac162c7735"
+      "sha256": "885a1b10f90e991b9ef6fab98f1a50df2ca3c924205019ce66784c3466389cb5"
     },
     "config/weather_config.json": {
-      "sha256": "c9604a6682d625af88671c95efffb9814a81d8f7694cd310330ddb2049e62124"
+      "sha256": "8175beae070f2d7986942ebe7d9e9bed3f5321e04f9f1226d05008cc7eb7c6fe"
     },
     "config/workflow_config.json": {
       "sha256": "2291d79819c21bc2f19b3a358792f80bc317b9ed2b688247dc179d792edcf623"
@@ -41,10 +41,6 @@
       "rows": 15960,
       "sha256": "37abce5cff40a2695612df761722f73743eb7addf2a47f66d081cc3eb987458c"
     },
-    "outputs/reference/tile_anomalies.csv": {
-      "rows": 4,
-      "sha256": "bf0c0dc08567bd96f220520454dce634daac2bd58617c8e93bdff688274f9040"
-    },
     "outputs/reference/tile_windows.csv": {
       "rows": 150,
       "sha256": "dd4c591a179da537f23a010a1bcc3cfbdecab0870cb088815a40accb4b40c54f"
@@ -55,11 +51,11 @@
     },
     "outputs/reference/weather.csv": {
       "rows": 294,
-      "sha256": "e93cddbaed888da9b84ac6d71aafe39cd78c20769766322066c031270d5fb503"
+      "sha256": "36142ce391e4318da4c58d950814acfcc605afef702621bb531a408814737574"
     },
     "outputs/reference/weather_events.csv": {
-      "rows": 30,
-      "sha256": "ddc688fa2488391b7159d2a1bab60a18bed2a13e2fbffd3ef9b173e93089a644"
+      "rows": 29,
+      "sha256": "2c0f1d4a50b92b2d11c0c79b2d675eeadf8e239bf22d84a9c0848fb48138fc94"
     },
     "outputs/reference/weather_forecasts.csv": {
       "rows": 97,

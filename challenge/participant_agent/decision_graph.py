@@ -264,21 +264,25 @@ class MinimalDecisionAgent:
         self.graph = build_decision_graph(model)
 
     def decide(self, snapshot: dict) -> dict[str, object]:
-        reports = self.detector.process_snapshot(snapshot)
-        snapshot = self.detector.filter_fault_scope(snapshot)
+        # Practice scenarios speak the pre-anomaly snapshot: no score feedback, no
+        # reports, and a repeat observation would be an invalid duplicate there.
+        mechanics = snapshot.get("schema_version") == "decision-snapshot-v3"
+        reports = self.detector.process_snapshot(snapshot) if mechanics else []
+        if mechanics:
+            snapshot = self.detector.filter_fault_scope(snapshot)
         result = self.graph.invoke(
             {
                 "initial_publication": self.initial_publication,
                 "snapshot": snapshot,
                 "top_k": self.top_k,
                 "memory": self.memory,
-                "tile_best_scores": self.detector.bests,
+                "tile_best_scores": self.detector.bests if mechanics else None,
             }
         )
         decision = result["decision"]
         # When nothing on the board gains anything, spend the slot confirming a
         # suspect tile: a second read separates permanent tags from weather edges.
-        suspect = self.detector.top_suspect(result["previews"])
+        suspect = self.detector.top_suspect(result["previews"]) if mechanics else None
         if suspect is not None and (
             not result["previews"] or result["previews"][0].estimated_gain_per_second <= 0
         ):
@@ -288,7 +292,7 @@ class MinimalDecisionAgent:
                 "reason": "repeat observation to confirm an anomalous realized-score deviation",
                 "decision_source": "detector",
             }
-        if decision["action"] == "observe":
+        if mechanics and decision["action"] == "observe":
             row = next(
                 (
                     item
@@ -302,7 +306,7 @@ class MinimalDecisionAgent:
                 decision["tile_id"], self.detector.potential_of(row) if row is not None else None,
                 under_cold_wave=self.detector.under_cold_wave(snapshot),
             )
-        else:
+        elif mechanics:
             self.detector.note_observation(None, None)
         if reports:
             decision = {**decision, "reports": reports}
