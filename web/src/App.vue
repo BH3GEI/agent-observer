@@ -5,6 +5,7 @@ import AppHeader from './components/layout/AppHeader.vue'
 import AppFooter from './components/layout/AppFooter.vue'
 import AnnouncementBanner from './components/layout/AnnouncementBanner.vue'
 import FlashContainer from './components/layout/FlashContainer.vue'
+import RegisterFloat from './components/layout/RegisterFloat.vue'
 import ScrollProgress from './components/layout/ScrollProgress.vue'
 
 const { t } = provideI18n()
@@ -14,6 +15,7 @@ provideTheme()
 <template>
   <a href="#main-content" class="skip-link">{{ t('a11y.skip') }}</a>
   <ScrollProgress />
+  <RegisterFloat />
   <AppHeader />
   <AnnouncementBanner />
   <div id="main-content" tabindex="-1">

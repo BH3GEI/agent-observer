@@ -2,11 +2,11 @@
 import { computed } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import instrumentImage from '../../assets/images/cosmos-instrument.jpg'
-import CountUp from '../layout/CountUp.vue'
 
 const { t, pick } = useI18n()
 type Card = { title: string; desc: string }
 const cards = computed(() => t('home.mission.cards') as Card[])
+const cardItems = computed(() => t('home.mission.cardItems') as { term: string; desc: string }[])
 </script>
 
 <template>
@@ -36,6 +36,19 @@ const cards = computed(() => t('home.mission.cards') as Card[])
               <p class="mt-4 max-w-xl text-sm leading-relaxed text-text-secondary">{{ card.desc }}</p>
             </div>
           </article>
+
+          <div class="reveal mt-12 paper-sheet p-7 md:p-10">
+            <span class="relative z-10 font-mono text-xs uppercase tracking-[.1em] text-[#9c5c38]">{{ t('home.mission.cardKicker') }}</span>
+            <h3 class="relative z-10 mt-4 text-2xl font-semibold tracking-[-.03em] md:text-3xl">{{ t('home.mission.cardTitle') }}</h3>
+            <p class="relative z-10 mt-4 max-w-2xl text-sm leading-relaxed text-[#101d29]/75">{{ t('home.mission.cardLede') }}</p>
+            <dl class="relative z-10 mt-8 grid gap-x-10 gap-y-5 sm:grid-cols-2">
+              <div v-for="item in cardItems" :key="item.term" class="border-t border-[#101d29]/20 pt-3">
+                <dt class="text-sm font-semibold">{{ item.term }}</dt>
+                <dd class="mt-1 text-sm leading-relaxed text-[#101d29]/70">{{ item.desc }}</dd>
+              </div>
+            </dl>
+            <p class="relative z-10 mt-8 border-t border-[#101d29]/20 pt-5 text-xs leading-relaxed text-[#101d29]/65">{{ t('home.mission.cardNote') }}</p>
+          </div>
 
           <div class="reveal mt-12 paper-sheet p-7 md:p-10">
             <span class="font-mono text-xs uppercase tracking-[.1em] text-[#315efb]">{{ pick('Entry requirement', '参赛要求') }}</span>

@@ -137,7 +137,8 @@
           "current": false
         }
       ]
-    }
+    },
+    "register_float": "Register"
   },
   "hero": {
     "eyebrow": "GOSIM Hackathon · Intelligent Survey Operations",
@@ -255,7 +256,7 @@
         },
         {
           "title": "Make the call",
-          "desc": "Observe a tile, or wait. One action every 900 seconds, and the reason for it."
+          "desc": "Observe a tile, or wait. One action per slot, and the reason for it."
         }
       ],
       "closing": "No astronomy background required. Just an agent that reads snapshots, weighs risk against the clock, and commits decisions."

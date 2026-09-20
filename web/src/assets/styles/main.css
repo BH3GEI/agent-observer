@@ -949,3 +949,8 @@ a:focus-visible, button:focus-visible, [role="tab"]:focus-visible, input:focus-v
 
 .poster-kicker.kicker-xl { font-size: 1.35rem; letter-spacing: .2em; }
 .poster-kicker.kicker-xl::before { width: 3.2rem; }
+
+.register-float { position: fixed; right: 1.4rem; bottom: 1.4rem; z-index: 55; min-height: 52px; padding: .9rem 1.6rem;
+  box-shadow: 0 10px 34px rgba(63,94,251,.45); animation: register-pulse 3.2s ease-in-out infinite; }
+@keyframes register-pulse { 0%, 100% { box-shadow: 0 10px 34px rgba(63,94,251,.45); } 50% { box-shadow: 0 10px 44px rgba(124,92,255,.6); } }
+@media (prefers-reduced-motion: reduce) { .register-float { animation: none; } }
