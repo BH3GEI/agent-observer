@@ -142,7 +142,7 @@ export async function loadAnnouncements(limit?: number): Promise<Announcement[]>
 export interface PublicSettings { registrationOpen: boolean; registrationDeadline: string | null; mechanicsPublic: boolean }
 
 export async function loadPublicSettings(): Promise<PublicSettings> {
-  const fallback: PublicSettings = { registrationOpen: true, registrationDeadline: null, mechanicsPublic: true }
+  const fallback: PublicSettings = { registrationOpen: true, registrationDeadline: null, mechanicsPublic: false }
   try {
     const { data, error } = await supabase.from('site_settings').select('key, value')
       .in('key', ['registration_open', 'registration_deadline', 'mechanics_public'])
