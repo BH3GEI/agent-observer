@@ -38,8 +38,8 @@ onMounted(async () => {
           <span class="label accent">{{ t('home.credibility.committee.kicker') }}</span>
         </div>
         <p class="mt-5 max-w-2xl text-[0.9rem] leading-relaxed text-[#bdbdbd]">{{ t('home.credibility.committee.intro') }}</p>
-        <div class="reveal-stagger mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-6">
-          <figure v-for="m in committee" :key="m.photo" class="card card-lift">
+        <div class="reveal-stagger mt-10 grid grid-cols-3 gap-3 sm:grid-cols-4 md:gap-4 lg:grid-cols-7">
+          <figure v-for="m in committee" :key="m.photo" class="card card-lift committee-card">
             <img :src="appUrl(`media/committee/${m.photo}.webp`)" :alt="m.name" class="aspect-[3/4] w-full object-cover" loading="lazy" />
             <figcaption class="mt-4">
               <h3>{{ m.name }}</h3>

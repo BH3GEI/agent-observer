@@ -822,3 +822,8 @@ details.plain summary { cursor: pointer; }
 .wall-filters .field.slim { margin: 0; min-width: 11rem; }
 .wall-filters .check { margin: 0 0 .35rem; }
 .wall-self .wall-badges { margin-top: 0; }
+
+.committee-card { padding: .85rem; }
+.committee-card h3 { font-size: .92rem; letter-spacing: -.01em; }
+.committee-card figcaption { margin-top: .65rem; }
+.committee-card p { margin-top: .3rem; font-size: .7rem; line-height: 1.5; color: #aeb6c8; }

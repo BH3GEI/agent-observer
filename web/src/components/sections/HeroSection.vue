@@ -56,7 +56,7 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
           </h1>
           <p class="hero-subtitle mt-3 font-mono text-sm uppercase tracking-[.22em] text-[#78a6ff] reveal reveal-delay-2">{{ t('hero.subtitle') }}</p>
 
-          <p class="mt-7 max-w-xl text-base leading-[1.75] text-white/82 md:text-lg reveal reveal-delay-3">{{ t('hero.lede') }}</p>
+          <p class="mt-7 max-w-xl text-base leading-[1.75] text-white/92 md:text-lg reveal reveal-delay-3">{{ t('hero.lede') }}</p>
           <div class="mt-7 flex flex-wrap gap-3 reveal reveal-delay-4">
             <router-link v-if="isLoggedIn" to="/dashboard" class="hero-action hero-action-primary">
               {{ t('hero.cta_dashboard') }} <span>→</span>
@@ -163,7 +163,7 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
   max-width: 11ch; color: #f7f9ff;
   font-family: 'Space Grotesk', 'Noto Sans SC', system-ui, sans-serif;
   font-size: clamp(3.4rem, 6vw, 6.4rem); font-weight: 600; letter-spacing: -.065em; line-height: .92; text-wrap: balance;
-  background: linear-gradient(97deg, #ffffff 6%, #bccbff 40%, #d8c3ff 66%, #8fd9ff 96%);
+  background: linear-gradient(100deg, #ffffff 0%, #f4f7ff 48%, #dfe8ff 76%, #c7e4ff 100%);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 .hero-title-line { display: block; }
@@ -219,7 +219,7 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
   .hero-metrics > div:nth-child(-n+2) { border-bottom: 1px solid rgba(255,255,255,.16); }
 }
 
-.hero-timeline-note { display: block; margin-top: .3rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .62rem; letter-spacing: .05em; color: rgba(190,205,255,.62); }
+.hero-timeline-note { display: block; margin-top: .3rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .62rem; letter-spacing: .05em; color: rgba(214,226,255,.8); }
 .hero-timeline {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 0; padding: 0; list-style: none;
@@ -251,7 +251,7 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
 @media (max-width: 1023px) {
   .hero-wash-video { opacity: .32; }
   .hero-grid { min-height: 0; }
-  .hero-timeline-note { display: block; margin-top: .3rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .62rem; letter-spacing: .05em; color: rgba(190,205,255,.62); }
+  .hero-timeline-note { display: block; margin-top: .3rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .62rem; letter-spacing: .05em; color: rgba(214,226,255,.8); }
 .hero-timeline { grid-template-columns: 1fr; }
   .hero-timeline li::after { display: none; }
 }
