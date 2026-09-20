@@ -118,15 +118,18 @@
     "pipeline": [
       {
         "label": "Online Training",
-        "date": "Oct 1–4"
+        "date": "Oct 1–4",
+        "note": "Meet astronomers and agent experts"
       },
       {
         "label": "Online Competition",
-        "date": "Oct 5–7"
+        "date": "Oct 5–7",
+        "note": "Supported by the open-source KIMI model"
       },
       {
         "label": "Awards Day",
-        "date": "Oct 17"
+        "date": "Oct 17",
+        "note": "Top 3 awarded at GOSIM Shenzhen"
       }
     ],
     "location": [
@@ -228,7 +231,7 @@
     },
     "mission": {
       "kicker": "02 / Mission",
-      "title": "Where should the telescope look next",
+      "title": "Next, where in the sky do we look?",
       "lede": "Your agent takes over the core decisions of a human lead observer.",
       "cards": [
         {
@@ -1118,7 +1121,7 @@
     "required_missing": "REQ missing"
   },
   "cta": {
-    "title": "Hand the next move of the night sky to the agent you wrote",
+    "title": "Let your agent choose the next observation",
     "tagline": "Same survey plan, weather replay, inserted requests, simulator, and scoring rule. The only variable is strategy.",
     "location": "Online development and CosmosBench evaluation · October 17 at GOSIM Shenzhen",
     "button": "Register now",

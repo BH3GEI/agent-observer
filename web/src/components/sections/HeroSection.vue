@@ -24,7 +24,7 @@ const parts = computed(() => [
   { v: pad(countdown.value.seconds), l: t('phase_clock.seconds') },
 ])
 // Milestones of the event, shown as a horizontal timeline under the phase strip.
-type Stage = { label: string; date: string }
+type Stage = { label: string; date: string; note?: string }
 const stages = computed(() => t('hero.pipeline') as Stage[])
 </script>
 
@@ -91,6 +91,7 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
               <span class="hero-timeline-step">0{{ i + 1 }}</span>
               <span class="hero-timeline-label">{{ stage.label }}</span>
               <span class="hero-timeline-date">{{ stage.date }}</span>
+              <span v-if="stage.note" class="hero-timeline-note">{{ stage.note }}</span>
             </li>
           </ol>
         </div>
@@ -218,6 +219,7 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
   .hero-metrics > div:nth-child(-n+2) { border-bottom: 1px solid rgba(255,255,255,.16); }
 }
 
+.hero-timeline-note { display: block; margin-top: .3rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .62rem; letter-spacing: .05em; color: rgba(190,205,255,.62); }
 .hero-timeline {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 0; padding: 0; list-style: none;
@@ -249,7 +251,8 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
 @media (max-width: 1023px) {
   .hero-wash-video { opacity: .32; }
   .hero-grid { min-height: 0; }
-  .hero-timeline { grid-template-columns: 1fr; }
+  .hero-timeline-note { display: block; margin-top: .3rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .62rem; letter-spacing: .05em; color: rgba(190,205,255,.62); }
+.hero-timeline { grid-template-columns: 1fr; }
   .hero-timeline li::after { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
