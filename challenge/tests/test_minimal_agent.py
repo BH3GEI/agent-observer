@@ -52,6 +52,20 @@ class MinimalAgentTests(unittest.TestCase):
             self.assertGreater(item.estimated_science_score, 0)
             self.assertIn("future weather", item.estimate_semantics)
 
+    def test_preview_baseline_excludes_instrument_efficiency(self) -> None:
+        previews = preview_actions(self.snapshot, self.initial["scoring_contract"])
+        row = previews[0]
+        candidate = next(c for c in self.snapshot["candidate_tiles"] if c["tile_id"] == row.tile_id)
+        weather = candidate["effective_weather"]
+        self.assertNotIn("instrument_efficiency", weather)
+        interface = self.initial["scoring_contract"]["weather_score_interface"]
+        expected = min(
+            weather["transparency"] * weather["sky_quality"]
+            / (weather["seeing_arcsec"] * candidate["geometry"]["airmass"] ** interface["airmass_exponent"]),
+            interface["maximum_weather_quality"],
+        )
+        self.assertAlmostEqual(row.atmospheric_quality, expected, places=6)
+
     def test_closed_candidates_produce_wait(self) -> None:
         snapshot = copy.deepcopy(self.snapshot)
         for candidate in snapshot["candidate_tiles"]:
@@ -60,6 +74,30 @@ class MinimalAgentTests(unittest.TestCase):
         decision = agent.decide(snapshot)
         self.assertEqual(decision["action"], "wait")
         self.assertEqual(decision["decision_source"], "deterministic")
+
+    def test_completed_candidates_show_zero_marginal_gain_without_best_scores(self) -> None:
+        snapshot = copy.deepcopy(self.snapshot)
+        for candidate in snapshot["candidate_tiles"]:
+            candidate["already_completed"] = True
+        previews = preview_actions(snapshot, self.initial["scoring_contract"])
+        self.assertTrue(previews)
+        self.assertTrue(all(item.estimated_science_score == 0 for item in previews))
+
+    def test_completed_candidates_show_marginal_gain_over_tracked_best(self) -> None:
+        snapshot = copy.deepcopy(self.snapshot)
+        for candidate in snapshot["candidate_tiles"]:
+            candidate["already_completed"] = True
+        previews = preview_actions(snapshot, self.initial["scoring_contract"])
+        tile_id = previews[0].tile_id
+        potential = previews[0].tile_science_value * previews[0].combined_quality * (
+            1.0 + self.initial["scoring_contract"]["score_config"]["program_bonus"][previews[0].quality_band]
+        )
+        tracked = preview_actions(snapshot, self.initial["scoring_contract"], tile_best_scores={tile_id: potential - 1.0})
+        row = next(item for item in tracked if item.tile_id == tile_id)
+        self.assertAlmostEqual(row.estimated_science_score, 1.0, places=4)
+        saturated = preview_actions(snapshot, self.initial["scoring_contract"], tile_best_scores={tile_id: potential + 1.0})
+        row = next(item for item in saturated if item.tile_id == tile_id)
+        self.assertEqual(row.estimated_science_score, 0.0)
 
     def test_no_model_uses_highest_public_estimate(self) -> None:
         best = preview_actions(

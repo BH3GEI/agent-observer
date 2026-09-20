@@ -3,24 +3,28 @@
     <root>/config/{scenario,calendar,tile,weather,request,workflow,score}_config.json
     <root>/outputs/reference/{night_calendar,slots,tiles,targets,tile_windows,weather,weather_forecasts,weather_events,
                               observation_requests,observation_request_tiles}.csv + *_metadata.json + scenario_manifest.json
+                              (+ optional tile_anomalies.csv when the tile config ships anomaly_tags)
 """
 from __future__ import annotations
 
 import csv
 import json
+import random
 import shutil
 import subprocess
 import sys
 from datetime import date
 from pathlib import Path
+from typing import Mapping, Sequence
 
 from .build_scenario_manifest import CONFIG_FILES, DATA_FILES, csv_rows
-from .contracts import sha256_file, write_text_lf
+from .contracts import TILE_ANOMALY_COLUMNS, TILE_COLUMNS, read_exact_csv, sha256_file, write_exact_csv, write_text_lf
 from .project_paths import EXAMPLE3_ROOT
 from .scoring_core import ChallengeScorer
 
 CONFIG_DIRNAME = "config"
 DATA_DIRNAME = Path("outputs") / "reference"
+ANOMALY_FILE = "tile_anomalies.csv"
 PUBLIC_ALWAYS = ("night_calendar.csv", "slots.csv", "tiles.csv", "targets.csv", "tile_windows.csv", "observation_requests.csv",
                  "observation_request_tiles.csv", "scenario_manifest.json", "calendar_metadata.json", "catalog_metadata.json",
                  "observation_request_metadata.json")
@@ -44,7 +48,7 @@ def scenario_files(root: Path) -> list[Path]:
     """Every file that belongs to the scenario, in a stable order."""
     files = [config_dir(root) / n for n in CONFIG_FILES]
     files += [data_dir(root) / n for n in DATA_FILES]
-    for extra in ("tile_windows.csv", "scenario_manifest.json", "calendar_metadata.json", "catalog_metadata.json",
+    for extra in (ANOMALY_FILE, "tile_windows.csv", "scenario_manifest.json", "calendar_metadata.json", "catalog_metadata.json",
                   "weather_metadata.json", "observation_request_metadata.json"):
         p = data_dir(root) / extra
         if p.exists():
@@ -57,7 +61,10 @@ def build_manifest(root: Path) -> dict:
     files = {}
     for name in CONFIG_FILES:
         files[f"config/{name}"] = {"sha256": sha256_file(config_dir(root) / name)}
-    for name in DATA_FILES:
+    data_names = list(DATA_FILES)
+    if (data_dir(root) / ANOMALY_FILE).exists():
+        data_names.append(ANOMALY_FILE)
+    for name in data_names:
         p = data_dir(root) / name
         files[f"outputs/reference/{name}"] = {"sha256": sha256_file(p), "rows": csv_rows(p)}
     manifest = {"schema_version": "example3-scenario-manifest-v2", "scenario_id": scenario["scenario_id"], "seed": scenario["seed"],
@@ -73,9 +80,21 @@ def _run(module: str, *args: str) -> None:
         raise ScenarioError(f"{module} failed: {proc.stderr[-2000:] or proc.stdout[-2000:]}")
 
 
+def generate_tile_anomalies(tile_config: Mapping, tile_ids: Sequence[str]) -> list[dict[str, str]]:
+    """Draw hidden nova/reddening tags from the tile config's own seed; the two tag sets may overlap."""
+    spec = tile_config.get("anomaly_tags", {})
+    rng = random.Random(int(tile_config["seed"]) + 4000)
+    rows = []
+    for tag, key in (("nova", "nova_count"), ("reddening", "reddening_count")):
+        count = min(int(spec.get(key, 0)), len(tile_ids))
+        rows.extend({"tile_id": tile_id, "anomaly_tag": tag} for tile_id in rng.sample(sorted(tile_ids), count))
+    return sorted(rows, key=lambda row: (row["tile_id"], row["anomaly_tag"]))
+
+
 def generate_scenario(root: Path, *, scenario_id: str, seed: int, days: int = 180, start_date: str | None = None,
                       global_wallclock_seconds: int = 7200, tile_overrides: dict | None = None, base: Path = EXAMPLE3_ROOT,
-                      window_days: int = 3, coverage_bonus_weight: float | None = None) -> dict:
+                      window_days: int = 3, coverage_bonus_weight: float | None = None,
+                      anomaly_overrides: dict | None = None) -> dict:
     """Create a complete scenario directory from the reference configs with a new seed (deterministic)."""
     root = Path(root)
     if root.exists():
@@ -102,6 +121,11 @@ def generate_scenario(root: Path, *, scenario_id: str, seed: int, days: int = 18
         c["catalog"]["time_limited_window_days"] = max(1, min(int(c["catalog"].get("time_limited_window_days", 14)), max(1, days - 1)))
         for k, v in (tile_overrides or {}).items():
             c["catalog"][k] = v
+        if anomaly_overrides is not None:
+            if any(int(v) > 0 for v in anomaly_overrides.values()):
+                c.setdefault("anomaly_tags", {}).update({k: int(v) for k, v in anomaly_overrides.items()})
+            else:
+                c.pop("anomaly_tags", None)
     def _weather(c):
         c["seed"] = seed
         # forecasts need a few nights of headroom beyond their horizon
@@ -129,6 +153,11 @@ def generate_scenario(root: Path, *, scenario_id: str, seed: int, days: int = 18
     _run("weather_simulator", "--config", str(cd / "weather_config.json"), "--calendar-config", str(cd / "calendar_config.json"),
          "--tile-config", str(cd / "tile_config.json"), "--nights", str(dd / "night_calendar.csv"), "--slots", str(dd / "slots.csv"),
          "--tiles", str(dd / "tiles.csv"), "generate", "--output-dir", str(dd))
+    tile_config = json.loads((cd / "tile_config.json").read_text(encoding="utf-8"))
+    tile_ids = [row["tile_id"] for row in read_exact_csv(dd / "tiles.csv", TILE_COLUMNS)]
+    anomaly_rows = generate_tile_anomalies(tile_config, tile_ids)
+    if anomaly_rows:
+        write_exact_csv(dd / ANOMALY_FILE, TILE_ANOMALY_COLUMNS, anomaly_rows)
     _run("observation_request_simulator", "--config", str(cd / "request_config.json"), "--nights", str(dd / "night_calendar.csv"),
          "--tiles", str(dd / "tiles.csv"), "generate", "--output-dir", str(dd))
     build_manifest(root)
@@ -152,7 +181,7 @@ def describe_scenario(root: Path) -> dict:
     nights = rows("night_calendar.csv")
     scenario_cfg = json.loads((config_dir(root) / "scenario_config.json").read_text(encoding="utf-8"))
     calendar_cfg = json.loads((config_dir(root) / "calendar_config.json").read_text(encoding="utf-8"))
-    return {
+    info = {
         "scenario_id": scenario_cfg["scenario_id"], "seed": scenario_cfg["seed"],
         "global_wallclock_seconds": int(scenario_cfg["competition"]["global_wallclock_seconds"]),
         "n_nights": nights, "n_slots": rows("slots.csv"), "n_tiles": rows("tiles.csv"), "n_targets": rows("targets.csv"),
@@ -162,6 +191,9 @@ def describe_scenario(root: Path) -> dict:
         # first observing night, so a rotation can rebuild the scenario on the same calendar
         "start_date": calendar_cfg.get("survey", {}).get("start_date"),
     }
+    if (data_dir(root) / ANOMALY_FILE).exists():
+        info["n_anomaly_tags"] = csv_rows(data_dir(root) / ANOMALY_FILE)
+    return info
 
 
 def public_relpaths(flags: dict) -> list[str]:
@@ -180,14 +212,20 @@ def main(argv=None) -> int:
     g = sub.add_parser("generate"); g.add_argument("root", type=Path); g.add_argument("--scenario-id", required=True); g.add_argument("--seed", type=int, required=True)
     g.add_argument("--days", type=int, default=180); g.add_argument("--start-date"); g.add_argument("--wallclock", type=int, default=7200)
     g.add_argument("--regions", type=int); g.add_argument("--tiles-per-region", type=int)
+    g.add_argument("--coverage-weight", type=float, default=None)
+    g.add_argument("--nova-tags", type=int, default=None); g.add_argument("--reddening-tags", type=int, default=None)
     v = sub.add_parser("validate"); v.add_argument("root", type=Path)
     a = p.parse_args(argv)
     if a.cmd == "generate":
         ov = {}
         if a.regions: ov["n_regions"] = a.regions
         if a.tiles_per_region: ov["tiles_per_region"] = a.tiles_per_region
+        an = {}
+        if a.nova_tags is not None: an["nova_count"] = a.nova_tags
+        if a.reddening_tags is not None: an["reddening_count"] = a.reddening_tags
         info = generate_scenario(a.root, scenario_id=a.scenario_id, seed=a.seed, days=a.days, start_date=a.start_date,
-                                 global_wallclock_seconds=a.wallclock, tile_overrides=ov)
+                                 global_wallclock_seconds=a.wallclock, tile_overrides=ov,
+                                 coverage_bonus_weight=a.coverage_weight, anomaly_overrides=an or None)
     else:
         info = describe_scenario(a.root)
     info = {k: v for k, v in info.items() if k != "manifest"}

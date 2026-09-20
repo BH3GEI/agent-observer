@@ -31,8 +31,11 @@ from .project_paths import CONFIG_DIR, REFERENCE_OUTPUT_DIR
 from .tile_geometry_simulator import TileGeometrySimulator
 
 
-SCHEMA_VERSION = "directional-weather-v1"
-CONDITIONS = ("rainy", "cloudy", "smoggy", "rocket_launch", "cold_wave", "tornado")
+SCHEMA_VERSION = "directional-weather-v2"
+LEGACY_SCHEMA_VERSION = "directional-weather-v1"
+CONDITIONS = ("rainy", "cloudy", "smoggy", "rocket_launch", "cold_wave", "tornado", "instrument_fault")
+UNFORECASTABLE_CONDITIONS = ("instrument_fault",)
+FORECASTABLE_CONDITIONS = tuple(c for c in CONDITIONS if c not in UNFORECASTABLE_CONDITIONS)
 SCOPE_TYPES = {"ALL", "REGION_SET", "SKY_CAP_ICRS", "HORIZON_SECTOR", "TILE_SET"}
 
 
@@ -180,14 +183,33 @@ class Forecast:
 def load_config(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as handle:
         config = json.load(handle)
-    if config.get("schema_version") != SCHEMA_VERSION:
+    if config.get("schema_version") not in (LEGACY_SCHEMA_VERSION, SCHEMA_VERSION):
         raise ValueError("unsupported weather schema_version")
-    if set(config["events"]) != set(CONDITIONS):
+    # v1 configs predate instrument_fault; every condition they do define must be known.
+    if not set(config["events"]) <= set(CONDITIONS) or not set(config["events"]) >= set(FORECASTABLE_CONDITIONS):
         raise ValueError("weather config must define every condition exactly once")
     for definition in config["events"].values():
         scopes = definition["scope_weights"]
         if not scopes or not set(scopes) <= SCOPE_TYPES or any(float(weight) <= 0 for weight in scopes.values()):
             raise ValueError("invalid event scope weights")
+        if definition.get("persists_until_survey_end"):
+            if int(definition["count"]) > 1:
+                raise ValueError("at most one persistent event can exist (it never ends on its own)")
+        elif "duration_slots" not in definition:
+            raise ValueError("event needs duration_slots unless persists_until_survey_end is set")
+        severity_range = definition.get("severity_range")
+        multiplier_range = definition.get("instrument_efficiency_multiplier_range")
+        for name, value in (("severity_range", severity_range), ("instrument_efficiency_multiplier_range", multiplier_range)):
+            if value is None:
+                continue
+            try:
+                lo, hi = map(float, value)
+            except (TypeError, ValueError) as exc:
+                raise ValueError(f"{name} must be [lo, hi]") from exc
+            if not (math.isfinite(lo) and math.isfinite(hi)) or not 0 < lo <= hi:
+                raise ValueError(f"{name} needs two finite numbers with 0 < lo <= hi")
+        if multiplier_range is None and "instrument_efficiency_multiplier" not in definition:
+            raise ValueError("event needs instrument_efficiency_multiplier or instrument_efficiency_multiplier_range")
     return config
 
 
@@ -273,23 +295,43 @@ def generate_events(config: Mapping, slots: Sequence[Slot], tile_ids: Sequence[s
     rng = random.Random(int(config["seed"]) + 2000)
     events = []
     sequence = 0
+    fault_intervals: list[tuple[datetime, datetime]] = []
     for condition in CONDITIONS:
+        if condition not in config["events"]:
+            continue
         definition = config["events"][condition]
         for occurrence in range(int(definition["count"])):
             sequence += 1
             nominal = int((occurrence + 1) * len(slots) / (int(definition["count"]) + 1))
-            start_slot = slots[max(0, min(len(slots) - 1, nominal + rng.randint(-80, 80)))]
-            duration = rng.randint(*map(int, definition["duration_slots"])) * start_slot.duration_seconds
-            severity = rng.uniform(0.55, 1.0)
+            for _attempt in range(100):
+                start_slot = slots[max(0, min(len(slots) - 1, nominal + rng.randint(-80, 80)))]
+                if definition.get("persists_until_survey_end"):
+                    # No natural lifetime: only an acknowledged report's repair clock ends it.
+                    duration = int((slots[-1].end_utc - start_slot.timestamp_utc).total_seconds())
+                else:
+                    duration = rng.randint(*map(int, definition["duration_slots"])) * start_slot.duration_seconds
+                start, end = start_slot.timestamp_utc, start_slot.timestamp_utc + timedelta(seconds=duration)
+                if condition != "instrument_fault" or not any(start < e and end > s for s, e in fault_intervals):
+                    break
+            else:
+                raise ValueError("could not place a non-overlapping instrument_fault event")
+            if condition == "instrument_fault":
+                fault_intervals.append((start, end))
+            severity = rng.uniform(*map(float, definition.get("severity_range", [0.55, 1.0])))
+            efficiency_range = definition.get("instrument_efficiency_multiplier_range")
+            if efficiency_range is not None:
+                # Direct final-multiplier draw; severity does not mediate it.
+                efficiency_multiplier = rng.uniform(*map(float, efficiency_range))
+            else:
+                efficiency_multiplier = _scaled_multiplier(float(definition["instrument_efficiency_multiplier"]), severity)
             scope_type = _weighted_choice(rng, definition["scope_weights"])
             events.append(WeatherEvent(
-                f"EV{sequence:04d}", condition, start_slot.timestamp_utc,
-                start_slot.timestamp_utc + timedelta(seconds=duration), scope_type,
+                f"EV{sequence:04d}", condition, start, end, scope_type,
                 _random_scope(scope_type, rng, tile_ids), severity, bool(definition["force_close"]),
                 _scaled_multiplier(float(definition["seeing_multiplier"]), severity),
                 _scaled_multiplier(float(definition["transparency_multiplier"]), severity),
                 _scaled_multiplier(float(definition["sky_quality_multiplier"]), severity),
-                _scaled_multiplier(float(definition["instrument_efficiency_multiplier"]), severity),
+                efficiency_multiplier,
             ))
     return sorted(events, key=lambda item: (item.actual_start_utc, item.event_id))
 
@@ -299,6 +341,11 @@ def generate_weather(config: Mapping, slots: Sequence[Slot], events: Sequence[We
     quality = config["quality"]
     fields = ("seeing_arcsec", "transparency", "sky_quality")
     night_state = {field: float(quality[field]["nominal"]) for field in fields}
+    efficiency_model = quality["instrument_efficiency"]
+    # Without jitter keys the baseline efficiency stays the constant nominal (pre-v2 semantics).
+    jitter = None
+    if "jitter_minimum" in efficiency_model or "jitter_maximum" in efficiency_model:
+        jitter = (float(efficiency_model["jitter_minimum"]), float(efficiency_model["jitter_maximum"]))
     rows = []
     by_night: defaultdict[str, list[Slot]] = defaultdict(list)
     for slot in slots:
@@ -332,7 +379,7 @@ def generate_weather(config: Mapping, slots: Sequence[Slot], events: Sequence[We
                 rows.append(WeatherSlot(slot.slot_id, slot.night_id, slot.timestamp_utc, slot.duration_seconds, False, None, None, None, None))
                 continue
             values = dict(slot_state)
-            efficiency = float(quality["instrument_efficiency"]["nominal"])
+            efficiency = rng.uniform(*jitter) if jitter is not None else float(efficiency_model["nominal"])
             for event in global_events:
                 values["seeing_arcsec"] *= event.seeing_multiplier
                 values["transparency"] *= event.transparency_multiplier
@@ -377,6 +424,8 @@ def generate_forecasts(config: Mapping, events: Sequence[WeatherEvent], nights: 
     rows = []
     revisions: Counter[str] = Counter()
     for event in events:
+        if event.condition in UNFORECASTABLE_CONDITIONS:
+            continue
         if miss_rng.random() < float(config["forecast"]["miss_probability"]):
             continue
         for night in nights:
@@ -399,7 +448,7 @@ def generate_forecasts(config: Mapping, events: Sequence[WeatherEvent], nights: 
         night_index = rng.randint(horizon_days, len(nights) - 2)
         issued = nights[night_index - rng.randint(2, horizon_days)].observing_start_utc
         start = nights[night_index].observing_start_utc + timedelta(seconds=rng.randint(0, max(0, nights[night_index].slot_count - 1)) * 900)
-        condition = rng.choice(CONDITIONS)
+        condition = rng.choice(FORECASTABLE_CONDITIONS)
         scope_type = _weighted_choice(rng, config["events"][condition]["scope_weights"])
         rows.append(Forecast("", f"FP{index + 1:04d}", 1, issued, condition, start, start + timedelta(hours=rng.randint(1, 8)),
             scope_type, _random_scope(scope_type, rng, tile_ids), rng.uniform(.3, .8), rng.uniform(.25, .7), 7200, 7200))
@@ -427,9 +476,15 @@ class WeatherSimulator:
         self.events = list(events)
         self.config = config
         self.geometry = geometry
+        # Run-local overlay: an acknowledged instrument fault stops applying at its repair time.
+        self.end_overrides: dict[str, datetime] = {}
         self._weather = {item.slot_id: item for item in weather}
         if len(self._weather) != len(weather):
             raise ValueError("weather slot IDs are not unique")
+
+    def _event_active(self, event: WeatherEvent, slot: WeatherSlot) -> bool:
+        end = self.end_overrides.get(event.event_id, event.actual_end_utc)
+        return event.actual_start_utc < slot.end_utc and end > slot.timestamp_utc
 
     def _applies(self, event: WeatherEvent, tile_id: str, slot: WeatherSlot) -> bool:
         if event.spatial_scope_type == "ALL":
@@ -449,11 +504,13 @@ class WeatherSimulator:
         return (float(payload["min_altitude_deg"]) <= float(sample["altitude_deg"]) <= float(payload["max_altitude_deg"]) and
                 _azimuth_inside(float(sample["azimuth_deg"]), float(payload["azimuth_start_deg"]), float(payload["azimuth_end_deg"])))
 
-    def get_effective_conditions(self, slot_id: str, tile_id: str | None = None) -> dict[str, object]:
+    def get_effective_conditions(self, slot_id: str, tile_id: str | None = None, *, include_instrument_faults: bool = True) -> dict[str, object]:
+        """Truth view by default; pass include_instrument_faults=False for the agent-visible snapshot view."""
         if slot_id not in self._weather:
             raise ValueError(f"unknown slot_id {slot_id!r}")
         base = self._weather[slot_id]
-        active = [event for event in self.events if event.overlaps(base) and (event.spatial_scope_type == "ALL" or (tile_id is not None and self._applies(event, tile_id, base)))]
+        active = [event for event in self.events if self._event_active(event, base) and (include_instrument_faults or event.condition != "instrument_fault")
+                  and (event.spatial_scope_type == "ALL" or (tile_id is not None and self._applies(event, tile_id, base)))]
         payload = base.public_dict()
         payload["tile_id"] = tile_id
         payload["active_event_ids"] = [event.event_id for event in active]
@@ -482,12 +539,15 @@ class WeatherSimulator:
         return [item.public_dict() for item in sorted(latest.values(), key=lambda value: (value.predicted_start_utc, value.event_id)) if item.predicted_end_utc > as_of_utc and item.predicted_start_utc < as_of_utc + horizon]
 
 
-def weather_quality(weather: Mapping[str, object], airmass: float, config: Mapping) -> float:
+def weather_quality(weather: Mapping[str, object], airmass: float, config: Mapping, *, include_efficiency: bool = True) -> float:
     if not bool(weather["is_observable"]):
         return 0.0
     if not math.isfinite(airmass) or airmass <= 0:
         raise ValueError("airmass must be positive and finite")
-    raw = float(weather["instrument_efficiency"]) * float(weather["transparency"]) * float(weather["sky_quality"]) / (float(weather["seeing_arcsec"]) * airmass ** float(config["score_interface"]["airmass_exponent"]))
+    # include_efficiency=False gives the band-determination quality: program bands
+    # never depend on instrument efficiency, so preview and replay agree on them.
+    efficiency = float(weather["instrument_efficiency"]) if include_efficiency else 1.0
+    raw = efficiency * float(weather["transparency"]) * float(weather["sky_quality"]) / (float(weather["seeing_arcsec"]) * airmass ** float(config["score_interface"]["airmass_exponent"]))
     return min(raw, float(config["score_interface"]["maximum_weather_quality"]))
 
 

@@ -52,9 +52,34 @@ worker 在 GitHub Actions 上自动接力运行（`.github/workflows/worker.yml`
 
 点下去之后：系统生成一个新的随机种子，交给正在运行的 worker 重建场景并上传，页面上显示「排队中 → 生成中 → 已完成」，通常一分钟内完成。种子只写进数据库，不会出现在代码仓库里，学员也读不到。
 
+> 轮换会一并重抽隐藏真值：`weather_events.csv` 里的 `instrument_fault` 故障事件和 `tile_anomalies.csv` 里的 nova/reddening 标签都由场景种子派生。
+
 **必须在该场景所属阶段开放之前操作。** 比赛进行中轮换会让正在评测的提交对不上。
 
 > 种子不再写在仓库里，也不再通过网站 API 暴露给学员。想查当前种子，只能在这个页面上看（管理员可见）。
+
+## 4.5 · 异常事件与上报的校准旋钮
+
+异常上报机制（protocol v2 / snapshot v3 / weather v2）的全部数值都在版本化配置里，改完配置需要重建场景（见第 4 节）并回归测试：
+
+| 旋钮 | 位置 | 占位值 |
+|---|---|---|
+| 效率抖动区间 | `weather_config.json` → `quality.instrument_efficiency.jitter_minimum/maximum` | 0.90 / 1.00 |
+| 故障事件（次数、持续、范围权重、乘数下限） | `weather_config.json` → `events.instrument_fault` | 1 次、持续至修复或巡天结束（`persists_until_survey_end`）、恒 REGION_SET、×0.10 |
+| 故障效率乘数带（直接抽取区间） | `weather_config.json` → `events.instrument_fault.instrument_efficiency_multiplier_range` | [0.40, 0.70]（缺席则退回 severity 缩放旧行为） |
+| 隐藏标签数量 | `tile_config.json` → `anomaly_tags.nova_count / reddening_count` | 2 / 2 |
+| 标签乘数 | `score_config.json` → `anomaly_tags.nova_factor / reddening_factor` | 1.5 / 0.8 |
+| 标签上报赏罚 | `score_config.json` → `reporting.reward_correct / penalty_wrong` | +100 / −150 |
+| 故障误报免费额度与罚分 | `score_config.json` → `reporting.fault_misreport_free_allowance / fault_misreport_penalty` | 1 / 100 |
+| 故障响应延迟 x1 / 修复时长 x2（模拟日） | `score_config.json` → `fault_response.response_latency_days / repair_duration_days` | 1 / 2 |
+| 参考智能体的检测阈值 | 环境变量 `SAC_ANOMALY_*`（见 `agent/anomaly_detection.py` 头部注释） | 见代码默认值 |
+
+注意事项：
+
+- 故障效率乘数带由两处配置共同决定：`events.instrument_fault.instrument_efficiency_multiplier_range`（[lo, hi]，直接均匀抽取最终乘数，不再经 severity 间接缩放）与绝对地板 `quality.instrument_efficiency.minimum`（0.10，clip 之后任何路径都不会低于它——带下限别再低于它，否则被截平）。其他事件仍支持可选 `severity_range`（缺席默认 [0.55, 1.0]），经 `1 + severity × (配置乘数 − 1)` 缩放。
+- 占位值都是"待主办方校准"状态；改过任何一项后，用干净场景（无故障、无标签）跑一次参考智能体确认**零上报**，再跑一次正常场景确认标签与故障都被报出。
+- 故障事件恒为 `REGION_SET` 作用域（`scope_weights` 只剩 REGION_SET）：参考智能体的维修期避让因此是完整的。生成器与其他事件仍支持全部 scope 类型（SKY_CAP_ICRS / HORIZON_SECTOR / ...），若未来给故障重新放开非 REGION_SET 作用域，注意参考智能体的避让只覆盖 REGION_SET 与 SKY_CAP_ICRS（HORIZON_SECTOR 需要选手端没有的挂载几何）。
+- `weather.csv` 只含基线加全局事件；故障只经 `get_effective_conditions` 作用于评分器——选手快照永远看不到故障乘数，只能靠 `tile_last_finished` 的实现分偏差发现。快照天气同时**不含** `instrument_efficiency` 字段（preview 基线不乘效率）：抖动、故障乘数、标签乘数全部汇入"基线 vs 实现分"的偏差信号。注意 cold_wave 是公开可预报事件且也压效率——参考检测层会把预报覆盖 cold_wave 期间的读数排除出异常证据，改动相关参数后要复核这一补偿仍然有效。
 
 ## 5 · 给同事开权限
 
@@ -100,3 +125,20 @@ python -m worker.main gen-scenario --slug eval-c \
 ```
 
 `.secrets/supabase.env` 里已经有 `SUPABASE_URL` 和 `SUPABASE_SERVICE_ROLE_KEY`。key 换了的话，去 Supabase 控制台 → Project Settings → API 取新的 service_role 值贴回去。
+
+## 重建正式比赛场景（异常机制版）
+
+正式赛场景启用完整异常机制（隐藏 nova/reddening 标签、仪器故障、效率抖动、上报通道、覆盖均匀度 0.35）。
+换种子重建（在配好 `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` 的机器上）：
+
+```bash
+python -m worker.main gen-scenario --slug eval-a --seed <新种子> --days 30 --start-date 2026-10-05 \
+  --wallclock 3600 --regions 8 --tiles-per-region 200 --coverage-weight 0.35 \
+  --nova-tags 10 --reddening-tags 10 --hidden-weather --hidden-forecasts
+```
+
+`tile_anomalies.csv` 会随场景上传，但不在任何公开文件名单里——存储策略按文件名放行，选手拿不到。
+`--nova-tags 0 --reddening-tags 0` 可以生成不带异常机制的场景（旧合约）。
+
+**不要重新执行 `seed`**：练习场景（demo-week / dev-fortnight / dev-reference）已在存储中冻结，
+与入门包捆绑副本逐字节一致；生成模板升级后重新生成会破坏这一致性。入门包测试用固定校验值锁死了这两份副本。

@@ -75,9 +75,11 @@ def _combined_quality(
     airmass = _number(geometry["airmass"], "airmass")
     if airmass <= 0:
         raise ValueError("airmass must be positive")
+    # Snapshots never carry instrument_efficiency: the preview baseline is the
+    # efficiency-free public formula, so realized-score deviations isolate the
+    # hidden instrument side (jitter x fault multiplier x tag multiplier).
     atmospheric = (
-        _number(weather["instrument_efficiency"], "instrument efficiency")
-        * _number(weather["transparency"], "transparency")
+        _number(weather["transparency"], "transparency")
         * _number(weather["sky_quality"], "sky quality")
         / (
             _number(weather["seeing_arcsec"], "seeing")
@@ -135,9 +137,19 @@ def _known_window_can_finish(
 def preview_actions(
     snapshot: Mapping[str, object],
     scoring_contract: Mapping[str, object],
+    tile_best_scores: Mapping[str, float] | None = None,
 ) -> list[CandidatePreview]:
-    """Rank legal starts using public current state without reading future truth."""
-    if snapshot.get("schema_version") != "decision-snapshot-v2":
+    """Rank legal starts using public current state without reading future truth.
+
+    Repeat observations of completed tiles are legal and bank the per-tile
+    maximum. Their marginal science gain is `max(0, potential - banked best)`;
+    callers that track realized bests (e.g. from snapshot feedback) pass them as
+    `tile_best_scores`. Without that map the preview cannot know the banked
+    best, so a repeat's estimated marginal gain is 0 — repeats still appear
+    (observing one beats a penalised avoidable wait) but never outrank
+    unfinished or request-valuable work.
+    """
+    if snapshot.get("schema_version") not in ("decision-snapshot-v2", "decision-snapshot-v3"):
         raise ValueError("unsupported decision snapshot schema_version")
     score_config = scoring_contract["score_config"]
     if score_config.get("schema_version") != "challenge-score-v3":
@@ -146,6 +158,7 @@ def preview_actions(
     penalties = score_config["penalties"]
     bonuses = score_config["program_bonus"]
     quota = int(score_config["flexible_quota_per_region"])
+    best_scores = tile_best_scores or {}
     flexible_progress = snapshot.get("progress", {}).get(
         "flexible_completed_by_region", {}
     )
@@ -159,7 +172,9 @@ def preview_actions(
         tile_id = str(candidate["tile_id"])
         already_completed = bool(candidate["already_completed"])
         request_options = _request_options(snapshot, tile_id)
-        if already_completed and not request_options:
+        if already_completed and tile_best_scores is None and not request_options:
+            # Pre-anomaly semantics: without a realized-best ledger a repeat is
+            # never a candidate (and would be an invalid duplicate on the platform).
             continue
         action_options: Sequence[tuple[str, float]] = request_options or [("", 0.0)]
         atmospheric, lunar, combined = _combined_quality(
@@ -167,8 +182,12 @@ def preview_actions(
         )
         band = _quality_band(combined, score_config)
         tile_value = _number(candidate["tile_science_value"], "tile science value")
-        base_science = 0.0 if already_completed else tile_value * combined
-        science = base_science * (1.0 + _number(bonuses[band], "program bonus"))
+        potential = tile_value * combined * (1.0 + _number(bonuses[band], "program bonus"))
+        if already_completed:
+            banked = best_scores.get(tile_id)
+            science = 0.0 if banked is None else max(0.0, potential - _number(banked, "banked best score"))
+        else:
+            science = potential
         terminal_avoidance = 0.0
         if not already_completed and candidate["scheduling_class"] == "REQUIRED":
             terminal_avoidance = _number(
@@ -208,6 +227,8 @@ def preview_actions(
                     estimated_gain_per_second=round(total / exposure, 9),
                     estimate_semantics=(
                         "official formula with current conditions held constant; "
+                        "repeat observations show the marginal gain over the caller-supplied "
+                        "banked best (0 while bests are untracked); "
                         "request value is apportioned over remaining required tiles; "
                         "authoritative replay may differ after future weather changes"
                     ),

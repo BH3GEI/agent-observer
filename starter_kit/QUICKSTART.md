@@ -16,6 +16,9 @@ The terminal ends with the score, about **12287** for the unmodified kit, with `
 For a first look, use `run_demo_week` (`.command` / `.bat` / `.sh`) instead: same pipeline and same scorer over a
 seven-night scenario. It finishes in about two seconds and the replay is short enough to follow night by night.
 Its results go to `demo_week_output/`.
+Note: seven nights is short, so the shipped anomaly detector only gets part of the hidden tags right there — it can
+miss some and file a wrong tag report. That is expected: it is a demonstration detector, not a calibrated solution,
+and the 180-night scenario is the one where it reports all four tags.
 
 ## Step 2 · Edit one file
 
@@ -48,3 +51,5 @@ The platform wraps your `my_strategy.py` with the kit's standard files: you neve
   matching API key (sponsor credits are on the website's dashboard), and upload the whole `agent` folder.
 - Data formats, the protocol and the scoring formula are on the website's Docs page; `README.md` is the
   engineer's version of this guide.
+
+> Practice scenarios keep the pre-anomaly rules (no tags, no repeats, no reports). To rehearse the finals mechanics, run `run_finals_preview` / `scenarios/finals-preview` (baseline about **8214**; the sample agent detects and reports the instrument fault by itself).

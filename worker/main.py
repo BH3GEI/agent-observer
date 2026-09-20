@@ -488,6 +488,8 @@ def main(argv=None) -> int:
     g.add_argument("--regions", type=int); g.add_argument("--tiles-per-region", type=int)
     g.add_argument("--coverage-weight", type=float, default=None,
                    help="weight of the coverage-evenness term; omitted leaves it absent, i.e. zero")
+    g.add_argument("--nova-tags", type=int, default=None, help="hidden nova tile tags; 0 disables anomaly mechanics for this scenario")
+    g.add_argument("--reddening-tags", type=int, default=None, help="hidden reddening tile tags; 0 disables anomaly mechanics for this scenario")
     g.add_argument("--hidden-weather", action="store_true"); g.add_argument("--hidden-forecasts", action="store_true"); g.add_argument("--public-events", action="store_true")
     pa = sp.add_parser("promote-admin"); pa.add_argument("email")
     args = p.parse_args(argv)
@@ -505,9 +507,12 @@ def main(argv=None) -> int:
     elif args.cmd == "gen-scenario":
         root = Path(tempfile.mkdtemp(prefix="sac-gen-"))
         ov = {k: v for k, v in (("n_regions", args.regions), ("tiles_per_region", args.tiles_per_region)) if v}
+        an = {}
+        if args.nova_tags is not None: an["nova_count"] = args.nova_tags
+        if args.reddening_tags is not None: an["reddening_count"] = args.reddening_tags
         scenario_builder.generate_scenario(root, scenario_id=args.slug, seed=args.seed, days=args.days, start_date=args.start_date,
                                            global_wallclock_seconds=args.wallclock, tile_overrides=ov,
-                                           coverage_bonus_weight=args.coverage_weight)
+                                           coverage_bonus_weight=args.coverage_weight, anomaly_overrides=an or None)
         row = register_scenario(sb, slug=args.slug, name=args.name or args.slug, description=args.description, root=root,
                                 weather_public=not args.hidden_weather, forecasts_public=not args.hidden_forecasts, events_public=args.public_events, wallclock=args.wallclock)
         shutil.rmtree(root, ignore_errors=True)

@@ -19,7 +19,7 @@
       },
       "docs": {
         "title": "Docs",
-        "description": "The participant-agent-protocol-v1 messages, the challenge-score-v3 scorer, scenario files and the starter kit."
+        "description": "The participant-agent-protocol-v1/v2 messages, the challenge-score-v3 scorer, scenario files and the starter kit."
       },
       "faq": {
         "title": "FAQ",
@@ -601,7 +601,7 @@
         "kicker": "05 / Participant Job",
         "title": "Build a reproducibly runnable observer project",
         "paragraphs": [
-          "Local practice is language-agnostic: run your agent on the public-weather practice scenarios and submit the generated decisions.csv. For the online competition the agent package runs on the platform with a Python 3.12 entry script (minimal_agent.py, agent.py or main.py) exchanging JSON messages over participant-agent-protocol-v1; the authoritative contract is on the Docs page.",
+          "Local practice is language-agnostic: run your agent on the public-weather practice scenarios and submit the generated decisions.csv. For the online competition the agent package runs on the platform with a Python 3.12 entry script (minimal_agent.py, agent.py or main.py) exchanging JSON messages over participant-agent-protocol-v1/v2; the authoritative contract is on the Docs page.",
           "The platform runs your agent against the evaluation scenarios and scores it with the same frozen scorer.",
           "Download the starter kit, study the public development scenarios and visual reports, prototype against the protocol, evaluate on development scenarios, inspect the replays; the practice phase accepts decisions.csv, the online competition accepts agent packages.",
           "The platform keeps the full record of every evaluation — the decisions file, the run log, and a slot-by-slot replay — for organizer review, and for you to inspect why each step went the way it did."
@@ -1446,7 +1446,7 @@
     "agent_hints": [
       "Changed only my_strategy.py? Upload that single file; the platform completes the package with the starter kit's standard files.",
       "Using a language model? Drop the whole agent folder: its .env (your API keys, never shown to anyone) and requirements.txt (installed before the clock starts) come along.",
-      "Written your own agent from scratch? A .zip with minimal_agent.py, agent.py or main.py at its root, speaking participant-agent-protocol-v1 on stdin/stdout.",
+      "Written your own agent from scratch? A .zip with minimal_agent.py, agent.py or main.py at its root, speaking participant-agent-protocol-v1/v2 on stdin/stdout.",
       "Limits: 20 MB per upload, 2,000 files, 50 MB uncompressed, no symlinks. Caches, scratch/ and run_output/ are left out automatically."
     ],
     "results_public_only": "Only scenarios with public weather are listed — the scorer needs the full weather to re-check what you produced locally.",
@@ -1668,7 +1668,7 @@
       },
       {
         "q": "Which languages can I use?",
-        "a": "Locally, any language: run your agent yourself on a public-weather practice scenario and upload decisions.csv. For platform runs on hidden weather the entry script is Python 3.12 (minimal_agent.py, agent.py or main.py) speaking participant-agent-protocol-v1 over stdin/stdout; it may install packages from requirements.txt and spawn whatever it needs inside the sandbox."
+        "a": "Locally, any language: run your agent yourself on a public-weather practice scenario and upload decisions.csv. For platform runs on hidden weather the entry script is Python 3.12 (minimal_agent.py, agent.py or main.py) speaking participant-agent-protocol-v1/v2 over stdin/stdout; it may install packages from requirements.txt and spawn whatever it needs inside the sandbox."
       },
       {
         "q": "Can I use an LLM or a commercial API?",

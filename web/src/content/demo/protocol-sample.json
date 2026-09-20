@@ -1,6 +1,6 @@
 {
   "initialize": {
-    "protocol_version": "participant-agent-protocol-v1",
+    "protocol_version": "participant-agent-protocol-v2",
     "message_type": "initialize",
     "payload": {
       "schema_version": "initial-publication-v2",
@@ -140,11 +140,11 @@
     }
   },
   "decision_request": {
-    "protocol_version": "participant-agent-protocol-v1",
+    "protocol_version": "participant-agent-protocol-v2",
     "message_type": "decision_request",
     "decision_sequence": 1,
     "payload": {
-      "schema_version": "decision-snapshot-v2",
+      "schema_version": "decision-snapshot-v3",
       "decision_sequence": 1,
       "cursor": {
         "slot_id": "N20260907-S001",
@@ -161,10 +161,10 @@
         "seeing_arcsec": 1.087478,
         "transparency": 0.920898,
         "sky_quality": 0.91957,
-        "instrument_efficiency": 1.0,
         "tile_id": null,
         "active_event_ids": []
       },
+      "tile_last_finished": null,
       "candidate_tiles": [
         {
           "tile_id": "T00037",
@@ -193,7 +193,6 @@
             "seeing_arcsec": 1.087478,
             "transparency": 0.920898,
             "sky_quality": 0.91957,
-            "instrument_efficiency": 1.0,
             "tile_id": "T00037",
             "active_event_ids": []
           },
@@ -226,7 +225,6 @@
             "seeing_arcsec": 1.087478,
             "transparency": 0.920898,
             "sky_quality": 0.91957,
-            "instrument_efficiency": 1.0,
             "tile_id": "T00038",
             "active_event_ids": []
           },
@@ -369,7 +367,7 @@
     }
   },
   "decision_response_observe": {
-    "protocol_version": "participant-agent-protocol-v1",
+    "protocol_version": "participant-agent-protocol-v2",
     "message_type": "decision_response",
     "decision_sequence": 1,
     "action": "observe",
@@ -380,7 +378,7 @@
     "decision_source": "deterministic"
   },
   "decision_response_wait": {
-    "protocol_version": "participant-agent-protocol-v1",
+    "protocol_version": "participant-agent-protocol-v2",
     "message_type": "decision_response",
     "decision_sequence": 1,
     "action": "wait",

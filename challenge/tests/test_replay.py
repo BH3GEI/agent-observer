@@ -1,15 +1,10 @@
 """Regenerate the shipped ``decision_replay.html`` DATA payload and compare it with the sample.
 
 The fixture directory vendors the organizer's live-week validation run (``offline_score.json`` =
-score-report-v3, ``decisions.csv`` and the shipped ``decision_replay.html``). The run was scored
-against the public reference scenario bundled at ``challenge/reference`` (checksums are asserted).
-
-Known difference, documented in ``test_nights_reproduce_sample_where_possible``: the sample came from an
-unreleased harness variant that filled ``nights[*].tile_status`` from the three-night
-``tile_windows.csv`` fixture, so nights 4-7 of the sample show every tile as unavailable with no windows
-even though tiles were completed on nights 4, 6 and 7. The generator computes each night's windows with
-``TileGeometrySimulator.get_tile_windows`` (exactly what the workflow publishes), which reproduces the
-sample byte-for-byte on nights 1-3 and yields the real windows afterwards.
+score-report-v3, ``decisions.csv`` and the shipped ``decision_replay.html``). The decisions come from
+that run; the report and replay were re-scored and re-rendered against the current bundled reference
+scenario at ``challenge/reference`` (checksums are asserted), so every night carries the real published
+windows.
 """
 
 from __future__ import annotations
@@ -46,6 +41,7 @@ REPORT_INPUT_FILES = {
     "events": "outputs/reference/weather_events.csv",
     "requests": "outputs/reference/observation_requests.csv",
     "request_tiles": "outputs/reference/observation_request_tiles.csv",
+    "anomalies": "outputs/reference/tile_anomalies.csv",
     "calendar_config": "config/calendar_config.json",
     "tile_config": "config/tile_config.json",
     "weather_config": "config/weather_config.json",
@@ -140,13 +136,7 @@ def test_nights_reproduce_sample_where_possible(generated, sample, report):
         assert set(ours) == set(night) == {"tile_status", "forecast_snapshot", "forecasts"}
         assert ours["forecast_snapshot"] == night["forecast_snapshot"]
         assert_close(ours["forecasts"], night["forecasts"], f"nights.{night_id}.forecasts")
-        assert [status["tile_id"] for status in ours["tile_status"]] == [status["tile_id"] for status in night["tile_status"]]
-        if any(status["windows"] for status in night["tile_status"]):
-            # Nights covered by the sample's three-night tile_windows.csv match exactly.
-            assert ours["tile_status"] == night["tile_status"], night_id
-        else:
-            # Sample artifact: no windows published although the harness still let the agent observe.
-            assert any(status["windows"] for status in ours["tile_status"]), night_id
+        assert ours["tile_status"] == night["tile_status"], night_id
     # Every completed exposure in the report started inside a window we publish for that night.
     windows = {
         (night_id, status["tile_id"]): status["windows"]

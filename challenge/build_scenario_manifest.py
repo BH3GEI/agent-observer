@@ -45,7 +45,10 @@ def build(output: Path) -> dict[str, object]:
     for name in CONFIG_FILES:
         path = CONFIG_DIR / name
         files[f"config/{name}"] = {"sha256": sha256_file(path)}
-    for name in DATA_FILES:
+    data_names = list(DATA_FILES)
+    if (REFERENCE_OUTPUT_DIR / "tile_anomalies.csv").exists():
+        data_names.append("tile_anomalies.csv")
+    for name in data_names:
         path = REFERENCE_OUTPUT_DIR / name
         files[f"outputs/reference/{name}"] = {
             "sha256": sha256_file(path),

@@ -18,8 +18,7 @@ def score(
     termination_reason: str,
 ) -> dict[str, object]:
     scorer = ChallengeScorer.from_files(EXAMPLE3_ROOT)
-    decisions = load_decisions(decisions_path)
-    for decision in decisions:
+    for decision in load_decisions(decisions_path, allow_reports=scorer.mechanics):
         scorer.apply_decision(decision)
     report = scorer.finalize(termination_reason)
     governed = {
@@ -38,6 +37,9 @@ def score(
         "requests": REFERENCE_OUTPUT_DIR / "observation_requests.csv",
         "request_tiles": REFERENCE_OUTPUT_DIR / "observation_request_tiles.csv",
     }
+    anomalies = REFERENCE_OUTPUT_DIR / "tile_anomalies.csv"
+    if anomalies.exists():
+        governed["anomalies"] = anomalies
     report["input_sha256"] = {key: sha256_file(path) for key, path in governed.items()}
     report["actions"] = scorer.actions
     output_path.parent.mkdir(parents=True, exist_ok=True)

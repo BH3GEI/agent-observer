@@ -1,6 +1,6 @@
 ## 1. 概览
 
-平台按 **challenge v3** 合约（`challenge-score-v3`、`participant-agent-protocol-v1`）评测 DESI 式巡天的观测智能体。一个场景是一个目录：`config/` 下六个配置文件，`outputs/reference/` 下的参考数据（基于真实太阳历的 900 秒时隙日历；含 REQUIRED / FLEXIBLE 两类、只在时间窗内可用的天区与目标目录；带隐藏方向性事件的天气；每日修订、带不确定性的预报；临时观测请求）。智能体把场景变成 `decisions.csv`，冻结的评分器把 `decisions.csv` 变成 `score_report.json`。
+平台按 **challenge v3** 合约（`challenge-score-v3`、`participant-agent-protocol-v2`）评测 DESI 式巡天的观测智能体。一个场景是一个目录：`config/` 下六个配置文件，`outputs/reference/` 下的参考数据（基于真实太阳历的 900 秒时隙日历；含 REQUIRED / FLEXIBLE 两类、只在时间窗内可用的天区与目标目录；带隐藏方向性事件的天气；每日修订、带不确定性的预报；临时观测请求；隐藏的仪器故障与 per-tile 异常标签）。智能体把场景变成 `decisions.csv`（异常上报是其中的 `report_*` 动作行），冻结的评分器把它变成 `score_report.json`。异常机制按场景开关（由 `score_config.json` 中的异常小节决定）：正式比赛场景与入门包的 `finals-preview` 启用，全部练习场景保持赛初合约逐字节不变（快照 `decision-snapshot-v2`，不接受上报）。
 
 获得分数有两条路径：
 
@@ -15,7 +15,7 @@
 
 ### 最短路径（不需要任何工具）
 
-1. 在「资源」页下载[入门包 agent-observer-starter-kit.zip](/resources)并解压，双击 `run_baseline.command`（macOS）、`run_baseline.bat`（Windows，先从 python.org 安装 Python 3.12）或运行 `./run_baseline.sh`（Linux）。基线在自带场景上约 12287 分，回放会在浏览器里打开。想先快速看一遍，把文件名换成 `run_demo_week`：7 晚的演示场景，约 2 秒跑完，同一套流程和评分器，结果写在 `demo_week_output/`。
+1. 在「资源」页下载[入门包 agent-observer-starter-kit.zip](/resources)并解压，双击 `run_baseline.command`（macOS）、`run_baseline.bat`（Windows，先从 python.org 安装 Python 3.12）或运行 `./run_baseline.sh`（Linux）。基线在自带场景上约 23430 分，回放会在浏览器里打开。想先快速看一遍，把文件名换成 `run_demo_week`：7 晚的演示场景，约 2 秒跑完，同一套流程和评分器，结果写在 `demo_week_output/`。
 2. 修改 `agent/my_strategy.py`：`choose_action(candidates, snapshot, memory)` 收到按估计收益排好序的合法候选，返回要观测的那个，或返回 `None` 等待。再双击一次比较分数。
 3. 在「提交」页选择「智能体运行」，把这一个文件拖进去即可，平台会自动补齐入门包其余文件；拖整个 `agent` 文件夹（浏览器内打包）或 `.zip` 也可以。
 
@@ -46,8 +46,8 @@ python3 fetch_scenario.py --list && python3 fetch_scenario.py dev-fortnight   # 
 |---|---|---|
 | `config/scenario_config.json` | 场景 id、seed、`competition.global_wallclock_seconds` | 公开 |
 | `config/calendar_config.json` | 台址（纬度 31.9634°，经度 −111.599°，UTC−7，太阳高度阈值 −12°）、起始日、天数、`slot_seconds` 900 | 公开 |
-| `config/tile_config.json` | 目录布局（8 个分区 × 8 个天区，每区 2 个 REQUIRED，其中 1 个只有 14 天可用）、高度下限 30°、月光模型、目标类别 | 公开 |
-| `config/weather_config.json` | 质量过程、关闭模型、预报范围与误差模型、事件目录、`score_interface` | 公开 |
+| `config/tile_config.json` | 目录布局（8 个分区 × 8 个天区，每区 2 个 REQUIRED，其中 1 个只有 14 天可用）、高度下限 30°、月光模型、目标类别、隐藏异常标签数量 | 公开 |
+| `config/weather_config.json` | 质量过程（仪器效率逐时隙在 [0.90, 1.00] 内抖动并冻结）、关闭模型、预报范围与误差模型、事件目录（含 `instrument_fault`）、`score_interface` | 公开 |
 | `config/request_config.json` | 请求节奏、截止档期、每个所需天区奖励 140 / 缺失惩罚 190 | 公开 |
 | `config/workflow_config.json` | `global_wallclock_seconds`、每周信息 7 天、无单次决策超时 | 公开 |
 | `config/score_config.json` | 阈值、项目加成、惩罚、FLEXIBLE 配额 | 公开 |
@@ -56,7 +56,8 @@ python3 fetch_scenario.py --list && python3 fetch_scenario.py dev-fortnight   # 
 | `outputs/reference/observation_requests.csv`、`observation_request_tiles.csv` | 预生成的请求及其天区 | 公开 |
 | `outputs/reference/weather.csv` | 逐时隙站点基线天气 | 仅练习场景公开 |
 | `outputs/reference/weather_forecasts.csv` | 不确定、每日修订的预报 | 按场景标记 |
-| `outputs/reference/weather_events.csv` | 方向性干扰事件（`active_event_ids` 背后的真值） | 比赛场景隐藏 |
+| `outputs/reference/weather_events.csv` | 方向性干扰事件（`active_event_ids` 背后的真值；`instrument_fault` 故障事件永不进预报、不进快照） | 比赛场景隐藏 |
+| `outputs/reference/tile_anomalies.csv` | 隐藏 per-tile 真值标签（nova ×1.5 / reddening ×0.8，只作用于评分器） | 比赛场景隐藏，练习场景可审计 |
 | `outputs/reference/scenario_manifest.json`、`*_metadata.json` | 每个文件的行数与 SHA-256 | 公开 |
 
 ### tiles.csv
@@ -85,7 +86,7 @@ slot_id,night_id,timestamp_utc,duration_seconds,is_observable,seeing_arcsec,tran
 
 ### weather_forecasts.csv 与 weather_events.csv
 
-预报含发布时间、预测事件窗口、概率与空间范围；每日修订，可能漏报或误报（默认 12 % 漏报率、每场景 6 个误报）。平台只显示当前游标之前已发布的修订。事件含范围（`ALL`、`REGION_SET`、`SKY_CAP_ICRS`、`HORIZON_SECTOR`、`TILE_SET`）、条件（`rainy`、`cloudy`、`smoggy`、`rocket_launch`、`cold_wave`、`tornado`）与乘子；部分事件会对其覆盖的天区强制关闭。
+预报含发布时间、预测事件窗口、概率与空间范围；每日修订，可能漏报或误报（默认 12 % 漏报率、每场景 6 个误报）。平台只显示当前游标之前已发布的修订。事件含范围（`ALL`、`REGION_SET`、`SKY_CAP_ICRS`、`HORIZON_SECTOR`、`TILE_SET`）、条件（`rainy`、`cloudy`、`smoggy`、`rocket_launch`、`cold_wave`、`tornado`、`instrument_fault`）与乘子；部分事件会对其覆盖的天区强制关闭。`instrument_fault` 是区域级仪器故障：效率乘数最低压到 0.10、每场至多一次、不自行结束（只有正确上报后两天才修复）、绝不出现在预报里，只能靠实现分偏差发现。
 
 ### observation_requests.csv 与 observation_request_tiles.csv
 
@@ -94,7 +95,7 @@ request_id,issued_at_utc,available_from_utc,deadline_utc,deadline_class,completi
 request_id,tile_id,required_visits
 ```
 
-请求发布后出现在快照中，到期后消失。观测时标注 `request_id` 才计入请求；对已完成天区的请求标注复访计入请求，但不再获得普通科学分。`ALL` 请求需要列出的全部天区，`AT_LEAST_N` 请求需要其中 `required_tile_count` 个。
+请求发布后出现在快照中，到期后消失。观测时标注 `request_id` 才计入请求；访问计数与天区得分完全解耦：对已完成天区的请求标注复访既计访问也正常计分（天区按历次观测最高分入账）；请求指向此前已观测的天区时，需要一次发布后的新观测才计访问。`ALL` 请求需要列出的全部天区，`AT_LEAST_N` 请求需要其中 `required_tile_count` 个。
 
 ### decisions.csv
 
@@ -102,19 +103,19 @@ request_id,tile_id,required_visits
 decision_id,slot_id,action,tile_id,program,request_id,reason
 ```
 
-1. `decision_id` 为任意非空且唯一的字符串（平台生成 `D000001`、`D000002`…）。
-2. `action` 为 `observe` 或 `wait`。`wait` 行的 `tile_id`、`program`、`request_id` 留空，消耗当前时隙剩余时间。`observe` 行需要 `tile_id` 与 `DARK` / `BRIGHT` / `BACKUP` 之一的 `program`；`request_id` 可选。
+1. `decision_id` 为任意非空且唯一的字符串（平台生成 `D000001`、`D000002`…，决策行与上报行共享同一递增序列）。
+2. `action` 为 `observe`、`wait` 或上报行 `report_instrument_failure` / `report_nova` / `report_reddening`。`wait` 行的 `tile_id`、`program`、`request_id` 留空，消耗当前时隙剩余时间。`observe` 行需要 `tile_id` 与 `DARK` / `BRIGHT` / `BACKUP` 之一的 `program`；`request_id` 可选。上报行紧随其承载决策之后，不占时隙、不动游标：`report_nova` / `report_reddening` 必须带 `tile_id`，`report_instrument_failure` 不得带；`program`、`request_id` 留空。
 3. `slot_id` 是动作开始的时隙。曝光从游标起持续天区的 `nominal_exptime_seconds`，可跨时隙并按分段评分。短曝光结束后可在同一 `slot_id` 内再提交动作。
 4. 晚于游标的时隙会插入隐式等待；早于游标的是 `stale_decision`（受罚，不消耗时间）；未知时隙为 `unknown_slot`。
-5. 表格畸形（表头错误、未知动作、带天区的 `wait`、缺天区或项目的 `observe`、重复 `decision_id`）作为无效提交被拒绝。其余情况一律评分，不拒绝。
+5. 表格畸形（表头错误、未知动作、带天区的 `wait`、缺天区或项目的 `observe`、重复 `decision_id`、字段不合法的上报行）作为无效提交被拒绝。其余情况一律评分，不拒绝。
 
 ### score_report.json（`score-report-v3`）
 
-`score{total, base_science, program_bonus, request_reward, coverage_bonus, coverage_evenness, penalties{unsafe_observation, invalid_action, avoidable_wait, required_miss, flexible_shortfall, request_miss}}`、`completion{completed_tiles[], required_missing[], flexible_by_region{}, flexible_shortfall{}}`、`requests[{request_id, status, satisfied_tile_count, required_tile_count, feasible_tile_count, reward, penalty}]`、`wait_seconds{explicit, implicit, invalid, avoidable, unavailable}`、每个决策一条的 `actions[]`（`outcome`、`start_utc`、`elapsed_seconds`、`base_science_score`、`program_bonus_score`、`penalty`，以及带 airmass、活动事件、大气与月光质量、质量区间和项目匹配的 `segments[]`）、`termination_reason`、`final_cursor`、`parameters` 与 `input_sha256`。
+`score{total, base_science, program_bonus, request_reward, report_reward, coverage_bonus, coverage_evenness, penalties{unsafe_observation, invalid_action, avoidable_wait, required_miss, flexible_shortfall, request_miss, fault_misreport, wrong_tag_report}}`、`completion{completed_tiles[], required_missing[], flexible_by_region{}, flexible_shortfall{}}`、`requests[{request_id, status, satisfied_tile_count, required_tile_count, feasible_tile_count, reward, penalty}]`、`reports`（逐 (tile, tag) 结算与故障上报计数）、`wait_seconds{explicit, implicit, invalid, avoidable, unavailable}`、每个决策一条的 `actions[]`（`outcome`、`start_utc`、`elapsed_seconds`、`base_science_score`、`program_bonus_score`、`penalty`，以及带 airmass、活动事件、大气与月光质量、质量区间和项目匹配的 `segments[]`）、`termination_reason`、`final_cursor`、`parameters` 与 `input_sha256`（含 `reports` 的 SHA-256）。
 
-动作结果：`completed`、`wait`、`weather_interrupted`、`geometry_or_night_interrupted`、`unsafe_observation`、`invalid_observe`、`invalid_request_tag`、`duplicate_tile`、`outside_tile_window`、`unknown_slot`、`stale_decision`。
+动作结果：`completed`、`wait`、`weather_interrupted`、`geometry_or_night_interrupted`、`unsafe_observation`、`invalid_observe`、`invalid_request_tag`、`outside_tile_window`、`unknown_slot`、`stale_decision`（重复观测已完成天区是合法动作，不再是 `duplicate_tile`），上报行为 `report_recorded` / `report_duplicate_ignored` / `report_correct` / `report_neutral` / `report_misreport` / `report_dropped`。
 
-## 4. 参赛协议（participant-agent-protocol-v1）
+## 4. 参赛协议（participant-agent-protocol-v2；练习场景仍为 v1）
 
 平台在每个场景上启动一次你的入口脚本（程序包根目录或唯一顶层文件夹中的 `minimal_agent.py`、`agent.py` 或 `main.py`，按此顺序取第一个存在的），并在整个运行期间保持进程存活。消息通过标准输入输出传递，每行一个 JSON 对象；标准输出不要打印其他内容。标准错误被记录为 `agent.log`，可在提交页下载。每条消息都带 `protocol_version`、`message_type`，除 `initialize` 外还带 `decision_sequence`。
 
@@ -124,14 +125,16 @@ payload 为 `initial-publication-v2`：`calendar`（首末夜、夜数与时隙�
 
 ### `decision_request`（平台 → 智能体，每次决策一条）
 
-payload 为 `decision-snapshot-v2`：
+payload 为 `decision-snapshot-v3`：
 
 - `cursor`：`slot_id`、`night_id`、`timestamp_utc`、`slot_offset_seconds`。
-- `current_site_weather`：当前时隙的基线条件（`is_observable`、`seeing_arcsec`、`transparency`、`sky_quality`、`instrument_efficiency`、`active_event_ids`）。
-- `candidate_tiles`：未完成、处于可用窗口内、此刻高于 30° 且当夜窗口包含游标的天区。每个带 `scheduling_class`、`nominal_exptime_seconds`、`tile_science_value`、`window_start_utc` / `window_end_utc`、`geometry`（高度、方位、时角、airmass、月距、`lunar_quality_factor`）与 `effective_weather`（对该天区应用方向性事件后的天气）。候选仍可能无法在窗口结束前完成；`scoring_preview.py` 会过滤这些。
+- `current_site_weather`：当前时隙的基线条件（`is_observable`、`seeing_arcsec`、`transparency`、`sky_quality`、`active_event_ids`）。快照天气永远不含 `instrument_efficiency`：preview 基线因此不乘效率，实现分与基线的偏差恰好隔离出隐藏的仪器侧（效率抖动 × 故障乘数 × 标签乘数）。
+- `tile_last_finished`：最近一次完成观测的实现官方分 `{tile_id, score}`（中断曝光为 0；首次完成前为 `null`；等待与非法动作不更新）。与公开公式估值对比即可发现隐藏异常。
+- `candidate_tiles`：处于可用窗口内、此刻高于 30° 且当夜窗口包含游标的天区（`already_completed` 标记是否已完成——重复观测合法且按最高分入账）。每个带 `scheduling_class`、`nominal_exptime_seconds`、`tile_science_value`（未乘隐藏标签的基线值）、`window_start_utc` / `window_end_utc`、`geometry`（高度、方位、时角、airmass、月距、`lunar_quality_factor`）与 `effective_weather`（对该天区应用方向性事件后的天气）。候选仍可能无法在窗口结束前完成；`scoring_preview.py` 会过滤这些。
 - `active_requests`：已发布且未到期的请求，含天区要求与已完成访问。
 - `night_start`：每晚第一个时隙给出当夜行与当夜天区窗口；其余为 `null`。
 - `weekly`：每第七晚的第一个时隙给出到目前为止发布的预报、未来七天的天区窗口与请求；其余为 `null`。
+- `fault_status`：只在夜初出现，且只在你的故障上报正确之后——上报一天（模拟日）后首次发布 `{"status":"fault","spatial_scope_type":...,"spatial_scope_payload":{...},"instrument_efficiency_multiplier":...,"repair_complete_utc":...}`，维修期（两天）每晚重发，修复完成后消失；误报（无活跃故障）按同一时刻表收到一次性的 `{"status":"normal","reference_report_id":...}` 应答。
 - `progress`：`completed_tile_ids`、`flexible_completed_by_region`。
 
 任何消息中都没有未来天气。读取快照不推进时间；只有提交的动作才推进。
@@ -139,13 +142,16 @@ payload 为 `decision-snapshot-v2`：
 ### `decision_response`（智能体 → 平台）
 
 ```
-{"protocol_version": "participant-agent-protocol-v1", "message_type": "decision_response", "decision_sequence": 12,
- "action": "observe", "tile_id": "T00037", "program": "DARK", "request_id": "", "reason": "highest preview estimate", "decision_source": "deterministic"}
-{"protocol_version": "participant-agent-protocol-v1", "message_type": "decision_response", "decision_sequence": 13,
+{"protocol_version": "participant-agent-protocol-v2", "message_type": "decision_response", "decision_sequence": 12,
+ "action": "observe", "tile_id": "T00037", "program": "DARK", "request_id": "", "reason": "highest preview estimate", "decision_source": "deterministic",
+ "reports": [{"kind": "NOVA", "tile_id": "T00037"}, {"kind": "Instrument_Failure"}]}
+{"protocol_version": "participant-agent-protocol-v2", "message_type": "decision_response", "decision_sequence": 13,
  "action": "wait", "tile_id": "", "program": "", "request_id": "", "reason": "no completable candidate", "decision_source": "deterministic"}
 ```
 
 `decision_sequence` 必须与请求相同。`action` 必须是 `observe` 或 `wait`；其他值、畸形行或进程退出都会以 `termination_reason = agent_error` 结束运行，已提交的动作照常评分。未知天区、错误项目或错误请求标注不会被拒绝：评分器把它们作为受罚的无效动作提交，时间继续推进。
+
+`reports` 为可选数组，每项 `{"kind":"Instrument_Failure"}` 或 `{"kind":"NOVA"|"Reddening","tile_id":"..."}`：上报不占时隙、不推进时间；畸形条目被丢弃（动作照常），重复条目容忍（结算去重）。标签在终局结算：每个 (tile, 标签) 只计首次，正确 +100、错误 −150（同一 tile 两种标签独立结算）。故障上报是局内仪表：有未确认活跃故障时为正确上报——触发 `fault_status` 发布与修复时钟；无活跃故障时为误报——两次正确上报之间有一次免费额度，之后每次 −100，正确上报清零计数器；对已确认未修复故障的重复上报中立。每条被接受的上报在运行产物的 `decisions.csv` 里落为一行 `report_*` 动作（紧随其承载决策，共享 `decision_id` 递增序列），随该文件进 SHA-256 审计链。
 
 ### 时间核算
 
@@ -157,28 +163,31 @@ payload 为 `decision-snapshot-v2`：
 
 ```
 A_atm      = min(instrument_efficiency · transparency · sky_quality / (seeing_arcsec · airmass), 3.0)
-combined   = A_atm · lunar_quality_factor
-band       = combined ≥ 0.65 → DARK；≥ 0.40 → BRIGHT；否则 BACKUP
+combined   = A_atm · lunar_quality_factor                      # 计分用（含效率）
+combined₀  = min(transparency · sky_quality / (seeing_arcsec · airmass), 3.0) · lunar_quality_factor   # 档位用（不含效率）
+band       = combined₀ ≥ 0.65 → DARK；≥ 0.40 → BRIGHT；否则 BACKUP
 base       = V_tile · (segment_seconds / nominal_exptime_seconds) · combined
 bonus      = program == band 时 base · {DARK: 0.25, BRIGHT: 0.15, BACKUP: 0.08}[program]，否则 0
 ```
 
-`total = base_science + program_bonus + request_reward + coverage_bonus − unsafe_observation − invalid_action − avoidable_wait − required_miss − flexible_shortfall − request_miss`，常数来自 `config/score_config.json`：
+`total = base_science + program_bonus + request_reward + report_reward + coverage_bonus − unsafe_observation − invalid_action − avoidable_wait − required_miss − flexible_shortfall − request_miss − fault_misreport − wrong_tag_report`，常数来自 `config/score_config.json`：
 
 | 项 | 规则 | 数值 |
 |---|---|---|
 | `unsafe_observation` | 开始时 `is_observable=false` 仍 `observe`；消耗当前时隙剩余时间 | 每次 2000 |
-| `invalid_action` | 未知天区/项目/时隙、重复天区、窗口之外、错误请求标注、在天区落下或夜晚结束前无法完成的曝光、过期决策 | 每次 100 |
-| `avoidable_wait` | 有未完成天区本可完成时的等待秒数 | 每秒 0.001（每个空时隙约 0.9） |
+| `invalid_action` | 未知天区/项目/时隙、窗口之外、错误请求标注、在天区落下或夜晚结束前无法完成的曝光、过期决策 | 每次 100 |
+| `avoidable_wait` | 有可合法完成或可提分的重复观测时的等待秒数 | 每秒 0.001（每个空时隙约 0.9） |
 | `required_miss` | 运行结束时未完成的 REQUIRED 天区 | 每个 1000 |
 | `flexible_shortfall` | 某分区完成的 FLEXIBLE 天区少于 4 个 | 每缺一个 100 |
 | `request_miss` | 请求到期时访问数不足，除非根本不存在可行机会（`excused_unobservable`） | 每个所需天区 `miss_penalty`（190） |
 | `request_reward` | 请求在截止前完成 | 每个所需天区 `reward`（140） |
+| `report_reward` / `wrong_tag_report` | 标签上报每个 (tile, 标签) 首次正确 +100、错误 −150 | +100 / −150 |
+| `fault_misreport` | 两次正确故障上报之间的误报超过一次免费额度后 | 每次 100 |
 | `coverage_bonus` | 已完成天区在各分区间的均匀度（Jain 指数）× 基础科学分 × 权重 | 权重见场景的 `score_config.json`：练习 0，正式比赛 0.35 |
 
-只有完成的曝光计分。后续分段遇到关闭天气的曝光为 `weather_interrupted`（无科学分，无惩罚）；跑到天区落到 30° 以下或夜晚结束的为 `geometry_or_night_interrupted`（无科学分，记无效动作惩罚）。每个天区只计一次分；月亮升起时月光因子持续降低 `combined`，并可能改变匹配的项目。终局惩罚（`required_miss`、`flexible_shortfall`、`request_miss`）对被时钟或智能体错误截断的运行同样适用。
+只有完成的曝光计分。后续分段遇到关闭天气的曝光为 `weather_interrupted`（无科学分，无惩罚）；跑到天区落到 30° 以下或夜晚结束的为 `geometry_or_night_interrupted`（无科学分，记无效动作惩罚）。重复观测合法：每个天区按历次观测的最高分入账（更差的重复不会拉低它），完成状态、REQUIRED 豁免与分区配额仍以首次合法观测为准。隐藏标签静默乘分：nova ×1.5、reddening ×0.8（同一 tile 可叠加）；公布的 `tile_science_value` 保持未乘基线。月亮升起时月光因子持续降低 `combined`，并可能改变匹配的项目。终局惩罚（`required_miss`、`flexible_shortfall`、`request_miss`）对被时钟或智能体错误截断的运行同样适用。
 
-`scoring_preview.py` 只用当前快照估算各候选的边际价值（不含未来天气）；这是最小智能体使用的同一份代码，永远不能替代正式回放。
+`scoring_preview.py` 只用当前快照估算各候选的边际价值（不含未来天气，也不含仪器效率——基线是不乘效率的公开公式）；这是最小智能体使用的同一份代码，永远不能替代正式回放。
 
 ## 6. 平台运行与限制
 
@@ -194,7 +203,7 @@ bonus      = program == band 时 base · {DARK: 0.25, BRIGHT: 0.15, BACKUP: 0.08
 | 内存 / CPU | 2 GB、一个 CPU、128 个进程、程序包 `scratch/` 目录下最多 256 MB 写入 |
 | 程序包 | `.zip`（不依赖其他文件时也接受单个 `.py`）≤ 20 MB、≤ 2,000 个文件、解压后 ≤ 50 MB、不含符号链接 |
 
-智能体可用的环境变量：`PARTICIPANT_PROTOCOL=participant-agent-protocol-v1`、`SAC_SCENARIO`（slug）、`SAC_WALLCLOCK_SECONDS`、`HOME` 与 `TMPDIR`（scratch 目录），以及 `.env` 中的全部内容。场景目录不会挂载进智能体沙箱；你能看到的天气只有快照发布的内容。
+智能体可用的环境变量：`PARTICIPANT_PROTOCOL`（该场景的协议代际：练习 v1 / 正式赛 v2）、`SAC_SCENARIO`（slug）、`SAC_WALLCLOCK_SECONDS`、`HOME` 与 `TMPDIR`（scratch 目录），以及 `.env` 中的全部内容。场景目录不会挂载进智能体沙箱；你能看到的天气只有快照发布的内容。
 
 ## 7. 提交
 
@@ -236,6 +245,7 @@ python3 sac_submit.py --phase online --kind agent --file my_agent.zip --wait
 4. 等待很便宜（每时隙 0.9），而一次不安全曝光扣 2000：绝不在 `is_observable=false` 时观测；方向性事件活动时优先选 `effective_weather` 开放的天区。
 5. 请求每个所需天区奖励 140、缺失扣 190：每个快照都检查 `active_requests`，并在观测时标注 `request_id`。
 6. 时钟是全局的。几百次决策各调用一次模型可以承受，180 晚约 8,000 次决策则不行；把显而易见的等待交给确定性代码。
+7. 异常检测：把 `tile_last_finished.score` 和该曝光的公开公式估值对比——基线不含仪器效率，正常读数因抖动落在 ≈0.90–1.00；≈1.35–1.5 是 nova、≈0.72–0.80 是红化、持续低于 0.70 是仪器故障。这些区间只是发现异常的启发式参考，不是评分器执行的判据。预报中的 cold_wave 也会压效率，那段读数别算进异常证据。标签永久、天气抖动暂时，让同一 tile 的多次读数说话再上报；错报标签 −150（对了才 +100），故障误报超额每次 −100。故障确认后避开其作用区直到 `repair_complete_utc`。重复观测是合法的提分手段：完成后继续拍最高质量的天区，每场只按最高分入账。
 
 ## 10. 本地自检清单
 

@@ -85,8 +85,10 @@ def build_agent_env(agent_dir: Path, scratch: Path, wallclock: float, scenario_s
 class LocalAgentProcess(JsonLineAgentProcess):
     """The platform transport with its process isolation: own cwd, explicit env, stderr to a log, process group kill."""
 
-    def __init__(self, command: list[str], *, agent_dir: Path, env: dict, stderr, initialization_timeout_seconds: float = 30.0):
-        super().__init__(command, initialization_timeout_seconds)
+    def __init__(self, command: list[str], *, agent_dir: Path, env: dict, stderr, initialization_timeout_seconds: float = 30.0,
+                 protocol_version: str | None = None):
+        super().__init__(command, initialization_timeout_seconds,
+                         **({"protocol_version": protocol_version} if protocol_version else {}))
         self.agent_dir = agent_dir
         self.env = env
         self.stderr = stderr
@@ -189,8 +191,10 @@ def main(argv=None) -> int:
     with (out_dir / "agent.log").open("w", encoding="utf-8") as agent_log:
         agent_log.write(f"[local-runner] entry={entry.name} python={args.python} dotenv_keys={dotenv_keys} wallclock={wallclock:g}s\n")
         agent_log.flush()
+        protocol_version = ("participant-agent-protocol-v2" if workflow.mechanics else "participant-agent-protocol-v1")
+        env["PARTICIPANT_PROTOCOL"] = protocol_version
         provider = LocalAgentProcess(command, agent_dir=agent_dir, env=env, stderr=None if args.show_agent_stderr else agent_log,
-                                     initialization_timeout_seconds=args.init_timeout)
+                                     initialization_timeout_seconds=args.init_timeout, protocol_version=protocol_version)
         try:
             result = workflow.run(provider, wallclock_seconds=wallclock)
         finally:

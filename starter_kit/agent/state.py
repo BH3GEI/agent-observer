@@ -28,4 +28,5 @@ class DecisionState(TypedDict):
     model_error: NotRequired[str]
     decision: NotRequired[dict[str, object]]
     memory: NotRequired[dict]
+    tile_best_scores: NotRequired[dict]
 

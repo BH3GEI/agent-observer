@@ -15,6 +15,8 @@
 
 只想先看一眼的话，把上面的文件名换成 `run_demo_week`（`.command` / `.bat` / `.sh`）：同样的流程、同样的评分器，场景只有 7 个观测夜，约 2 秒跑完，回放页也更容易逐夜看清楚。结果写在 `demo_week_output/`。
 
+注意：7 个观测夜偏短，自带的异常检测在 demo 场景上只能保证部分正确——可能漏报，也可能报错标签。这是预期行为：它只是演示用的检测器，不是已校准的方案；180 晚的 `dev-reference` 才是它四个标签全中的场景。
+
 ## 第 2 步 · 改一个文件
 
 打开 `agent/my_strategy.py`。整个比赛你只需要改这一个文件里的 `choose_action` 函数：
@@ -40,3 +42,5 @@
 - 想在本地试更多天气：`python3 make_scenario.py --out scenarios/mine --seed 7 --days 30`，再运行 `python3 local_runner.py --scenario scenarios/mine --agent agent/minimal_agent.py`。
 - 想让大模型参与决策：复制 `agent/.env.example` 为 `agent/.env`，填 `MODEL_PROVIDER` 与对应 API key（网站「控制台」页可领取赞助额度），上传时把整个 `agent` 文件夹拖进去即可。
 - 完整的数据格式、协议和评分公式见网站「文档」页；`README.md` 是给工程师看的详细版。
+
+> 练习场景仍按旧规则计分（无异常标签、不能重复观测、不接受上报）；想演练正式赛的新机制，跑 `run_finals_preview` 或 `scenarios/finals-preview`（基线约 **8214 分**，示例智能体会自己发现并上报那次仪器故障）。

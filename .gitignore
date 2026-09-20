@@ -8,6 +8,7 @@ __pycache__/
 !.env.example
 data/
 artifacts/
+run_output/
 test-results/
 web/node_modules/
 web/dist/

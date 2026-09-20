@@ -11,10 +11,23 @@ from typing import Iterable, Mapping, Sequence
 
 UTC = timezone.utc
 
-PARTICIPANT_PROTOCOL_VERSION = "participant-agent-protocol-v1"
+PARTICIPANT_PROTOCOL_VERSION = "participant-agent-protocol-v2"
 INITIAL_PUBLICATION_VERSION = "initial-publication-v2"
-DECISION_SNAPSHOT_VERSION = "decision-snapshot-v2"
+DECISION_SNAPSHOT_VERSION = "decision-snapshot-v3"
 WORKFLOW_RESULT_VERSION = "workflow-result-v2"
+
+# Scenarios without the anomaly-mechanics config sections keep speaking the pre-anomaly
+# contract, so agents built and submitted before the mechanics release keep working.
+LEGACY_PARTICIPANT_PROTOCOL_VERSION = "participant-agent-protocol-v1"
+LEGACY_DECISION_SNAPSHOT_VERSION = "decision-snapshot-v2"
+ACCEPTED_PROTOCOL_VERSIONS = (LEGACY_PARTICIPANT_PROTOCOL_VERSION, PARTICIPANT_PROTOCOL_VERSION)
+
+ANOMALY_CONFIG_SECTIONS = ("repeat_observation", "reporting", "anomaly_tags", "fault_response")
+
+
+def anomaly_mechanics_enabled(score_config) -> bool:
+    """The single switch: a scenario opts into the anomaly mechanics through its score config."""
+    return any(section in score_config for section in ANOMALY_CONFIG_SECTIONS)
 
 NIGHT_COLUMNS = [
     "night_id",
@@ -144,6 +157,18 @@ DECISION_COLUMNS = [
     "request_id",
     "reason",
 ]
+
+REPORT_KINDS = ("Instrument_Failure", "NOVA", "Reddening")
+
+REPORT_ACTIONS = {
+    "report_instrument_failure": "Instrument_Failure",
+    "report_nova": "NOVA",
+    "report_reddening": "Reddening",
+}
+
+ANOMALY_TAG_VALUES = ("nova", "reddening")
+
+TILE_ANOMALY_COLUMNS = ["tile_id", "anomaly_tag"]
 
 
 def parse_utc(value: str) -> datetime:

@@ -18,7 +18,7 @@
 ## 3. 提交内容
 
 1. **结果文件。** 列为 `decision_id, slot_id, action, tile_id, program, request_id, reason` 的 `decisions.csv`，由你在天气公开的场景上本地运行智能体生成。由冻结的评分器即时评分。
-2. **智能体程序包。** 根目录（或唯一顶层文件夹）含入口脚本 `minimal_agent.py`、`agent.py` 或 `main.py` 的 `.zip`，可选 `requirements.txt` 与 `.env`，以及脚本导入的其他文件。不依赖其他文件时也接受单个 `.py`。平台通过 `participant-agent-protocol-v1` 在该阶段的每个场景上运行程序包，并对提交的决策评分。比赛的天气、预报与事件永不提供下载。
+2. **智能体程序包。** 根目录（或唯一顶层文件夹）含入口脚本 `minimal_agent.py`、`agent.py` 或 `main.py` 的 `.zip`，可选 `requirements.txt` 与 `.env`，以及脚本导入的其他文件。不依赖其他文件时也接受单个 `.py`。平台按场景的协议代际运行程序包并对提交的决策评分：练习场景仍是赛初的 `participant-agent-protocol-v1` 合约（无异常标签、不能重复观测、不接受上报），异常机制（`participant-agent-protocol-v2`）只在正式比赛场景启用；入门包对两代协议自动兼容，想演练新机制用其中的 `finals-preview` 场景。比赛的天气、预报与事件永不提供下载。
 3. 文件不超过 20 MB。压缩包不超过 2,000 个文件、解压后不超过 50 MB。拒绝符号链接与越出压缩包根目录的路径。
 
 ## 4. 平台运行
@@ -38,13 +38,14 @@
    `A = min(instrument_efficiency · transparency · sky_quality / (seeing_arcsec · airmass), 3.0)`，`combined = A · lunar_quality_factor`，
    `base = V_tile · (segment_seconds / nominal_exptime_seconds) · combined`，其中 `V_tile` 为天区目标的 `science_weight` 之和；
    `bonus = base · B[program]`，`B = {DARK 0.25, BRIGHT 0.15, BACKUP 0.08}`，仅当决策项目等于 `combined` 所对应的区间（DARK ≥ 0.65，BRIGHT ≥ 0.40，否则 BACKUP）时支付。
-3. `total = base_science + program_bonus + request_reward + coverage_bonus − unsafe_observation − invalid_action − avoidable_wait − required_miss − flexible_shortfall − request_miss`：每次不安全观测（圆顶关闭时观测）2000；每次无效动作（未知天区/时隙/项目、重复天区、窗口之外、错误请求标注、在天区落下或夜晚结束前无法完成的曝光、过期决策）100；每秒可避免等待 0.001；每块未完成的必做天区（REQUIRED）1000；每个分区的可选天区（FLEXIBLE）不足 4 块的，每缺一块 100；到期请求每个所需天区 190（完成则每个所需天区奖励 140）。
+3. `total = base_science + program_bonus + request_reward + report_reward + coverage_bonus − unsafe_observation − invalid_action − avoidable_wait − required_miss − flexible_shortfall − request_miss − fault_misreport − wrong_tag_report`：每次不安全观测（圆顶关闭时观测）2000；每次无效动作（未知天区/时隙/项目、窗口之外、错误请求标注、在天区落下或夜晚结束前无法完成的曝光、过期决策）100；每秒可避免等待 0.001；每块未完成的必做天区（REQUIRED）1000；每个分区的可选天区（FLEXIBLE）不足 4 块的，每缺一块 100；到期请求每个所需天区 190（完成则每个所需天区奖励 140）。
 4. **覆盖均匀性**（`coverage_bonus`）：`coverage_bonus = W · base_science · E`，其中 `E` 是已完成天区在各分区间分布的均匀度（Jain 公平指数：`(Σx)² / (n·Σx²)`，八个分区拍得一样多时为 1，全挤在一个分区时为 1/8）。权重 `W` 写在每个场景的 `config/score_config.json` 里：**练习场景为 0**（不影响你本地跑出的分数），**正式比赛场景为 0.35**。广域巡天要靠均匀覆盖才能支撑统计，所以把天区都集中在好拍的那几个分区会付出代价。
+5. **重复观测与异常上报**：重复观测合法——每个天区按历次观测的最高分入账（更差的重复不拉低它），完成状态仍以首次合法观测为准。场景里有隐藏的 per-tile 标签（nova ×1.5、reddening ×0.8，静默作用于评分）和区域级仪器故障（效率骤降、不进预报）。`decision_response` 可附 `reports` 数组上报异常：标签在终局按每 (tile, 标签) 首次上报结算，对 +100、错 −150；故障上报正确则一天后发布故障状态、两天后修复，误报在每次正确上报之间有一次免费额度、之后每次 −100。标签赏罚与故障参数见 `score_config.json` 的 `reporting` / `anomaly_tags` / `fault_response` 小节。
 
-5. 只有完成的曝光计分。被关闭天气中断的曝光不计分也不受罚；被几何或夜晚结束中断的曝光不计分并记为无效动作。每个天区只获得一次普通分；带请求标注的复访只计入请求。
-6. 终局惩罚适用于每次运行，包括被时钟或智能体错误截断的运行。可行机会少于所需天区数的到期请求予以免责。
-7. 完成度（已完成天区 ÷ 天区数）与各分区可选天区缺额显示在榜单上；它们通过终局惩罚进入得分。
-8. 阶段含多个场景时，提交得分为各场景得分的算术平均。只有所有场景都完成评分的提交才计入。
+6. 只有完成的曝光计分。被关闭天气中断的曝光不计分也不受罚；被几何或夜晚结束中断的曝光不计分并记为无效动作。
+7. 终局惩罚适用于每次运行，包括被时钟或智能体错误截断的运行。可行机会少于所需天区数的到期请求予以免责。
+8. 完成度（已完成天区 ÷ 天区数）与各分区可选天区缺额显示在榜单上；它们通过终局惩罚进入得分。
+9. 阶段含多个场景时，提交得分为各场景得分的算术平均。只有所有场景都完成评分的提交才计入。
 
 ## 6. 排名、同分与核验
 
