@@ -5,7 +5,7 @@ import controlRoomImage from '../../assets/images/cosmos-control-room.jpg'
 
 const { t, pick } = useI18n()
 type Stat = { value: string; label: string }
-const stats = computed(() => t('home.vision.stats') as Stat[])
+const stats = computed(() => { const value = t('home.vision.stats'); return Array.isArray(value) ? (value as Stat[]) : [] })
 </script>
 
 <template>

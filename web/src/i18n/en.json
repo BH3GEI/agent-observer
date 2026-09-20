@@ -238,25 +238,11 @@
         "Every night a survey telescope faces thousands of observable tiles. Weather changes, target visibility changes, and science priorities change. Every decision a human observer makes shapes the quality of the final cosmic sample.",
         "We are building an open benchmark: an agent reads the state of the night sky, reasons like a seasoned observer, and decides the next observation every 900 seconds. Every participant receives the same survey plan, weather replay, inserted requests, simulator, and scoring rule — the only variable is strategy."
       ],
-      "link": "Read the full event brief",
-      "stats": [
-        {
-          "value": "900s",
-          "label": "per slot"
-        },
-        {
-          "value": "1",
-          "label": "global wall clock"
-        },
-        {
-          "value": "180",
-          "label": "nights in the reference scenario"
-        }
-      ]
+      "link": "Read the full event brief"
     },
     "mission": {
       "kicker": "02 / Mission",
-      "title": "Next, where in the sky do we look?",
+      "title": "Where should the telescope look next",
       "lede": "Your agent takes over the core decisions of a human lead observer.",
       "cards": [
         {
@@ -343,8 +329,8 @@
     },
     "evaluation": {
       "kicker": "05 / Evaluation",
-      "title": "One frozen scorer, one public formula",
-      "lede": "The scorer is public and frozen. What an exposure earns depends on the atmosphere and the moon at that moment; matching the night's programme and answering a request earn more on top; six kinds of violation cost you. Formula, constants and scorer source are all published, so the same score comes out on your own machine.",
+      "title": "Scoring rules: public, frozen before the competition",
+      "lede": "The scoring program is published and frozen before the competition starts and never changes afterwards. What one observation earns depends on the weather and moonlight at that moment; scheduling the right program on the right night and completing temporary observation requests on time earn extra credit, while rule violations cost points. Every formula, constant and the scorer's source code are downloadable — the score you compute locally matches the platform exactly.",
       "formula": "total = base_science + program_bonus + request_reward\n      − unsafe_observation − invalid_action − avoidable_wait\n      − required_miss − flexible_shortfall − request_miss\nbase  = Σ_segments V_tile · (dt / t_nominal) · combined\ncombined = min(eff · transp · sky / (seeing · airmass), 3) · lunar",
       "criteria": [
         {
