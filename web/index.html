@@ -2,6 +2,13 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // The platform now lives on the official GOSIM domain; the personal address only forwards.
+      if (window.location.hostname === 'bh3gei.github.io') {
+        const rest = window.location.pathname.replace(/^\/agent-observer\/?/, '')
+        window.location.replace('https://create.gosim.org/survey26/platform/' + rest + window.location.search + window.location.hash)
+      }
+    </script>
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="%BASE_URL%favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="%BASE_URL%favicon-16.png" />
