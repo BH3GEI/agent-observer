@@ -25,7 +25,7 @@ const objLine = computed(() => pick(obj.enLine, obj.zhLine))
     <section class="section"><div class="wrap-narrow">
       <span class="poster-kicker">404 · {{ pick('UNCHARTED TILE', '未观测天区') }}</span>
       <h1 class="section-title mt-6">{{ pick('This tile has not been observed yet', '这片天区还没被观测过') }}</h1>
-      <p class="lede mt-6">{{ pick('The page you were looking for is not in the survey catalogue. While you are here, meet a real one:', '你要找的页面不在巡天目录里。既然来了，认识一个真实的天体吧：') }}</p>
+      <p class="lede mt-6">{{ pick('The page you were looking for is not in the survey catalogue. Here is a real one from it:', '你要找的页面不在巡天目录里。下面是目录里一个真实的天体：') }}</p>
 
       <div class="egg-object-card mt-10" :style="`--obj-hue:${obj.hue}`">
         <i class="egg-object-disc" aria-hidden="true"></i>

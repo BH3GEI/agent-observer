@@ -310,7 +310,7 @@
         {
           "n": "01",
           "title": "Register & team up",
-          "desc": "Sign up online and create or join a team. Solo developers are welcome too."
+          "desc": "Sign up online and create or join a team. Competing alone works too."
         },
         {
           "n": "02",
@@ -408,7 +408,7 @@
       "items": [
         {
           "title": "Results file",
-          "desc": "Ran the kit on your own computer? Upload the decisions.csv it produced (practice scenarios with public weather). Scored within seconds."
+          "desc": "Upload the decisions.csv from a local kit run (public-weather practice scenarios only); it scores within seconds."
         },
         {
           "title": "Limits",
@@ -500,14 +500,14 @@
     "participants": {
       "kicker": "Participants · LIVE",
       "title": "The participants are the story of this competition",
-      "lede": "Every registered participant is presented here: astronomy tier, AI tier and team-forming intent. You are welcome to join them.",
+      "lede": "Every registered participant shows here: astronomy tier, AI tier, and team-up intent.",
       "stat_total": "Registered",
       "stat_teams": "Teams",
       "stat_looking": "Seeking teammates",
       "looking": "Seeking teammates",
       "in_team": "Team · {team}",
       "empty_title": "The wall awaits its first card",
-      "empty_desc": "Choose to display your card during registration and yours will be the first.",
+      "empty_desc": "Tick “show my card” when registering and you will appear here.",
       "cta_board": "Find teammates",
       "cta_wall_register": "Register",
       "cta_wall_profile": "Manage my card",
@@ -1369,7 +1369,7 @@
     "reset_done": "Password updated.",
     "reset_no_session": "Open the reset link from your email to set a new password.",
     "register_done": "Account created. Check your inbox to confirm your email, then log in.",
-    "register_done_session": "Account created. Welcome!",
+    "register_done_session": "Account created.",
     "login_done": "Logged in.",
     "logout_done": "Logged out.",
     "back_to_login": "Back to log in",
@@ -1500,7 +1500,7 @@
     "open_teams": "Teams looking for members",
     "no_open_teams": "No open teams right now.",
     "ask_code": "Ask the leader for the invite code.",
-    "solo_hint": "Competing alone? Create a team of size 1.",
+    "solo_hint": "To compete alone, create a team with a size of 1.",
     "errors": {
       "already_in_team": "You are already on a team.",
       "name_length": "Team name must be 2–60 characters.",
@@ -1563,9 +1563,9 @@
     "no_scenario": "No public-weather scenario in this phase. Submit an agent package instead.",
     "all_scenarios": "All scenarios of the phase",
     "agent_hints": [
-      "Changed only my_strategy.py? Upload that single file; the platform completes the package with the starter kit's standard files.",
-      "Using a language model? Drop the whole agent folder: its .env (your API keys, never shown to anyone) and requirements.txt (installed before the clock starts) come along.",
-      "Written your own agent from scratch? A .zip with minimal_agent.py, agent.py or main.py at its root, speaking participant-agent-protocol-v1/v2 on stdin/stdout.",
+      "If you changed only my_strategy.py, upload that single file; the platform completes the package with the kit's standard files.",
+      "If you call a large model, drag the whole agent folder in: include .env (your API key, never shown to anyone) and requirements.txt (installed before the clock starts).",
+      "For a fully self-written agent: a .zip with minimal_agent.py, agent.py or main.py at the root, speaking participant-agent-protocol-v1/v2 over stdin/stdout.",
       "Limits: 20 MB per upload, 2,000 files, 50 MB uncompressed, no symlinks. Caches, scratch/ and run_output/ are left out automatically."
     ],
     "results_public_only": "Only scenarios with public weather are listed — the scorer needs the full weather to re-check what you produced locally.",
@@ -1730,7 +1730,7 @@
     "kit": "Starter kit (zip)",
     "kit_desc": "agent/ (minimal agent, optional LLM via .env), challenge/ (workflow, scorer, preview, simulators, replay), scenarios/dev-reference, local_runner.py, score_decisions.py, make_scenario.py, pack_agent.py, sac_submit.py, SKILL.md.",
     "reference": "Reference implementation (GitHub)",
-    "reference_desc": "A complete, runnable example strategy, reference_strategy.py: published snapshot data and the standard library only — copy it over my_strategy.py and it runs. It measures an exact tie with the greedy baseline. Read it, then beat it.",
+    "reference_desc": "A complete, runnable example strategy, reference_strategy.py: public snapshot fields and the standard library only — copy it to my_strategy.py and it runs. It matches the greedy baseline; use it as a starting point.",
     "skill": "SKILL.md",
     "skill_desc": "One-file instructions an AI coding agent can follow to build, test and submit.",
     "scenarios": "Scenarios",

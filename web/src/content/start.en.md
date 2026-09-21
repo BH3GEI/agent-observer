@@ -28,7 +28,7 @@ Open the folder and double-click the file for your machine:
 
 After about fifteen seconds a page opens in your browser: that is the baseline agent's replay over 180 observing nights. The last block in the terminal is the score — the baseline lands around **12287**, and `termination_reason` should read `survey_complete`.
 
-> **Want a faster first look?** Replace `run_baseline` with `run_demo_week` in the filename: a seven-night demo that finishes in about two seconds, with a replay short enough to read night by night.
+> **For a faster first look**, replace `run_baseline` with `run_demo_week` in the filename: a seven-night demo that finishes in about two seconds, with a replay short enough to read night by night.
 
 ## Step 4 · Change one function
 

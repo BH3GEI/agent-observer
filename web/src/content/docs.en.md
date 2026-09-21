@@ -17,7 +17,7 @@ Sponsor API credits are handed out as redeem codes: once your team is registered
 
 ## 2. Practice versus online
 
-Two arenas, told apart first: **the Playground is for practice** — submit freely, scores land in minutes, the board is informational; **the online competition decides the awards**. The table below is the full difference.
+Two arenas: **the Playground** is for practice — submit freely, scores land in minutes, the board is informational; **the online competition** decides the awards. The table below is the full difference.
 
 | | Practice | Online competition |
 |---|---|---|
@@ -78,7 +78,7 @@ python3 sac_submit.py --phase online --kind agent --file my_agent.zip --wait
 
 ## 5. Scoring (challenge-score-v3)
 
-The one-sentence version: **the more valuable the tile and the better the sky while you expose it, the more you score**; broken promises — REQUIRED tiles left unfinished, requests allowed to expire — cost points. The formulas below are for engineers to reconcile against; the table alone is enough if you skip them.
+In short: **the more valuable the tile and the better the sky while you expose it, the higher the score**; unfinished REQUIRED tiles and expired requests cost points. The formulas are for programs to reconcile against; the table lists every value.
 
 For every completed exposure, each segment (split at slot boundaries, evaluated at its midpoint) contributes
 
@@ -122,7 +122,7 @@ Only completed exposures score. An exposure whose later segment meets closed wea
 
 ## 7. Platform runs and limits
 
-Only teams uploading an **agent package** need this section and the next: these are the hard resource walls of a platform run — glance over them before you pack.
+This section and the next apply only to **agent packages**: these are the resource limits of a platform run — check them before packing.
 
 | Item | Value |
 |---|---|

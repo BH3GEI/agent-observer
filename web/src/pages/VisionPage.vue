@@ -134,7 +134,7 @@ const kickerText = (kicker: string) => kicker.replace(/^\d+ \/ /, '')
       </section>
 
       <div class="reveal paper-sheet mt-16 p-8 text-center md:p-14">
-        <p class="text-2xl font-semibold tracking-[-.045em] text-[#0a0a0b] md:text-4xl">{{ pick('Ready to build the next observer?', '准备好构建下一代观测员了吗？') }}</p>
+        <p class="text-2xl font-semibold tracking-[-.045em] text-[#0a0a0b] md:text-4xl">{{ pick('Next: build your observer.', '下一步：构建你的观测员。') }}</p>
         <router-link
           v-if="isLoggedIn"
           to="/dashboard"
