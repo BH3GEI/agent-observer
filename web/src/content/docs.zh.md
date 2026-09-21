@@ -2,7 +2,9 @@
 
 ## 1. 概览
 
-平台按 **challenge v3** 合约（`challenge-score-v3`、`participant-agent-protocol-v2`）评测 DESI 式巡天的观测智能体。一个场景是一个目录：`config/` 下六个配置文件，`outputs/reference/` 下的参考数据（基于真实太阳历的 900 秒时隙日历；含 REQUIRED / FLEXIBLE 两类、只在时间窗内可用的天区与目标目录；带隐藏方向性事件的天气；每日修订、带不确定性的预报；临时观测请求；隐藏的仪器故障与 per-tile 异常标签）。智能体把场景变成 `decisions.csv`（异常上报是其中的 `report_*` 动作行），冻结的评分器把它变成 `score_report.json`。异常机制按场景开关（由 `score_config.json` 中的异常小节决定）：正式比赛场景与入门包的 `finals-preview` 启用，全部练习场景保持赛初合约逐字节不变（快照 `decision-snapshot-v2`，不接受上报）。
+你要构建的，是一个替天文台值夜班的程序。夜晚被切成 900 秒一格的时隙；每一格，你的智能体看一眼当前天况和一串候选天区，决定观测哪一块天，或者等一等。跑完一整场，它会留下一张按时隙排列的决策清单（`decisions.csv`）；一个冻结不变的评分器读这张清单，产出成绩单（`score_report.json`）。
+
+一个场景就是一道题，形式是一个文件夹：`config/` 下六个配置文件写明这一局的全部规则；`outputs/reference/` 下是参考数据——按真实太阳历生成的时隙日历，分 REQUIRED / FLEXIBLE 两类、各有可用时间窗的天区与目标目录，逐时隙的天气与影响特定天区的方向性干扰事件，每日修订、带不确定性的预报，以及中途插进来的临时观测请求。练习场景的天气全部公开；比赛场景把天气藏起来，并启用异常机制——隐藏的仪器故障与逐天区异常标签，`decisions.csv` 里的 `report_*` 行就是对它们的上报（开关写在各场景 `score_config.json` 的异常小节；入门包的 `finals-preview` 场景也启用，便于本地演练）。全部练习场景保持赛初合约逐字节不变（快照 `decision-snapshot-v2`，不接受上报）。这套合约的正式名字是 **challenge v3**（`challenge-score-v3`、`participant-agent-protocol-v2`）。
 
 获得分数有两条路径：
 
@@ -14,6 +16,8 @@
 赞助商 API 额度以兑换码形式发放：队伍注册后在控制台领取，每个服务商一个。平台运行允许联网，智能体可以在决策时调用模型 API；把密钥写进程序包的 `.env` 即可。
 
 ## 2. Playground与线上比赛
+
+先分清两个赛场：**Playground 用来练手**——随便交、马上出分、名次只供参考；**线上比赛定名次**。下表是全部差别。
 
 | | Playground | 线上比赛 |
 |---|---|---|
@@ -57,6 +61,8 @@ python3 fetch_scenario.py --list && python3 fetch_scenario.py dev-fortnight   # 
 
 ## 4. 提交
 
+做出东西之后怎么交卷：网页上拖文件就行；喜欢命令行的用脚本。
+
 ### 网站
 
 控制台 → 提交。选择阶段、提交类型、场景（仅结果文件，且仅天气公开的场景）与文件。页面显示场景的全局时钟以及队伍今日剩余次数。每次提交都有独立页面：得分分解、完成情况、请求、等待秒数、终止原因、智能体运行面板（已提交动作、已用时钟、`agent.log`、`workflow_result.json`）、交互式决策回放、已观测天图、动作时间线，以及可下载的 `score_report.json` / `decisions.csv`。
@@ -71,6 +77,8 @@ python3 sac_submit.py --phase online --kind agent --file my_agent.zip --wait
 `sac_submit.py` 读取 `SAC_URL`、`SAC_KEY`、`SAC_EMAIL`、`SAC_PASSWORD`（见「资源」页），`--wait` 轮询直到评测结束。
 
 ## 5. 评分（challenge-score-v3）
+
+一句话版本：**天区本身越值钱、拍它的时候天况越好，得分越高**；答应了的事没做到——REQUIRED 天区没拍完、临时请求超了期——要扣分。下面的公式是给写程序的人对账用的；不想读公式，看表格就够。
 
 对每次完成的曝光，各分段（按时隙边界切分，取中点）贡献：
 
@@ -114,6 +122,8 @@ bonus      = program == band 时 base · {DARK: 0.25, BRIGHT: 0.15, BACKUP: 0.08
 
 ## 7. 平台运行与限制
 
+只有上传**智能体程序包**的队伍需要读本节和下一节：这是平台替你跑程序时的硬性资源边界，打包前对一眼。
+
 | 项目 | 取值 |
 |---|---|
 | 解释器 | Python 3.12，`python -B <entry>`，工作目录为程序包目录 |
@@ -130,7 +140,7 @@ bonus      = program == band 时 base · {DARK: 0.25, BRIGHT: 0.15, BACKUP: 0.08
 
 ## 8. 参赛协议（participant-agent-protocol-v2；练习场景仍为 v1）
 
-（本页底部有可交互的协议消息演示。）
+平台和你的程序之间是一问一答的 JSON 对话：每个时隙，平台发来「现在的天况和候选天区」，你的程序回一句「拍这个」或「等待」。下面是每条消息的精确格式。（本页底部有可交互的协议消息演示。）
 
 平台在每个场景上启动一次你的入口脚本（程序包根目录或唯一顶层文件夹中的 `minimal_agent.py`、`agent.py` 或 `main.py`，按此顺序取第一个存在的），并在整个运行期间保持进程存活。消息通过标准输入输出传递，每行一个 JSON 对象；标准输出不要打印其他内容。标准错误被记录为 `agent.log`，可在提交页下载。每条消息都带 `protocol_version`、`message_type`，除 `initialize` 外还带 `decision_sequence`。
 
