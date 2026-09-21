@@ -147,6 +147,7 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect(); if (champ
     <div class="sky-console-head">
       <span class="sky-live-title flex items-center gap-3"><span class="live-dot" :class="{ 'is-paused': paused || reduced }"></span><span>{{ t('hero.console.title') }}<b v-if="champion" class="sky-champ"><UserAvatar :name="champion" :github="championGithub" />@{{ champion }}</b></span></span>
       <span class="flex items-center gap-4">
+        <span v-if="replayMeta.source === 'champion'" class="sky-topscore">{{ tf('hero.console.top_score', { score: num(replayTotals.finalScore, 0) }) }}</span>
         <span class="text-white/60">{{ paused ? t('hero.console.paused') : tf('hero.console.replay_note', { nights: replayTotals.nights, actions: replayActions.length }) }}</span>
         <button type="button" class="replay-toggle" :aria-pressed="paused" :disabled="reduced" @click="clock.setPaused(!paused)">{{ paused ? t('hero.console.resume') : t('hero.console.pause') }}</button>
       </span>
@@ -320,4 +321,5 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect(); if (champ
 .sky-console-head .sky-live-title { font-size: 1.04rem; font-weight: 650; letter-spacing: .01em; color: #fff; text-transform: none; }
 .sky-console-head .sky-champ { display: inline-flex; align-items: center; gap: .4rem; color: #ffd27a; font-weight: 700; margin-left: .55rem; }
 .sky-champ :deep(.user-avatar) { width: 22px; height: 22px; font-size: .62rem; }
+.sky-topscore { color: #ffd27a; }
 </style>

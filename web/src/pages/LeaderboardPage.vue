@@ -64,7 +64,7 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
           <dl class="kv mt-8">
             <dt>{{ t('common.status') }}</dt>
             <dd class="flex flex-wrap gap-2"><StatusPill :status="phase.status" ns="leaderboard.status" /><span class="pill" :class="phase.leaderboard_mode">{{ phase.leaderboard_mode }}</span></dd>
-            <dt>{{ t('common.utc') }}</dt><dd class="m text-sm">{{ fmtUtc(phase.starts_at) }} → {{ fmtUtc(phase.ends_at) }}</dd>
+            <template v-if="phase.starts_at || phase.ends_at"><dt>{{ t('common.utc') }}</dt><dd class="m text-sm">{{ fmtUtc(phase.starts_at) }} → {{ fmtUtc(phase.ends_at) }}</dd></template>
             <dt>{{ t('leaderboard.scenarios') }}</dt>
             <dd class="flex flex-wrap gap-2"><span v-for="s in phase.scenarios" :key="s.id" class="pill" :title="s.name">{{ s.slug }} · {{ s.n_nights ?? '?' }}n · {{ s.global_wallclock_seconds ?? '?' }}s<template v-if="!s.weather_public"> · {{ t('common.hidden') }}</template></span><span v-if="!phase.scenarios.length" class="text3">—</span></dd>
             <dt>{{ t('common.updated') }}</dt><dd class="m text-sm">{{ updatedAt ? fmtUtc(updatedAt.toISOString(), { seconds: true }) : '—' }} UTC</dd>
@@ -89,7 +89,7 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
                 <thead><tr><th>{{ t('leaderboard.rank') }}</th><th>{{ t('leaderboard.team') }}</th><th class="r">{{ t('leaderboard.score') }}</th><th class="r">{{ t('leaderboard.base_science') }}</th><th class="r">{{ t('leaderboard.bonus') }}</th><th class="r">{{ t('leaderboard.requests') }}</th><th v-if="showCoverage" class="r">{{ t('leaderboard.coverage') }}</th><th class="r">{{ t('leaderboard.penalties') }}</th><th class="r">{{ t('leaderboard.tiles') }}</th><th class="r">{{ t('leaderboard.required_missing') }}</th><th class="r">{{ t('leaderboard.submissions') }}</th><th>{{ t('leaderboard.kind') }}</th></tr></thead>
                 <tbody>
                   <tr v-for="row in entries" :key="row.team_id" data-testid="lb-row" :class="{ me: team && team.id === row.team_id }">
-                    <td class="m text-[#315efb]">{{ row.rank }}</td>
+                    <td class="m rank-cell" :class="row.rank <= 3 ? `rank-${row.rank}` : ''">{{ row.rank }}</td>
                     <td>{{ row.team_name }}<span v-if="team && team.id === row.team_id" class="label accent ml-2">{{ t('leaderboard.me') }}</span></td>
                     <td class="r m" :class="{ 'text-[#ff6b6b]': row.total_score < 0 }">{{ num(row.total_score) }}</td>
                     <td class="r m">{{ num(row.base_science) }}</td>

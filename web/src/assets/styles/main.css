@@ -988,3 +988,9 @@ i.user-avatar { vertical-align: middle; }
 .org-card { padding: 2.2rem 2rem 2rem; }
 .org-card .org-logo { height: 3.4rem; width: auto; max-width: 84%; object-fit: contain; object-position: left center; margin-top: 1.05rem; }
 .org-card h3 { font-size: 1.3rem; }
+
+/* Podium colors wherever a rank number appears */
+.rank-cell { color: #315efb; }
+.rank-1 { color: #ffd27a !important; text-shadow: 0 0 10px rgba(255,210,122,.5); }
+.rank-2 { color: #cdd8ea !important; }
+.rank-3 { color: #e2a878 !important; }

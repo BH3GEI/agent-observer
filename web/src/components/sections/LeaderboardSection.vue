@@ -98,7 +98,7 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
                 <thead><tr><th>#</th><th>{{ t('leaderboard.team') }}</th><th class="r">{{ t('leaderboard.score') }}</th><th class="r">{{ t('leaderboard.base_science') }}</th><th class="r">{{ t('leaderboard.bonus') }}</th><th class="r">{{ t('leaderboard.requests') }}</th><th class="r">{{ t('leaderboard.penalties') }}</th><th class="r">{{ t('leaderboard.tiles') }}</th><th class="r">{{ t('leaderboard.required_missing') }}</th><th class="r">{{ t('leaderboard.submissions') }}</th></tr></thead>
                 <tbody>
                   <tr v-for="row in top" :key="row.team_id" data-testid="lb-row" class="lb-row" :class="{ me: team && team.id === row.team_id }">
-                    <td class="m text-[#315efb]">{{ row.rank }}</td>
+                    <td class="m rank-cell" :class="row.rank <= 3 ? `rank-${row.rank}` : ''">{{ row.rank }}</td>
                     <td class="font-medium text-text-primary"><span class="team-cell"><i class="team-avatar" :style="`--team-hue:${teamAvatar(row.team_name).hue}`">{{ teamAvatar(row.team_name).initial }}</i>{{ row.team_name }}</span></td>
                     <td class="r m" :class="{ 'text-[#ff6b6b]': row.total_score < 0 }">{{ num(row.total_score) }}</td>
                     <td class="r m">{{ num(row.base_science) }}</td>

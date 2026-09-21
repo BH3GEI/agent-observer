@@ -91,7 +91,7 @@ onMounted(async () => {
                 <tr v-for="p in phases" :key="p.id">
                   <td>{{ pick(p.name_en, p.name_zh) }}</td>
                   <td><StatusPill :status="p.status" ns="leaderboard.status" /></td>
-                  <td class="m xs whitespace-nowrap">{{ fmtUtc(p.starts_at, { short: true }) }} → {{ fmtUtc(p.ends_at, { short: true }) }}</td>
+                  <td class="m xs whitespace-nowrap"><template v-if="p.starts_at || p.ends_at">{{ fmtUtc(p.starts_at, { short: true }) }} → {{ fmtUtc(p.ends_at, { short: true }) }}</template><template v-else>—</template></td>
                   <td class="r m">{{ p.daily_limit }}</td>
                   <td class="r m">{{ p.status === 'open' && team ? `${quota[p.slug] ?? 0} / ${p.daily_limit}` : '—' }}</td>
                 </tr>

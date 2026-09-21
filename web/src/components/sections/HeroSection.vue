@@ -25,6 +25,19 @@ const parts = computed(() => [
   { v: pad(countdown.value.seconds), l: t('phase_clock.seconds') },
 ])
 // Milestones of the event, shown as a horizontal timeline under the phase strip.
+// The next upcoming stage carries a D-day chip; a stage whose window contains today reads LIVE.
+const STAGE_WINDOWS: [string, string][] = [['2026-10-01', '2026-10-04'], ['2026-10-05', '2026-10-07'], ['2026-10-17', '2026-10-17']]
+function stageChip(i: number): string {
+  const [from, to] = STAGE_WINDOWS[i] ?? ['', '']
+  if (!from) return ''
+  const day = 86_400_000
+  const now = Date.now()
+  if (now >= Date.parse(from) && now < Date.parse(to) + day) return 'LIVE'
+  const ahead = Math.ceil((Date.parse(from) - now) / day)
+  if (ahead <= 0) return ''
+  const firstUpcoming = STAGE_WINDOWS.findIndex(([, end]) => now < Date.parse(end) + day)
+  return i === firstUpcoming ? `D-${ahead}` : ''
+}
 type Stage = { label: string; date: string; note?: string }
 const stages = computed(() => t('hero.pipeline') as Stage[])
 </script>
@@ -92,7 +105,7 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
             <li v-for="(stage, i) in stages" :key="stage.label">
               <span class="hero-timeline-step">0{{ i + 1 }}</span>
               <span class="hero-timeline-label">{{ stage.label }}</span>
-              <span class="hero-timeline-date">{{ stage.date }}</span>
+              <span class="hero-timeline-date">{{ stage.date }}<i v-if="stageChip(i)" class="hero-dday" :class="{ live: stageChip(i) === 'LIVE' }">{{ stageChip(i) }}</i></span>
               <span v-if="stage.note" class="hero-timeline-note">{{ stage.note }}</span>
             </li>
           </ol>
@@ -238,6 +251,9 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
   background: linear-gradient(90deg, rgba(120,166,255,.55), rgba(255,255,255,.14));
 }
 .hero-timeline-step { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .74rem; letter-spacing: .16em; color: #8fb4ff; }
+.hero-dday { margin-left: .5rem; padding: .12rem .45rem; border: 1px solid rgba(245,185,66,.55); font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .62rem; font-style: normal; letter-spacing: .12em; color: #ffd27a; animation: dday-breathe 2.6s ease-in-out infinite; }
+.hero-dday.live { border-color: rgba(94,234,161,.6); color: #7ef0b0; }
+@keyframes dday-breathe { 0%, 100% { box-shadow: 0 0 0 rgba(245,185,66,0); } 50% { box-shadow: 0 0 12px rgba(245,185,66,.35); } }
 .hero-timeline-label { font-size: 1.18rem; font-weight: 650; letter-spacing: -.015em; color: #ffffff; }
 .hero-timeline-date { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .76rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.68); }
 .hero-timeline-note { display: block; margin-top: .15rem; max-width: 16rem; font-size: .8rem; line-height: 1.55; color: rgba(226,234,255,.92); }

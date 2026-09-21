@@ -29,7 +29,7 @@ const tooltip = (e: LeaderboardEntry) => tf('leaderboard.chart.tooltip', { score
     </div>
     <ol class="score-bars-list">
       <li v-for="row in top" :key="row.team_id" class="score-bar-row" :class="{ me: isMe(row) }" data-testid="score-bar">
-        <span class="rank">{{ row.rank }}</span>
+        <span class="rank" :class="row.rank <= 3 ? `rank-${row.rank}` : ''">{{ row.rank }}</span>
         <span class="name"><i class="team-avatar" :style="`--team-hue:${teamAvatar(row.team_name).hue}`">{{ teamAvatar(row.team_name).initial }}</i><span class="truncate">{{ row.team_name }}</span><span v-if="isMe(row)" class="tag">{{ t('leaderboard.chart.your_team') }}</span></span>
         <span class="track" :title="tooltip(row)">
           <i class="base" :style="{ width: widthPct(Math.max(0, row.base_science)) }"></i>
@@ -45,7 +45,7 @@ const tooltip = (e: LeaderboardEntry) => tf('leaderboard.chart.tooltip', { score
       <span class="label">{{ t('leaderboard.chart.your_position') }}</span>
       <ol class="score-bars-list">
         <li class="score-bar-row me" data-testid="score-bar-me">
-          <span class="rank">{{ outside.rank }}</span>
+          <span class="rank" :class="outside.rank <= 3 ? `rank-${outside.rank}` : ''">{{ outside.rank }}</span>
           <span class="name"><i class="team-avatar" :style="`--team-hue:${teamAvatar(outside.team_name).hue}`">{{ teamAvatar(outside.team_name).initial }}</i><span class="truncate">{{ outside.team_name }}</span><span class="tag">{{ t('leaderboard.chart.your_team') }}</span></span>
           <span class="track" :title="tooltip(outside)">
             <i class="base" :style="{ width: widthPct(Math.max(0, outside.base_science)) }"></i>

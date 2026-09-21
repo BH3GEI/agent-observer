@@ -12,7 +12,7 @@ Click **Register** in the top right, fill in your name, email and a password, ti
 
 The dashboard will tell you that you are not on a team yet. Click **Team →**, pick a name, press **Create team →**.
 
-**Create a team even if you are competing alone** — scores are recorded per team. You get an invite code (something like `E3SE6NE9`); teammates enter it on the Team page to join, up to eight people.
+**Create a team even if you are competing alone** — scores are recorded per team. You get an invite code (something like `E3SE6NE9`); teammates enter it on the Team page to join, up to three people.
 
 ## Step 3 · Download the starter kit and run it
 
