@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { assetUrl } from '../../composables/api'
 import { useAuth } from '../../stores/auth'
 import { useRegistrationOpen } from '../../composables/useRegistrationOpen'
 import { usePhaseClock } from '../../composables/usePhaseClock'
 import { fmtUtc } from '../../lib/format'
+import { meteorShower } from '../../lib/eggs'
 import SkyConsole from './SkyConsole.vue'
 import HeroGalaxy from './HeroGalaxy.vue'
 
@@ -38,6 +39,19 @@ function stageChip(i: number): string {
   const firstUpcoming = STAGE_WINDOWS.findIndex(([, end]) => now < Date.parse(end) + day)
   return i === firstUpcoming ? `D-${ahead}` : ''
 }
+// Seven quick taps on the backdrop (not on links or the console) pour a meteor shower.
+let taps: number[] = []
+function onHeroTap(e: MouseEvent) {
+  const el = e.target as HTMLElement
+  if (!el.closest('.hero-section') || el.closest('a, button, input, select, textarea, .sky-console')) return
+  const now = Date.now()
+  taps = taps.filter(ts => now - ts < 6000)
+  taps.push(now)
+  if (taps.length >= 7) { taps = []; meteorShower(pick('☄️ Comet catalogued', '☄️ 彗星已记入目录')) }
+}
+onMounted(() => document.addEventListener('click', onHeroTap))
+onBeforeUnmount(() => document.removeEventListener('click', onHeroTap))
+
 type Stage = { label: string; date: string; note?: string }
 const stages = computed(() => t('hero.pipeline') as Stage[])
 </script>

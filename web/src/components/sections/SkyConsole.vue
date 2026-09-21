@@ -16,13 +16,14 @@ const champion = ref('')
 const championGithub = ref('')
 const progressUI = ref(0)
 const scrubbing = ref(false)
+const lstOpen = ref(false)
 const seekValue = computed(() => Math.round(progressUI.value * 1000))
 function onSeek(e: Event) {
   const v = (e.target as HTMLInputElement).valueAsNumber / 1000
   progressUI.value = v
   clock.seek(v)
 }
-const hud = ref({ slot: '', night: '', date: '', utc: '', seeing: 0, transp: 0, sky: 0, eff: 0, open: true, score: 0, completed: 0, nightNo: 1 })
+const hud = ref({ slot: '', night: '', date: '', utc: '', lst: '', seeing: 0, transp: 0, sky: 0, eff: 0, open: true, score: 0, completed: 0, nightNo: 1 })
 /** What the replay is doing right now, so viewers who do not know the task can follow along. */
 const beat = ref<{ key: string; region: string; nightNo: number }>({ key: 'idle', region: '', nightNo: 1 })
 const paused = computed(() => clock.state.paused)
@@ -85,8 +86,10 @@ function render() {
   shownScore = reduced.value ? score : shownScore + (score - shownScore) * 0.18
   const slot = replaySlots[slotIndex]!
   const stamp = fmtUtc(new Date(nowSec * 1000).toISOString(), { seconds: true, short: true })
+  const lstHours = lstDeg(replaySite.lon, nowSec) / 15
+  const lst = `${String(Math.floor(lstHours)).padStart(2, '0')}:${String(Math.floor((lstHours % 1) * 60)).padStart(2, '0')}`
   const nightNo = nightIds.value.indexOf(slot.night) + 1
-  hud.value = { slot: slot.slot, night: slot.night, date: stamp.slice(0, 5), utc: stamp.slice(6), seeing: slot.seeing, transp: slot.transp, sky: slot.sky, eff: slot.eff, open: slot.open, score: shownScore, completed, nightNo }
+  hud.value = { slot: slot.slot, night: slot.night, date: stamp.slice(0, 5), utc: stamp.slice(6), lst, seeing: slot.seeing, transp: slot.transp, sky: slot.sky, eff: slot.eff, open: slot.open, score: shownScore, completed, nightNo }
   beat.value = beatFor(actionIndex, fastForward, slot.open, nightNo)
   trackMeridian(nowSec)
   if (canvas.value) drawSkyMap(canvas.value, replayTiles, replaySite, { nowSec, observed, pulseSeconds: reduced.value ? 0 : PULSE })
@@ -158,6 +161,8 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect(); if (champ
     </p>
     <div class="sky-stage">
       <canvas ref="canvas" class="sky-canvas" role="img" :aria-label="t('hero.console.aria')"></canvas>
+      <div class="sky-meridian-hit" :style="{ left: meridianLeft }" aria-hidden="true" @mouseenter="lstOpen = true" @mouseleave="lstOpen = false"></div>
+      <div v-if="lstOpen" class="sky-lst" :style="{ left: meridianLeft }">{{ tf('hero.console.lst', { lst: hud.lst }) }}</div>
       <div v-if="tourOpen" class="sky-tour" role="dialog" aria-modal="false" :aria-label="t('hero.console.tour_title')">
         <div
           class="sky-tour-spot"
@@ -322,4 +327,6 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect(); if (champ
 .sky-console-head .sky-champ { display: inline-flex; align-items: center; gap: .4rem; color: #ffd27a; font-weight: 700; margin-left: .55rem; }
 .sky-champ :deep(.user-avatar) { width: 22px; height: 22px; font-size: .62rem; }
 .sky-topscore { color: #ffd27a; }
+.sky-meridian-hit { position: absolute; top: 0; bottom: 0; width: 14px; transform: translateX(-50%); cursor: help; z-index: 3; }
+.sky-lst { position: absolute; top: 10px; transform: translateX(-50%); z-index: 6; white-space: nowrap; padding: .32rem .6rem; border: 1px solid rgba(148,163,255,.45); background: rgba(5,9,20,.94); font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .62rem; letter-spacing: .05em; color: #cfe0ff; pointer-events: none; }
 </style>

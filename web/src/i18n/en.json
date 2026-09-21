@@ -228,7 +228,8 @@
       },
       "weather_help": "Seeing: how blurred stars are, lower is sharper (arcseconds). Transparency: how clear the atmosphere is, higher is better. Sky: how bright the night sky itself is. Instrument: how much the equipment is delivering right now.",
       "seek": "Drag the replay position",
-      "top_score": "Champion's run: {score} — beat it"
+      "top_score": "Champion's run: {score} — beat it",
+      "lst": "Sidereal time {lst} — this blue line is the sky meridian the telescope faces"
     },
     "pipeline_intro": "Milestones"
   },

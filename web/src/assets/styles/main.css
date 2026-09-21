@@ -998,3 +998,18 @@ i.user-avatar { vertical-align: middle; }
 /* Board avatars sit tighter than the wall ones */
 .score-bar-row .user-avatar { width: 22px; height: 22px; font-size: .58rem; }
 .team-cell .user-avatar { width: 24px; height: 24px; font-size: .6rem; margin-right: .5rem; }
+
+/* Easter eggs: meteor shower, comet toast, full-moon badge, champion star, 404 object card */
+.egg-meteor-canvas { position: fixed; inset: 0; z-index: 90; pointer-events: none; }
+.egg-comet-toast { position: fixed; bottom: 3.4rem; left: 50%; transform: translateX(-50%); z-index: 95; padding: .55rem 1rem; border: 1px solid rgba(148,163,255,.5); background: rgba(6,10,22,.96); color: #e8eeff; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .74rem; letter-spacing: .08em; animation: egg-toast-in .3s ease-out; }
+@keyframes egg-toast-in { from { opacity: 0; transform: translateX(-50%) translateY(8px); } }
+.moon-chip { display: inline-flex; height: 2.5rem; width: 2rem; align-items: center; justify-content: center; font-size: 1.05rem; cursor: help; animation: moon-glow 3.2s ease-in-out infinite; }
+@keyframes moon-glow { 0%, 100% { filter: drop-shadow(0 0 4px rgba(255,232,170,.55)); } 50% { filter: drop-shadow(0 0 11px rgba(255,232,170,.95)); } }
+.champ-star { display: inline-block; margin-right: .3rem; color: #ffd27a; font-style: normal; animation: champ-twinkle 1.9s ease-in-out infinite; }
+@keyframes champ-twinkle { 0%, 100% { opacity: .35; transform: scale(.85); } 50% { opacity: 1; transform: scale(1.12); text-shadow: 0 0 9px rgba(255,210,122,.85); } }
+.egg-object-card { display: flex; gap: 1.4rem; align-items: center; max-width: 580px; border: 1px solid rgba(158,173,255,.28); background: linear-gradient(180deg, rgba(28,36,66,.5), rgba(10,14,28,.92)); padding: 1.6rem 1.8rem; }
+.egg-object-disc { flex: none; width: 84px; height: 84px; border-radius: 999px; background: radial-gradient(circle at 34% 30%, hsl(var(--obj-hue) 85% 82% / .95), hsl(var(--obj-hue) 70% 55% / .55) 45%, rgba(6,10,22,.9) 78%); box-shadow: 0 0 34px hsl(var(--obj-hue) 80% 60% / .4); }
+.egg-object-m { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .7rem; letter-spacing: .18em; color: #8fb4ff; }
+.egg-object-card h2 { margin-top: .3rem; font-size: 1.35rem; font-weight: 650; letter-spacing: -.02em; color: #f5f7ff; }
+.egg-object-card p { margin-top: .45rem; font-size: .9rem; line-height: 1.7; color: #c7d2ea; }
+@media (prefers-reduced-motion: reduce) { .moon-chip, .champ-star { animation: none; } }
