@@ -29,7 +29,7 @@ onMounted(async () => {
   const profile = await refreshMe()
   if (profile) form.value = {
     name: profile.name ?? '', github: profile.github ?? '', affiliation: profile.affiliation ?? '', role: profile.role ?? '',
-    seeking: profile.seeking ?? '', seeking_count: Number(profile.seeking_count) || 1, locale: profile.locale === 'en' ? 'en' : profile.locale === 'zh' ? 'zh' : locale.value,
+    seeking: profile.seeking ?? '', seeking_count: Number(profile.seeking_count) || 1, locale: (['zh', 'en', 'ja', 'fr'] as Locale[]).includes(profile.locale as Locale) ? profile.locale as Locale : locale.value,
     astro_level: Number(profile.astro_level ?? 0), ai_level: Number(profile.ai_level ?? 0),
     city: profile.city ?? '', contact: profile.contact ?? '', blurb: profile.blurb ?? '',
     show_on_wall: Boolean(profile.show_on_wall),
@@ -95,7 +95,7 @@ async function changePassword() {
               <select v-model.number="form.ai_level" data-testid="profile-ai"><option v-for="(n, i) in aiTiers" :key="i" :value="i">{{ n }}</option></select>
             </label>
             <label class="field"><span>{{ t('profile.language') }}</span>
-              <select v-model="form.locale"><option value="zh">中文</option><option value="en">English</option></select>
+              <select v-model="form.locale"><option value="zh">中文</option><option value="en">English</option><option value="ja">日本語</option><option value="fr">Français</option></select>
             </label>
           </div>
           <label class="field"><span>{{ t('auth.blurb') }}</span><input v-model="form.blurb" type="text" maxlength="160" :placeholder="t('auth.blurb_ph')"></label>

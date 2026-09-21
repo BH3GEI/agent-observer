@@ -72,7 +72,7 @@ export interface PhaseCopy {
  */
 export function phaseCopy(
   phase: Pick<Phase, 'description_en' | 'description_zh' | 'allow_results' | 'allow_agents' | 'daily_limit' | 'leaderboard_mode'>,
-  locale: 'en' | 'zh',
+  locale: string,
 ): PhaseCopy {
   const description = (locale === 'zh' ? phase.description_zh : phase.description_en)
     ?? (locale === 'zh' ? phase.description_en : phase.description_zh)

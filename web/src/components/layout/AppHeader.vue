@@ -9,13 +9,14 @@ import { usePhaseClock } from '../../composables/usePhaseClock'
 import { isFullMoonToday } from '../../lib/eggs'
 import { computed } from 'vue'
 
-const { t, tf, pick, toggleLocale } = useI18n()
+const { t, tf, pick, toggleLocale, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const { isLoggedIn, isAdmin, signOut } = useAuth()
 const { registrationOpen } = useRegistrationOpen()
 const flash = useFlash()
 const mobileOpen = ref(false)
+const nextLocaleLabel = computed(() => ({ zh: 'EN', en: '日本語', ja: 'FR', fr: '中文' } as const)[locale.value])
 const fullMoon = isFullMoonToday()
 const { current, next, usingFallback, countdown } = usePhaseClock()
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -108,7 +109,7 @@ async function logout() {
         <router-link v-if="phasePill" to="/leaderboard" class="pill header-phase-pill" :class="phasePill.cls" data-testid="phase-pill">{{ phasePill.text }}</router-link>
         <span v-if="fullMoon" class="moon-chip" :title="pick('Full moon tonight.', '今晚满月。')">🌕</span>
         <button data-testid="lang-toggle" type="button" @click="toggleLocale" class="inline-flex h-10 min-w-12 items-center justify-center border border-white/25 px-2 font-mono text-xs uppercase text-white/55 transition-colors hover:border-white/60 hover:text-white">
-          {{ pick('中文', 'EN') }}
+          {{ nextLocaleLabel }}
         </button>
         <button v-if="isLoggedIn" data-testid="nav-logout" type="button" @click="logout" class="ml-1 hidden h-10 items-center border border-white/35 px-4 font-mono text-xs font-semibold uppercase tracking-widest text-[#f5f5f5] transition-colors hover:border-[#315efb] hover:text-[#78a6ff] md:inline-flex">{{ t('nav.logout') }}</button>
         <router-link v-else-if="registrationOpen" data-testid="nav-register" to="/register" class="cosmos-register-link ml-1 hidden h-10 items-center border px-4 font-mono text-xs font-semibold uppercase tracking-widest md:inline-flex">{{ t('nav.register') }}</router-link>

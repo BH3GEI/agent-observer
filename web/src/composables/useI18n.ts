@@ -1,9 +1,11 @@
 import { ref, provide, inject, watch, type InjectionKey, type Ref } from 'vue'
 import en from '../i18n/en'
 import zh from '../i18n/zh'
+import ja from '../i18n/ja.json'
+import fr from '../i18n/fr.json'
 
 type Messages = Record<string, any>
-export type Locale = 'en' | 'zh'
+export type Locale = 'en' | 'zh' | 'ja' | 'fr'
 
 export interface I18n {
   locale: Ref<Locale>
@@ -15,18 +17,31 @@ export interface I18n {
 }
 
 const I18N_KEY: InjectionKey<I18n> = Symbol('i18n')
-const messages: Record<Locale, Messages> = { en, zh }
+const messages: Record<Locale, Messages> = { en, zh, ja, fr }
 const STORAGE_KEY = 'agent-observer-locale'
+
+export const LOCALES: Locale[] = ['zh', 'en', 'ja', 'fr']
+export const LOCALE_NAMES: Record<Locale, string> = { zh: '中文', en: 'EN', ja: '日本語', fr: 'FR' }
+
+/** Lookup order per locale: ja/fr carry the first-visit surface and fall back to English, then Chinese. */
+const CHAIN: Record<Locale, Locale[]> = {
+  zh: ['zh', 'en'],
+  en: ['en', 'zh'],
+  ja: ['ja', 'en', 'zh'],
+  fr: ['fr', 'en', 'zh'],
+}
+const HTML_LANG: Record<Locale, string> = { zh: 'zh-CN', en: 'en', ja: 'ja', fr: 'fr' }
 
 function lookup(obj: any, path: string): any {
   return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj)
 }
 
 export function translate(locale: Locale, key: string): any {
-  const primary = lookup(messages[locale], key)
-  if (primary !== undefined) return primary
-  const fallback = lookup(messages[locale === 'zh' ? 'en' : 'zh'], key)
-  return fallback !== undefined ? fallback : key
+  for (const step of CHAIN[locale]) {
+    const value = lookup(messages[step], key)
+    if (value !== undefined) return value
+  }
+  return key
 }
 
 export function interpolate(template: unknown, params: Record<string, string | number>): string {
@@ -34,16 +49,22 @@ export function interpolate(template: unknown, params: Record<string, string | n
   return text.replace(/\{(\w+)\}/g, (match, name) => (name in params ? String(params[name]) : match))
 }
 
-/** Same negotiation order as the legacy site: ?lang= → saved preference → browser language → zh. */
+function asLocale(value: unknown): Locale | null {
+  return LOCALES.includes(value as Locale) ? (value as Locale) : null
+}
+
+/** Negotiation order: ?lang= → saved preference → browser language → zh. */
 export function negotiateLocale(): Locale {
   if (typeof window === 'undefined') return 'zh'
-  const query = new URLSearchParams(window.location.search).get('lang')
-  if (query === 'en' || query === 'zh') return query
-  const saved = window.localStorage.getItem(STORAGE_KEY) || window.localStorage.getItem('cosmos-locale')
-  if (saved === 'en' || saved === 'zh') return saved
+  const query = asLocale(new URLSearchParams(window.location.search).get('lang'))
+  if (query) return query
+  const saved = asLocale(window.localStorage.getItem(STORAGE_KEY) || window.localStorage.getItem('cosmos-locale'))
+  if (saved) return saved
   for (const tag of navigator.languages ?? [navigator.language]) {
     const lower = String(tag || '').toLowerCase()
     if (lower.startsWith('zh')) return 'zh'
+    if (lower.startsWith('ja')) return 'ja'
+    if (lower.startsWith('fr')) return 'fr'
     if (lower.startsWith('en')) return 'en'
   }
   return 'zh'
@@ -72,7 +93,7 @@ export function provideI18n(): I18n {
   if (typeof document !== 'undefined') {
     watch(locale, (value) => {
       currentLocale.value = value
-      document.documentElement.lang = value === 'zh' ? 'zh-CN' : 'en'
+      document.documentElement.lang = HTML_LANG[value]
       applyDocumentMeta(currentPage)
       window.localStorage.setItem(STORAGE_KEY, value)
     }, { immediate: true })
@@ -82,7 +103,7 @@ export function provideI18n(): I18n {
   const tf = (key: string, params: Record<string, string | number>) => interpolate(translate(locale.value, key), params)
   const pick = <T>(english: T, chinese: T): T => (locale.value === 'zh' ? chinese : english)
   const setLocale = (value: Locale) => { locale.value = value }
-  const toggleLocale = () => { locale.value = locale.value === 'en' ? 'zh' : 'en' }
+  const toggleLocale = () => { locale.value = LOCALES[(LOCALES.indexOf(locale.value) + 1) % LOCALES.length]! }
 
   const api: I18n = { locale, t, tf, pick, toggleLocale, setLocale }
   provide(I18N_KEY, api)
