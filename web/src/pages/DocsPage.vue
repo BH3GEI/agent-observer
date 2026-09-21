@@ -52,8 +52,8 @@ onUnmounted(() => observer?.disconnect())
           </nav>
         </aside>
         <div class="min-w-0">
-          <ProtocolExplorer />
           <MarkdownArticle :source="source" @toc="toc = $event" />
+          <ProtocolExplorer class="mt-16" />
         </div>
       </div>
     </div></section>

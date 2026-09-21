@@ -4,7 +4,8 @@ import { useI18n } from '../../composables/useI18n'
 import { isSupabaseConfigured, supabase } from '../../lib/supabase'
 import { loadLeaderboard, loadPhases, mainPhase, type LeaderboardEntry, type Phase } from '../../lib/data'
 import { useAuth } from '../../stores/auth'
-import { fmtUtc, num, teamAvatar } from '../../lib/format'
+import { fmtUtc, num } from '../../lib/format'
+import UserAvatar from '../UserAvatar.vue'
 import ScoreBars from '../leaderboard/ScoreBars.vue'
 import SkeletonRows from '../layout/SkeletonRows.vue'
 import CountUp from '../layout/CountUp.vue'
@@ -99,7 +100,7 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
                 <tbody>
                   <tr v-for="row in top" :key="row.team_id" data-testid="lb-row" class="lb-row" :class="{ me: team && team.id === row.team_id }">
                     <td class="m rank-cell" :class="row.rank <= 3 ? `rank-${row.rank}` : ''">{{ row.rank }}</td>
-                    <td class="font-medium text-text-primary"><span class="team-cell"><i class="team-avatar" :style="`--team-hue:${teamAvatar(row.team_name).hue}`">{{ teamAvatar(row.team_name).initial }}</i>{{ row.team_name }}</span></td>
+                    <td class="font-medium text-text-primary"><span class="team-cell"><UserAvatar :name="row.team_name" :github="row.leader_github" />{{ row.team_name }}</span></td>
                     <td class="r m" :class="{ 'text-[#ff6b6b]': row.total_score < 0 }">{{ num(row.total_score) }}</td>
                     <td class="r m">{{ num(row.base_science) }}</td>
                     <td class="r m">{{ num(row.program_bonus) }}</td>

@@ -146,10 +146,10 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
     linear-gradient(0deg, rgba(2,5,12,.92), transparent 38%, transparent 76%, rgba(2,5,12,.7));
 }
 .hero-wash-video {
-  width: 100%; height: 100%; object-fit: contain; object-position: center;
+  width: 100%; height: 100%; object-fit: contain; object-position: right center; object-position: center;
   opacity: .5;
   filter: saturate(1.2) contrast(1.22) brightness(1.12);
-  transform: translate3d(0, var(--parallax-y, 0px), 0) scale(.8);
+  transform: translate3d(0, var(--parallax-y, 0px), 0) scale(.8); transform-origin: right center;
   transition: transform .18s linear;
 }
 .hero-beam {

@@ -228,7 +228,7 @@
       },
       "weather_help": "Seeing: how blurred stars are, lower is sharper (arcseconds). Transparency: how clear the atmosphere is, higher is better. Sky: how bright the night sky itself is. Instrument: how much the equipment is delivering right now.",
       "seek": "Drag the replay position",
-      "top_score": "Champion score {score} — beat it"
+      "top_score": "Champion's run: {score} — beat it"
     },
     "pipeline_intro": "Milestones"
   },
@@ -1169,7 +1169,7 @@
   "leaderboard": {
     "kicker": "Leaderboard",
     "title": "Standings",
-    "intro": "One mission card, weather replay, simulator, and scoring function. Evaluation and live standings are powered by CosmosBench.",
+    "intro": "",
     "refresh": "Refresh",
     "full": "Full board",
     "updated": "Updated",

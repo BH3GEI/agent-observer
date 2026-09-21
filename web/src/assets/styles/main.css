@@ -994,3 +994,7 @@ i.user-avatar { vertical-align: middle; }
 .rank-1 { color: #ffd27a !important; text-shadow: 0 0 10px rgba(255,210,122,.5); }
 .rank-2 { color: #cdd8ea !important; }
 .rank-3 { color: #e2a878 !important; }
+
+/* Board avatars sit tighter than the wall ones */
+.score-bar-row .user-avatar { width: 22px; height: 22px; font-size: .58rem; }
+.team-cell .user-avatar { width: 24px; height: 24px; font-size: .6rem; margin-right: .5rem; }

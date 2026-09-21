@@ -53,7 +53,7 @@ export interface LeaderboardEntry {
   rank: number; team_id: string; team_name: string; team_slug: string; total_score: number; science_score: number
   completion_rate: number; uniformity_score: number
   base_science: number; program_bonus: number; request_reward: number; coverage_bonus: number | null; coverage_evenness: number | null; penalty_total: number; completed_tiles: number | null; required_missing: number | null
-  submission_count: number; best_submission_id: number | null; kind: string | null; scored_at: string | null
+  submission_count: number; best_submission_id: number | null; kind: string | null; scored_at: string | null; leader_github: string | null
 }
 
 export interface PhaseCopy {
@@ -172,6 +172,7 @@ export async function loadLeaderboard(phaseSlug: string | null, limit = 500): Pr
   if (error) throw error
   return ((data ?? []) as any[]).map((row, index) => ({
     rank: Number(row.rank ?? index + 1),
+    leader_github: row.leader_github ? String(row.leader_github) : null,
     team_id: String(row.team_id),
     team_name: String(row.team_name ?? '—'),
     team_slug: String(row.team_slug ?? ''),
