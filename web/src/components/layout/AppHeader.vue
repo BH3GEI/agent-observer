@@ -106,7 +106,7 @@ async function logout() {
 
       <div class="flex items-center gap-2">
         <router-link v-if="phasePill" to="/leaderboard" class="pill header-phase-pill" :class="phasePill.cls" data-testid="phase-pill">{{ phasePill.text }}</router-link>
-        <span v-if="fullMoon" class="moon-chip" :title="pick('Full moon tonight. Moonlight washes out the faint stars, so real telescopes spend nights like this on bright targets.', '今晚满月。月光会盖过暗弱的星星，真实的望远镜这种晚上就去拍亮目标。')">🌕</span>
+        <span v-if="fullMoon" class="moon-chip" :title="pick('Full moon tonight.', '今晚满月。')">🌕</span>
         <button data-testid="lang-toggle" type="button" @click="toggleLocale" class="inline-flex h-10 min-w-12 items-center justify-center border border-white/25 px-2 font-mono text-xs uppercase text-white/55 transition-colors hover:border-white/60 hover:text-white">
           {{ pick('中文', 'EN') }}
         </button>

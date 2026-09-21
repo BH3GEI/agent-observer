@@ -229,7 +229,7 @@
       "weather_help": "Seeing: how blurred stars are, lower is sharper (arcseconds). Transparency: how clear the atmosphere is, higher is better. Sky: how bright the night sky itself is. Instrument: how much the equipment is delivering right now.",
       "seek": "Drag the replay position",
       "top_score": "Champion's run: {score} — beat it",
-      "lst": "This blue line is where the telescope points right now. By the stars' own clock, it is {lst}."
+      "lst": "Where the telescope points right now · sky time {lst}"
     },
     "pipeline_intro": "Milestones"
   },
