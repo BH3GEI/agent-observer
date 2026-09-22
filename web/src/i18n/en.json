@@ -2191,5 +2191,11 @@
     "login_to_contact": "Log in to see contact",
     "empty_title": "No participants match these filters",
     "empty_desc": "Loosen the filters, or display your own card first."
+  },
+  "browser_notice": {
+    "title": "Chrome works better here",
+    "body": "Safari caches an old copy of this site for a long time and renders parts of it incorrectly. Chrome or Edge will not.",
+    "copy": "Copy the address",
+    "stay": "Stay in Safari"
   }
 }

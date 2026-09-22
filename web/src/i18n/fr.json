@@ -696,5 +696,11 @@
     "penalties": "Pénalités",
     "tiles": "Tuiles",
     "required_missing": "REQ manquantes"
+  },
+  "browser_notice": {
+    "title": "Chrome fonctionne mieux ici",
+    "body": "Safari garde longtemps une ancienne copie de ce site et en affiche mal certaines parties. Chrome ou Edge, non.",
+    "copy": "Copier l'adresse",
+    "stay": "Rester sur Safari"
   }
 }

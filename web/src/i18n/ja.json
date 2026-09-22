@@ -696,5 +696,11 @@
     "penalties": "減点",
     "tiles": "タイル",
     "required_missing": "REQ 未完了"
+  },
+  "browser_notice": {
+    "title": "Chrome での表示を推奨します",
+    "body": "Safari はこのサイトの古い版を長くキャッシュし、一部が正しく表示されないことがあります。Chrome か Edge なら起きません。",
+    "copy": "URL をコピー",
+    "stay": "Safari のまま使う"
   }
 }

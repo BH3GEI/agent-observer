@@ -2191,5 +2191,11 @@
     "login_to_contact": "登录后查看联系方式",
     "empty_title": "还没有符合条件的选手",
     "empty_desc": "可放宽筛选条件，或先展示自己的名片。"
+  },
+  "browser_notice": {
+    "title": "建议改用 Chrome 打开",
+    "body": "Safari 会把这个网站的旧版本缓存很久，也可能有部分内容显示不正常。用 Chrome 或 Edge 打开就没有这些问题。",
+    "copy": "复制网址",
+    "stay": "继续用 Safari"
   }
 }
