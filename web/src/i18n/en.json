@@ -224,7 +224,9 @@
         "waiting": "Nothing worth shooting is high enough yet; waiting for the next slot",
         "fast_forward": "Fast-forwarding: the rest of this night is spent waiting",
         "night_change": "Night {night} of {nights} — daytime skipped, the sky has come back round",
-        "idle": "Starting up"
+        "idle": "Starting up",
+        "gap_short": "Waiting for the next target to rise",
+        "gap_nights": "{n} nights with nothing worth shooting — skipping to the next exposure"
       },
       "weather_help": "Seeing: how blurred stars are, lower is sharper (arcseconds). Transparency: how clear the atmosphere is, higher is better. Sky: how bright the night sky itself is. Instrument: how much the equipment is delivering right now.",
       "seek": "Drag the replay position",

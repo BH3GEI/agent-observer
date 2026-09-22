@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from '../../composables/useI18n'
-import { replayActions, replayMeta, replayNights, replaySite, replaySlots, replayTiles, replayTimeAt, replayTotals, setReplayData, useReplayClock, SLOT_SECONDS } from '../../composables/useReplayClock'
+import { replayActions, replayMeta, replayNetPrefix, replayNights, replayObserves, replaySite, replaySlots, replayTiles, replayTimeAt, replayTotals, setReplayData, useReplayClock, SLOT_SECONDS } from '../../composables/useReplayClock'
 import { drawSkyMap, lstDeg, PAD, type ObservedMark } from '../../lib/skymap'
 import { OUTCOME_COLORS } from '../../lib/report'
 import { fmtUtc, num } from '../../lib/format'
@@ -25,7 +25,7 @@ function onSeek(e: Event) {
 }
 const hud = ref({ slot: '', night: '', date: '', utc: '', lst: '', seeing: 0, transp: 0, sky: 0, eff: 0, open: true, score: 0, completed: 0, nightNo: 1 })
 /** What the replay is doing right now, so viewers who do not know the task can follow along. */
-const beat = ref<{ key: string; region: string; nightNo: number }>({ key: 'idle', region: '', nightNo: 1 })
+const beat = ref<{ key: string; region: string; nightNo: number; n: number }>({ key: 'idle', region: '', nightNo: 1, n: 0 })
 const paused = computed(() => clock.state.paused)
 const reduced = computed(() => clock.state.reduced)
 let raf = 0, observer: ResizeObserver | undefined, shownScore = 0, lastProgress = 0
@@ -33,7 +33,7 @@ const PULSE = SLOT_SECONDS * 2  // glow for two slots of replay time after a til
 const nightIds = computed(() => { void replayMeta.version; return replayNights })
 const tileById = computed(() => { void replayMeta.version; return new Map(replayTiles.map(tile => [tile.id, tile])) })
 
-const narration = computed(() => tf(`hero.console.beat.${beat.value.key}`, { region: beat.value.region, night: beat.value.nightNo, nights: replayTotals.nights }))
+const narration = computed(() => tf(`hero.console.beat.${beat.value.key}`, { region: beat.value.region, night: beat.value.nightNo, nights: replayTotals.nights, n: beat.value.n }))
 /** Where the meridian sits inside the canvas box, so the walkthrough can point at the line wherever it is. */
 const meridianLeft = ref('50%')
 function trackMeridian(nowSec: number) {
@@ -45,41 +45,41 @@ function trackMeridian(nowSec: number) {
 }
 
 function frameAt(progress: number) {
-  const { slotIndex, nowSec, actionIndex, fastForward } = replayTimeAt(progress)
+  const { slotIndex, nowSec, actionIndex, gap } = replayTimeAt(progress)
+  // Actions settled so far: everything before the current one, plus the current one once its exposure ends.
+  const current = replayActions[actionIndex]
+  const settled = current && current.doneSec <= nowSec ? actionIndex + 1 : actionIndex
+  const score = replayNetPrefix[Math.max(0, Math.min(replayNetPrefix.length - 1, settled))] ?? 0
   const observed = new Map<string, ObservedMark>()
-  let score = 0, completed = 0
-  for (let k = 0; k <= actionIndex; k++) {
-    const a = replayActions[k]!
-    if (a.doneSec > nowSec && k === actionIndex) break  // the current action has not finished yet
-    score += a.score - a.penalty
-    if (a.a !== 'observe' || !a.tile) continue
+  for (const entry of replayObserves) {
+    if (entry.i >= settled) break
+    const a = entry.a
+    if (!a.tile) continue
     const prev = observed.get(a.tile)
     if (!prev || a.cls === 'completed') observed.set(a.tile, { state: a.cls, doneSec: a.doneSec })
-    if (a.cls === 'completed') completed++
   }
-  return { slotIndex, nowSec, observed, score, completed, actionIndex, fastForward }
+  // Distinct finished tiles, so a re-observation never inflates the count past the catalogue.
+  let completed = 0
+  for (const mark of observed.values()) if (mark.state === 'completed') completed++
+  return { slotIndex, nowSec, observed, score, completed, actionIndex, gap }
 }
 
-/** Pick the line of commentary for the current action. Night changes win, because that is the moment the sky
- *  visibly jumps: the replay skips the daytime hours between two nights in a single frame. */
-function beatFor(actionIndex: number, fastForward: boolean, open: boolean, nightNo: number) {
-  const action = replayActions[actionIndex]!
-  const prev = actionIndex > 0 ? replayActions[actionIndex - 1] : undefined
-  const nightChanged = Boolean(prev) && prev!.slot.split('-')[0] !== action.slot.split('-')[0]
-  if (nightChanged) return { key: 'night_change', region: '', nightNo }
-  if (action.a === 'observe') {
-    const tile = tileById.value.get(action.tile)
-    const key = action.cls === 'completed' ? (tile?.cls === 'R' ? 'observe_required' : 'observe') : 'interrupted'
-    return { key, region: tile?.region ?? '', nightNo }
+/** Pick the line of commentary for what the replay is showing: an exposure, or a collapsed quiet stretch. */
+function beatFor(actionIndex: number, gap: { nights: number; slots: number } | null, open: boolean, nightNo: number) {
+  if (gap) {
+    if (gap.nights > 1) return { key: 'gap_nights', region: '', nightNo, n: gap.nights }
+    if (!open) return { key: 'dome_closed', region: '', nightNo, n: 0 }
+    return { key: 'gap_short', region: '', nightNo, n: 0 }
   }
-  if (!open) return { key: 'dome_closed', region: '', nightNo }
-  if (fastForward) return { key: 'fast_forward', region: '', nightNo }
-  return { key: 'waiting', region: '', nightNo }
+  const action = replayActions[actionIndex]!
+  const tile = tileById.value.get(action.tile)
+  const key = action.cls === 'completed' ? (tile?.cls === 'R' ? 'observe_required' : 'observe') : 'interrupted'
+  return { key, region: tile?.region ?? '', nightNo, n: 0 }
 }
 
 function render() {
   const progress = clock.replayProgress()
-  const { slotIndex, nowSec, observed, score, completed, actionIndex, fastForward } = frameAt(progress)
+  const { slotIndex, nowSec, observed, score, completed, actionIndex, gap } = frameAt(progress)
   if (progress < lastProgress) shownScore = 0  // loop restarted
   lastProgress = progress
   if (!scrubbing.value) progressUI.value = progress
@@ -90,7 +90,7 @@ function render() {
   const lst = `${String(Math.floor(lstHours)).padStart(2, '0')}:${String(Math.floor((lstHours % 1) * 60)).padStart(2, '0')}`
   const nightNo = nightIds.value.indexOf(slot.night) + 1
   hud.value = { slot: slot.slot, night: slot.night, date: stamp.slice(0, 5), utc: stamp.slice(6), lst, seeing: slot.seeing, transp: slot.transp, sky: slot.sky, eff: slot.eff, open: slot.open, score: shownScore, completed, nightNo }
-  beat.value = beatFor(actionIndex, fastForward, slot.open, nightNo)
+  beat.value = beatFor(actionIndex, gap, slot.open, nightNo)
   trackMeridian(nowSec)
   if (canvas.value) drawSkyMap(canvas.value, replayTiles, replaySite, { nowSec, observed, pulseSeconds: reduced.value ? 0 : PULSE })
 }

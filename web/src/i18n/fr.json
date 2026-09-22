@@ -84,9 +84,27 @@
       "pick": "Choisir un événement",
       "current": "Actuel",
       "items": [
-        { "n": "01", "name": "Agent Observateur", "sub": "Agentic Observer", "href": "", "current": true },
-        { "n": "02", "name": "Hackathon Agentic App", "sub": "The Intent Is the App", "href": "https://create.gosim.org/agenticapp26/", "current": false },
-        { "n": "03", "name": "Hackathon international Agentic Factory", "sub": "OAIC · Agentic Factory", "href": "https://create.gosim.org/factory26/", "current": false }
+        {
+          "n": "01",
+          "name": "Agent Observateur",
+          "sub": "Agentic Observer",
+          "href": "",
+          "current": true
+        },
+        {
+          "n": "02",
+          "name": "Hackathon Agentic App",
+          "sub": "The Intent Is the App",
+          "href": "https://create.gosim.org/agenticapp26/",
+          "current": false
+        },
+        {
+          "n": "03",
+          "name": "Hackathon international Agentic Factory",
+          "sub": "OAIC · Agentic Factory",
+          "href": "https://create.gosim.org/factory26/",
+          "current": false
+        }
       ]
     },
     "register_float": "S'inscrire"
@@ -135,14 +153,24 @@
   "tiers": {
     "astro_label": "Niveau astronomie",
     "ai_label": "Niveau IA",
-    "astro": ["Débutant du ciel", "Amateur d'astronomie", "Expérience données ou observation", "Niveau recherche"],
+    "astro": [
+      "Débutant du ciel",
+      "Amateur d'astronomie",
+      "Expérience données ou observation",
+      "Niveau recherche"
+    ],
     "astro_hints": [
       "Pas encore de pratique de l'astronomie ; envie d'apprendre ici",
       "Connaît les constellations, a utilisé une carte du ciel ou participé à des soirées d'observation",
       "A traité des données astronomiques, fait de l'astrophotographie ou manipulé un télescope",
       "Travaille dans la recherche en astronomie ou sur des relevés du ciel"
     ],
-    "ai": ["Débutant en IA", "Sait appeler un LLM", "A déjà construit un agent", "Professionnel du domaine"],
+    "ai": [
+      "Débutant en IA",
+      "Sait appeler un LLM",
+      "A déjà construit un agent",
+      "Professionnel du domaine"
+    ],
     "ai_hints": [
       "N'a pas encore écrit de code appelant une IA",
       "A utilisé des API de LLM, connaît les bases du prompt",
@@ -240,17 +268,38 @@
     "subtitle": "巡天智能体",
     "lede": "Construisez l'agent observateur des nuits de relevé : il lit l'état du ciel, raisonne comme un observateur principal et choisit la prochaine observation toutes les 900 secondes.",
     "pipeline": [
-      { "label": "Formation en ligne", "date": "1–4 oct.", "note": "Rencontrez astronomes internationaux et experts des agents" },
-      { "label": "Compétition en ligne", "date": "5–7 oct.", "note": "Modèle KIMI SOTA + prix généreux" },
-      { "label": "Remise des prix", "date": "17 oct.", "note": "Top 3 invité à GOSIM Shenzhen" }
+      {
+        "label": "Formation en ligne",
+        "date": "1–4 oct.",
+        "note": "Rencontrez astronomes internationaux et experts des agents"
+      },
+      {
+        "label": "Compétition en ligne",
+        "date": "5–7 oct.",
+        "note": "Modèle KIMI SOTA + prix généreux"
+      },
+      {
+        "label": "Remise des prix",
+        "date": "17 oct.",
+        "note": "Top 3 invité à GOSIM Shenzhen"
+      }
     ],
     "cta_register": "S'inscrire",
     "cta_dashboard": "Ouvrir le tableau de bord",
     "cta_brief": "Présentation complète",
     "metrics": [
-      { "value": "$5,500", "label": "de prix" },
-      { "value": "1–17 oct.", "label": "2026 · en ligne + Shenzhen" },
-      { "value": "Ouvert à tous", "label": "monde entier · solo ou équipe" }
+      {
+        "value": "$5,500",
+        "label": "de prix"
+      },
+      {
+        "value": "1–17 oct.",
+        "label": "2026 · en ligne + Shenzhen"
+      },
+      {
+        "value": "Ouvert à tous",
+        "label": "monde entier · solo ou équipe"
+      }
     ],
     "side_note": "Site 31,96° N / une décision toutes les 15 minutes / un budget-temps pour toute la partie",
     "console": {
@@ -292,7 +341,9 @@
         "waiting": "Rien d'assez haut à photographier ; on attend le prochain créneau",
         "fast_forward": "Avance rapide : le reste de la nuit se passe à attendre",
         "night_change": "Nuit {night} sur {nights} — journée passée, le ciel est revenu",
-        "idle": "Démarrage"
+        "idle": "Démarrage",
+        "gap_short": "En attente du prochain objet qui se lève",
+        "gap_nights": "{n} nuits sans rien à photographier — on saute à la pose suivante"
       },
       "weather_help": "Seeing : flou des étoiles, plus petit = plus net (secondes d'arc). Transparence : clarté de l'atmosphère, plus grand = mieux. Ciel : luminosité propre du ciel nocturne. Instrument : rendement de l'équipement à cet instant.",
       "seek": "Faites glisser la position du rejeu",
@@ -317,23 +368,56 @@
       "title": "Où le télescope doit-il regarder ensuite",
       "lede": "Votre agent reprend les décisions clés de l'observateur principal humain.",
       "cards": [
-        { "title": "Lire l'état", "desc": "Météo, prévisions, avancement du relevé et tuiles actuellement licites, réunis dans un dictionnaire d'état compact." },
-        { "title": "Peser les compromis", "desc": "Consacrer le bon ciel aux cibles faibles, ou finir la tuile à une pose de son achèvement ? La prévision s'améliore plus tard — un créneau d'attente en vaut-il la peine ?" },
-        { "title": "Trancher", "desc": "Observer une tuile, ou attendre. Une action par créneau, avec sa raison." }
+        {
+          "title": "Lire l'état",
+          "desc": "Météo, prévisions, avancement du relevé et tuiles actuellement licites, réunis dans un dictionnaire d'état compact."
+        },
+        {
+          "title": "Peser les compromis",
+          "desc": "Consacrer le bon ciel aux cibles faibles, ou finir la tuile à une pose de son achèvement ? La prévision s'améliore plus tard — un créneau d'attente en vaut-il la peine ?"
+        },
+        {
+          "title": "Trancher",
+          "desc": "Observer une tuile, ou attendre. Une action par créneau, avec sa raison."
+        }
       ],
       "closing": "Pas de bagage en astronomie ? Aucun souci : pendant la formation en ligne du 1 au 4 octobre, des astronomes internationaux et des experts des agents encadrent la pratique ensemble.",
       "cardKicker": "Comment arrive le sujet",
       "cardTitle": "Une carte de mission de relevé",
       "cardLede": "Chaque manche commence par une carte de mission. Tout ce qui vous engage y est écrit :",
       "cardItems": [
-        { "term": "Objectif scientifique", "desc": "La question à laquelle ce relevé cherche à répondre." },
-        { "term": "Zone de relevé", "desc": "Quelle étendue de ciel couvrir, découpée en combien de tuiles." },
-        { "term": "Budget-temps", "desc": "Le nombre total de créneaux de 900 secondes à dépenser." },
-        { "term": "Site du télescope", "desc": "Latitude, limites de visibilité, durée des créneaux, contrainte de masse d'air." },
-        { "term": "Programmes disponibles", "desc": "Lesquels de DARK, BRIGHT et BACKUP la manche ouvre." },
-        { "term": "Classes de cibles", "desc": "Quels objets comptent dans le rendement, et leur poids respectif." },
-        { "term": "Contraintes d'observation", "desc": "Ce qui est interdit, et le coût du franchissement." },
-        { "term": "Barème", "desc": "Comment le score se calcule et quelles pénalités s'appliquent." }
+        {
+          "term": "Objectif scientifique",
+          "desc": "La question à laquelle ce relevé cherche à répondre."
+        },
+        {
+          "term": "Zone de relevé",
+          "desc": "Quelle étendue de ciel couvrir, découpée en combien de tuiles."
+        },
+        {
+          "term": "Budget-temps",
+          "desc": "Le nombre total de créneaux de 900 secondes à dépenser."
+        },
+        {
+          "term": "Site du télescope",
+          "desc": "Latitude, limites de visibilité, durée des créneaux, contrainte de masse d'air."
+        },
+        {
+          "term": "Programmes disponibles",
+          "desc": "Lesquels de DARK, BRIGHT et BACKUP la manche ouvre."
+        },
+        {
+          "term": "Classes de cibles",
+          "desc": "Quels objets comptent dans le rendement, et leur poids respectif."
+        },
+        {
+          "term": "Contraintes d'observation",
+          "desc": "Ce qui est interdit, et le coût du franchissement."
+        },
+        {
+          "term": "Barème",
+          "desc": "Comment le score se calcule et quelles pénalités s'appliquent."
+        }
       ],
       "cardNote": "Les formats d'entrée-sortie officiels et le contrat d'interface sont définis par la carte de mission. La carte et les données publiques de développement — catalogue de tuiles, scénarios météo d'exemple, état initial et rapports visuels — sont publiées avant le début du hackathon."
     },
@@ -342,14 +426,35 @@
       "title": "Trois étapes pour concourir",
       "lede": "Inscription, équipes, soumissions et scores : tout se passe sur ce site.",
       "steps": [
-        { "n": "01", "title": "S'inscrire et former une équipe", "desc": "Inscrivez-vous en ligne, créez ou rejoignez une équipe. Concourir seul est aussi possible." },
-        { "n": "02", "title": "Construire votre agent", "desc": "Téléchargez le kit de démarrage, exécutez l'agent minimal en local avec le même workflow et le même correcteur que la plateforme, puis itérez sur les scénarios publics — code déterministe, LLM via votre propre .env, ou les deux." },
-        { "n": "03", "title": "Soumettre pour évaluation", "desc": "Téléversez un decisions.csv pour un scénario à météo publique, ou votre paquet d'agent que la plateforme exécute contre une météo cachée sous une horloge globale unique. Toutes les équipes sont notées par le même correcteur figé." }
+        {
+          "n": "01",
+          "title": "S'inscrire et former une équipe",
+          "desc": "Inscrivez-vous en ligne, créez ou rejoignez une équipe. Concourir seul est aussi possible."
+        },
+        {
+          "n": "02",
+          "title": "Construire votre agent",
+          "desc": "Téléchargez le kit de démarrage, exécutez l'agent minimal en local avec le même workflow et le même correcteur que la plateforme, puis itérez sur les scénarios publics — code déterministe, LLM via votre propre .env, ou les deux."
+        },
+        {
+          "n": "03",
+          "title": "Soumettre pour évaluation",
+          "desc": "Téléversez un decisions.csv pour un scénario à météo publique, ou votre paquet d'agent que la plateforme exécute contre une météo cachée sous une horloge globale unique. Toutes les équipes sont notées par le même correcteur figé."
+        }
       ],
       "timeline": [
-        { "label": "1–4 oct.", "desc": "Formation en ligne" },
-        { "label": "5–7 oct.", "desc": "Compétition en ligne" },
-        { "label": "17 oct.", "desc": "Prix à GOSIM Shenzhen" }
+        {
+          "label": "1–4 oct.",
+          "desc": "Formation en ligne"
+        },
+        {
+          "label": "5–7 oct.",
+          "desc": "Compétition en ligne"
+        },
+        {
+          "label": "17 oct.",
+          "desc": "Prix à GOSIM Shenzhen"
+        }
       ],
       "cta": "S'inscrire"
     },
@@ -358,9 +463,21 @@
       "title": "5 500 $ de prix",
       "lede": "Attribués sur le classement en ligne : moyenne des deux scénarios de compétition.",
       "tiers": [
-        { "place": "Premier prix", "amount": "$2,000", "count": "1 équipe" },
-        { "place": "Deuxième prix", "amount": "$1,000", "count": "2 équipes" },
-        { "place": "Troisième prix", "amount": "$500", "count": "3 équipes" }
+        {
+          "place": "Premier prix",
+          "amount": "$2,000",
+          "count": "1 équipe"
+        },
+        {
+          "place": "Deuxième prix",
+          "amount": "$1,000",
+          "count": "2 équipes"
+        },
+        {
+          "place": "Troisième prix",
+          "amount": "$500",
+          "count": "3 équipes"
+        }
       ]
     },
     "leaderboard": {
@@ -380,8 +497,14 @@
       "kicker": "06 / Soumettre",
       "title": "Modes de soumission",
       "items": [
-        { "title": "Fichier de résultats", "desc": "Téléversez le decisions.csv produit par le kit en local (scénarios d'entraînement à météo publique uniquement) ; le score tombe en quelques secondes." },
-        { "title": "Limites", "desc": "La plateforme utilise Python 3.12, réseau autorisé (appels d'API de modèles), une horloge globale par scénario (7200 s pour le scénario de référence), démarrage en 30 s, 20 Mo par envoi ; compétition en ligne : 10 soumissions par équipe et par jour." }
+        {
+          "title": "Fichier de résultats",
+          "desc": "Téléversez le decisions.csv produit par le kit en local (scénarios d'entraînement à météo publique uniquement) ; le score tombe en quelques secondes."
+        },
+        {
+          "title": "Limites",
+          "desc": "La plateforme utilise Python 3.12, réseau autorisé (appels d'API de modèles), une horloge globale par scénario (7200 s pour le scénario de référence), démarrage en 30 s, 20 Mo par envoi ; compétition en ligne : 10 soumissions par équipe et par jour."
+        }
       ],
       "link": "Documentation des soumissions"
     },
@@ -389,20 +512,63 @@
       "kicker": "07 / Organisation",
       "title": "Qui organise",
       "items": [
-        { "role": "Organisateur", "name": "GOSIM Foundation", "desc": "Rencontre mondiale de l'innovation open source. Remise des prix le 17 octobre 2026 à GOSIM Shenzhen." },
-        { "role": "Mécène de tokens", "name": "KIMI", "desc": "Merci au LLM open source KIMI pour la dotation en tokens." }
+        {
+          "role": "Organisateur",
+          "name": "GOSIM Foundation",
+          "desc": "Rencontre mondiale de l'innovation open source. Remise des prix le 17 octobre 2026 à GOSIM Shenzhen."
+        },
+        {
+          "role": "Mécène de tokens",
+          "name": "KIMI",
+          "desc": "Merci au LLM open source KIMI pour la dotation en tokens."
+        }
       ],
       "committee": {
         "kicker": "Comité scientifique",
         "intro": "Sept scientifiques d'instituts d'astronomie et de physique composent le comité scientifique du relevé et valident sujets, scénarios et barème.",
         "members": [
-          { "photo": "zhongxu-zhai", "name": "Zhongxu Zhai", "title": "Professeur associé", "org": "Département d'astronomie, Université Jiao-tong de Shanghai" },
-          { "photo": "wei-wang", "name": "Wei Wang", "title": "Professeur", "org": "Département de physique, Université Jiao-tong de Shanghai" },
-          { "photo": "dezi-liu", "name": "Dezi Liu", "title": "Chercheur associé", "org": "Institut d'astronomie du Sud-Ouest, Université du Yunnan" },
-          { "photo": "xiangkun-liu", "name": "Xiangkun Liu", "title": "Professeur", "org": "Institut d'astronomie du Sud-Ouest, Université du Yunnan" },
-          { "photo": "huanyuan-shan", "name": "Huanyuan Shan", "title": "Chercheur", "org": "Observatoire astronomique de Shanghai, Académie chinoise des sciences" },
-          { "photo": "ting-tan", "name": "Ting Tan", "title": "Chercheur postdoctoral", "org": "Université Paris-Saclay" },
-          { "photo": "yifei-luo", "name": "Yifei Luo", "title": "Chercheur postdoctoral", "org": "Laboratoire national Lawrence-Berkeley" }
+          {
+            "photo": "zhongxu-zhai",
+            "name": "Zhongxu Zhai",
+            "title": "Professeur associé",
+            "org": "Département d'astronomie, Université Jiao-tong de Shanghai"
+          },
+          {
+            "photo": "wei-wang",
+            "name": "Wei Wang",
+            "title": "Professeur",
+            "org": "Département de physique, Université Jiao-tong de Shanghai"
+          },
+          {
+            "photo": "dezi-liu",
+            "name": "Dezi Liu",
+            "title": "Chercheur associé",
+            "org": "Institut d'astronomie du Sud-Ouest, Université du Yunnan"
+          },
+          {
+            "photo": "xiangkun-liu",
+            "name": "Xiangkun Liu",
+            "title": "Professeur",
+            "org": "Institut d'astronomie du Sud-Ouest, Université du Yunnan"
+          },
+          {
+            "photo": "huanyuan-shan",
+            "name": "Huanyuan Shan",
+            "title": "Chercheur",
+            "org": "Observatoire astronomique de Shanghai, Académie chinoise des sciences"
+          },
+          {
+            "photo": "ting-tan",
+            "name": "Ting Tan",
+            "title": "Chercheur postdoctoral",
+            "org": "Université Paris-Saclay"
+          },
+          {
+            "photo": "yifei-luo",
+            "name": "Yifei Luo",
+            "title": "Chercheur postdoctoral",
+            "org": "Laboratoire national Lawrence-Berkeley"
+          }
         ]
       },
       "octos": {

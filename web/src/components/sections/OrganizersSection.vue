@@ -43,7 +43,7 @@ onMounted(async () => {
         <div class="rule-b pb-3">
           <span class="label accent">{{ t('home.credibility.committee.kicker') }}</span>
         </div>
-        <p class="mt-5 max-w-2xl text-[0.9rem] leading-relaxed text-[#bdbdbd]">{{ t('home.credibility.committee.intro') }}</p>
+        <p class="mt-7 max-w-5xl text-[clamp(1.4rem,3vw,2.6rem)] font-medium leading-[1.3] tracking-[-.025em] text-[#e8edf8]">{{ t('home.credibility.committee.intro') }}</p>
         <div class="reveal-stagger mt-10 grid grid-cols-3 gap-3 sm:grid-cols-4 md:gap-4 lg:grid-cols-7">
           <figure v-for="m in committee" :key="m.photo" v-tilt class="card card-lift committee-card">
             <img :src="appUrl(`media/committee/${m.photo}.webp`)" :alt="m.name" class="aspect-[3/4] w-full object-cover" loading="lazy" />

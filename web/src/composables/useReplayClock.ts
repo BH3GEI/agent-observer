@@ -9,10 +9,12 @@ import { prefersReducedMotion, type SkySite, type SkyTile } from '../lib/skymap'
  * below are live module bindings, so per-frame readers pick the swap up immediately; anything cached at
  * setup time should re-derive from replayMeta.version.
  *
- * Loop progress 0…1 maps LINEARLY onto night time: every 900-second slot owns an equal share of the
- * loop, so the replay advances at one steady pace with no fast-forward jumps. The daytime between two
- * nights is skipped at a slot boundary — the moment the sky visibly rotates, which the narration and
- * walkthrough call out.
+ * Progress maps onto EVENTS, not onto wall-clock time. A real competition run is mostly waiting: the
+ * current champion spends 7,854 of its 7,944 actions idle, so spreading the loop evenly over the 7,928
+ * slots put every exposure on screen for about ten milliseconds and left the narration stuck on "waiting".
+ * Instead each exposure now owns an equal, legible share of the loop, and each run of waiting between two
+ * exposures — three slots or six hundred — collapses into one short beat that shows the sim time just
+ * before the next exposure starts. The result is a steady pace where something visible happens throughout.
  */
 export interface ReplaySlot { slot: string; night: string; t: string; startSec: number; open: boolean; seeing: number; transp: number; sky: number; eff: number }
 export interface ReplayAction {
@@ -33,8 +35,19 @@ export interface RawReplay {
   nights: number
 }
 
-export const LOOP_MS = 75_000
 export const SLOT_SECONDS = 900
+
+/** One exposure's share of the loop, and the share a whole run of waiting collapses into. */
+const OBSERVE_UNIT = 1
+const GAP_UNIT = 0.3
+/** A gap crossing at least one night boundary reads as a bigger skip, so it holds a little longer. */
+const GAP_NIGHT_UNIT = 0.5
+/** Real time each unit of weight is worth, and the bounds a full loop is kept inside. */
+const MS_PER_UNIT = 760
+const LOOP_MIN_MS = 45_000
+const LOOP_MAX_MS = 115_000
+/** How much sim time a collapsed gap actually shows: the quiet stretch just before the next exposure. */
+const GAP_SHOWN_SLOTS = 3
 
 export const replayMeta = reactive({ version: 0, source: 'demo' as 'demo' | 'champion', label: '' })
 
@@ -44,8 +57,65 @@ export let replaySlots: ReplaySlot[] = []
 export let replayActions: ReplayAction[] = []
 export let replayTotals = { finalScore: 0, baseScience: 0, completed: 0, nights: 0, requiredMissing: 0 }
 export let replayNights: string[] = []
-let actionStarts: number[] = []
-let totalNightSec = 1
+/** Only the exposures, with their index in replayActions — the console draws marks from these. */
+export let replayObserves: { i: number; a: ReplayAction }[] = []
+/** Running net score: replayNetPrefix[k] covers actions 0…k-1, so the console never scans the run. */
+export let replayNetPrefix: number[] = [0]
+export let LOOP_MS = 75_000
+
+type Segment = {
+  kind: 'observe' | 'gap'
+  actionIndex: number
+  fromSec: number
+  toSec: number
+  nights: number
+  slots: number
+}
+let segments: Segment[] = []
+let segCum: number[] = [0]
+let totalWeight = 1
+
+const nightOf = (slotId: string) => slotId.split('-')[0] ?? ''
+
+function buildSegments() {
+  segments = []
+  let i = 0
+  while (i < replayActions.length) {
+    const action = replayActions[i]!
+    if (action.a === 'observe') {
+      segments.push({ kind: 'observe', actionIndex: i, fromSec: action.startSec, toSec: action.doneSec, nights: 0, slots: 0 })
+      i += 1
+      continue
+    }
+    const start = i
+    const nights = new Set<string>()
+    while (i < replayActions.length && replayActions[i]!.a !== 'observe') {
+      nights.add(nightOf(replayActions[i]!.slot))
+      i += 1
+    }
+    const last = replayActions[i - 1]!
+    const endSec = i < replayActions.length ? replayActions[i]!.startSec : last.doneSec
+    const shown = Math.min(Math.max(0, endSec - replayActions[start]!.startSec), GAP_SHOWN_SLOTS * SLOT_SECONDS)
+    segments.push({
+      kind: 'gap',
+      actionIndex: start,
+      fromSec: endSec - shown,
+      toSec: endSec,
+      nights: nights.size,
+      slots: i - start,
+    })
+  }
+  if (!segments.length) {
+    segments.push({ kind: 'gap', actionIndex: 0, fromSec: 0, toSec: 1, nights: 0, slots: 0 })
+  }
+  segCum = [0]
+  for (const seg of segments) {
+    const weight = seg.kind === 'observe' ? OBSERVE_UNIT : (seg.nights > 1 ? GAP_NIGHT_UNIT : GAP_UNIT)
+    segCum.push(segCum[segCum.length - 1]! + weight)
+  }
+  totalWeight = Math.max(1e-6, segCum[segCum.length - 1]!)
+  LOOP_MS = Math.min(LOOP_MAX_MS, Math.max(LOOP_MIN_MS, Math.round(totalWeight * MS_PER_UNIT)))
+}
 
 export function setReplayData(raw: RawReplay, source: 'demo' | 'champion' = 'demo', label = '') {
   replaySite = raw.site
@@ -61,13 +131,16 @@ export function setReplayData(raw: RawReplay, source: 'demo' | 'champion' = 'dem
     completed: raw.completed, nights: raw.nights, requiredMissing: raw.required_missing.length,
   }
   replayNights = [...new Set(replaySlots.map(s => s.night))]
-  actionStarts = replayActions.map(a => a.startSec)
-  totalNightSec = Math.max(1, replaySlots.length * SLOT_SECONDS)
+  replayObserves = replayActions.map((a, i) => ({ i, a })).filter(entry => entry.a.a === 'observe')
+  replayNetPrefix = [0]
+  for (const a of replayActions) replayNetPrefix.push(replayNetPrefix[replayNetPrefix.length - 1]! + a.score - a.penalty)
+  buildSegments()
   replayMeta.source = source
   replayMeta.label = label
   replayMeta.version += 1
   tick()
 }
+
 const state = reactive({ progress: 0, slotIndex: 0, actionIndex: 0, paused: false, reduced: false })
 let base = 0, runningSince: number | null = null, users = 0, timer: number | undefined
 
@@ -88,19 +161,34 @@ export function slotIndexAt(nowSec: number): number {
   }
   return lo
 }
-/** Map loop progress onto replay time at one steady rate: progress spans the night slots uniformly. */
-export function replayTimeAt(progress: number): { actionIndex: number; slotIndex: number; nowSec: number; frac: number; fastForward: boolean } {
-  const g = Math.max(0, Math.min(0.999999, progress)) * totalNightSec
-  const slotIndex = Math.min(replaySlots.length - 1, Math.floor(g / SLOT_SECONDS))
-  const nowSec = replaySlots[slotIndex]!.startSec + (g - slotIndex * SLOT_SECONDS)
-  let lo = 0, hi = replayActions.length - 1
+
+export interface ReplayFrame {
+  actionIndex: number
+  slotIndex: number
+  nowSec: number
+  frac: number
+  /** Set while a run of waiting is being shown, with how much of the run it stands for. */
+  gap: { nights: number; slots: number } | null
+}
+/** Map loop progress onto the run: exposures get equal dwell, waiting runs collapse into short beats. */
+export function replayTimeAt(progress: number): ReplayFrame {
+  const v = Math.max(0, Math.min(totalWeight - 1e-9, Math.max(0, Math.min(0.999999, progress)) * totalWeight))
+  let lo = 0, hi = segments.length - 1
   while (lo < hi) {
     const mid = (lo + hi + 1) >> 1
-    if (actionStarts[mid]! <= nowSec) lo = mid; else hi = mid - 1
+    if (segCum[mid]! <= v) lo = mid; else hi = mid - 1
   }
-  const a = replayActions[lo]!
-  const frac = Math.max(0, Math.min(1, (nowSec - a.startSec) / Math.max(1, a.dt)))
-  return { actionIndex: lo, slotIndex, nowSec, frac, fastForward: false }
+  const seg = segments[lo]!
+  const span = Math.max(1e-6, segCum[lo + 1]! - segCum[lo]!)
+  const frac = Math.max(0, Math.min(1, (v - segCum[lo]!) / span))
+  const nowSec = seg.fromSec + frac * (seg.toSec - seg.fromSec)
+  return {
+    actionIndex: seg.actionIndex,
+    slotIndex: slotIndexAt(nowSec),
+    nowSec,
+    frac,
+    gap: seg.kind === 'gap' ? { nights: seg.nights, slots: seg.slots } : null,
+  }
 }
 function tick() {
   const p = replayProgress()
