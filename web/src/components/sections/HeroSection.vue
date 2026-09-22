@@ -130,8 +130,13 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
         </div>
       </div>
 
-      <div class="hero-metrics hero-metrics-strong grid grid-cols-2 border-t border-white/22 md:grid-cols-4 reveal reveal-delay-3">
-        <div v-for="(metric, index) in metrics" :key="metric.label" class="hero-metric border-white/16 py-5 md:py-6" :class="{ 'border-r': index % 2 === 0 || index < 3, 'md:border-r-0': index === 3 }">
+      <div class="hero-metrics hero-metrics-strong grid grid-cols-2 border-t border-white/22 reveal reveal-delay-3" :style="`--metric-cols:${metrics.length}`">
+        <div
+          v-for="(metric, index) in metrics"
+          :key="metric.label"
+          class="hero-metric border-white/16 py-5 md:py-6"
+          :class="{ 'border-r': index % 2 === 0 && index !== metrics.length - 1, 'md:border-r': index !== metrics.length - 1, 'md:border-r-0': index === metrics.length - 1 }"
+        >
           <b v-countup class="hero-metric-value block text-[clamp(1.7rem,2.8vw,2.6rem)] font-semibold leading-[1.05] tracking-[-.04em]">{{ metric.value }}</b>
           <span class="mt-2 block font-mono text-[.7rem] uppercase leading-snug tracking-[.06em] text-white/50">{{ metric.label }}</span>
         </div>
@@ -246,6 +251,7 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
 }
 
 .hero-metrics > div { padding-left: clamp(.65rem, 2vw, 1.5rem); padding-right: clamp(.65rem, 2vw, 1.5rem); }
+@media (min-width: 768px) { .hero-metrics { grid-template-columns: repeat(var(--metric-cols, 3), minmax(0, 1fr)); } }
 .hero-metrics > div:first-child { padding-left: 0; }
 @media (max-width: 767px) {
   .hero-metrics > div:nth-child(odd) { padding-left: 0; }
