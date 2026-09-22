@@ -58,8 +58,8 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
       <p v-if="phasesLoading" class="text3 mt-8 text-sm">{{ t('common.loading') }}</p>
       <p v-else-if="!phase" class="text2 mt-8">{{ t('leaderboard.no_phases') }}</p>
 
-      <div v-else class="mt-12 grid gap-12 lg:grid-cols-[.72fr_1.28fr] lg:gap-20">
-        <div>
+      <div v-else class="mt-12 grid gap-12 lg:grid-cols-[.52fr_1.48fr] lg:gap-14">
+        <div class="lg:sticky lg:top-28 lg:self-start">
           <p class="text2">{{ phaseCopy(phase, locale).description }}</p>
           <p class="text3 mt-3 text-sm">{{ phaseCopy(phase, locale).facts.join(' · ') }}</p>
           <dl class="kv mt-8">
@@ -91,7 +91,7 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
                 <tbody>
                   <tr v-for="row in entries" :key="row.team_id" data-testid="lb-row" :class="{ me: team && team.id === row.team_id }">
                     <td class="m rank-cell" :class="row.rank <= 3 ? `rank-${row.rank}` : ''">{{ row.rank }}</td>
-                    <td><span class="team-cell"><UserAvatar :name="row.team_name" :github="row.leader_github" /><i v-if="row.rank === 1" class="champ-star" aria-hidden="true">✦</i>{{ row.team_name }}</span><span v-if="team && team.id === row.team_id" class="label accent ml-2">{{ t('leaderboard.me') }}</span></td>
+                    <td><span class="team-cell"><UserAvatar :name="row.team_name" :github="row.leader_github" /><i v-if="row.rank === 1" class="champ-star" aria-hidden="true">✦</i><span class="team-name">{{ row.team_name }}</span></span><span v-if="team && team.id === row.team_id" class="label accent ml-2">{{ t('leaderboard.me') }}</span></td>
                     <td class="r m" :class="{ 'text-[#ff6b6b]': row.total_score < 0 }">{{ num(row.total_score) }}</td>
                     <td class="r m">{{ num(row.base_science) }}</td>
                     <td class="r m">{{ num(row.program_bonus) }}</td>

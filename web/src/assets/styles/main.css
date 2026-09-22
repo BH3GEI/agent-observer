@@ -291,7 +291,10 @@ select:focus {
 
 .poster-canvas {
   position: relative;
+  /* `clip` keeps the decoration inside the box without making it a scroll container — `hidden` does
+     the latter, which quietly turns every `position: sticky` inside into a plain static block. */
   overflow: hidden;
+  overflow: clip;
   isolation: isolate;
   color: #f5f5f5;
   background:
@@ -319,6 +322,7 @@ select:focus {
 .poster-section {
   position: relative;
   overflow: hidden;
+  overflow: clip;
   border-top: 1px solid rgba(255,255,255,.18);
   background: transparent;
 }
@@ -359,13 +363,16 @@ select:focus {
 
 .section-title,
 .poster-heading {
-  max-width: 16ch;
+  /* Most of these headings sit in a column around a third of the page wide. At the old size they
+     broke into four or five lines of two words; a little smaller, a little wider, and balanced. */
+  max-width: 19ch;
   color: #f5f5f5;
   font-family: 'Space Grotesk', 'Noto Sans SC', system-ui, sans-serif;
-  font-size: clamp(2.25rem, 4.6vw, 4.75rem);
+  font-size: clamp(2.1rem, 3.9vw, 4rem);
   font-weight: 600;
-  letter-spacing: -.05em;
-  line-height: 1.04;
+  letter-spacing: -.045em;
+  line-height: 1.06;
+  text-wrap: balance;
 }
 
 .poster-rule { border-color: rgba(255,255,255,.2); }
@@ -487,18 +494,21 @@ button:disabled { cursor: not-allowed; }
 
 .wrap { max-width: 1600px; margin: 0 auto; padding-left: clamp(1.25rem, 4vw, 3.5rem); padding-right: clamp(1.25rem, 4vw, 3.5rem); }
 .wrap-narrow { max-width: 1100px; margin: 0 auto; padding-left: clamp(1.25rem, 4vw, 3.5rem); padding-right: clamp(1.25rem, 4vw, 3.5rem); }
+/* Pages that are mostly text. The site shell is built for posters and tables; a page of prose in it
+   left half the screen permanently empty. These centre on the reading column instead. */
+.page-read .wrap { max-width: 960px; }
 .label { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: #9aa5bd; }
 .label.accent { color: #315efb; }
-.section-title.sm { font-size: clamp(1.75rem, 3.2vw, 3rem); max-width: 22ch; }
-.lede { font-size: clamp(1rem, 1.2vw, 1.125rem); line-height: 1.75; color: #bdbdbd; max-width: 36rem; }
+.section-title.sm { font-size: clamp(1.7rem, 2.9vw, 2.75rem); max-width: 26ch; }
+.lede { font-size: clamp(1rem, 1.2vw, 1.125rem); line-height: 1.75; color: #bdbdbd; max-width: 36rem; text-wrap: pretty; }
 .text2 { color: #bdbdbd; } .text3 { color: #858585; } .accent-l { color: #78a6ff; }
 .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .75rem; color: #315efb; }
 .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
 
 .page-head { padding: clamp(3rem, 6vw, 6rem) 0 clamp(2rem, 4vw, 3.5rem); border-bottom: 1px solid rgba(255,255,255,.2); }
-.page-head h1 { font-size: clamp(2.5rem, 5.5vw, 5.5rem); font-weight: 600; letter-spacing: -.055em; line-height: 1.02; max-width: 14ch; text-wrap: balance; color: #f5f5f5; }
+.page-head h1 { font-size: clamp(2.4rem, 4.9vw, 4.9rem); font-weight: 600; letter-spacing: -.05em; line-height: 1.04; max-width: 16ch; text-wrap: balance; color: #f5f5f5; }
 .page-head .lede { margin-top: 1.5rem; }
-.section { position: relative; overflow: hidden; border-top: 1px solid rgba(255,255,255,.18); padding: clamp(4rem, 8vw, 10rem) 0; }
+.section { position: relative; overflow: hidden; border-top: 1px solid rgba(255,255,255,.18); padding: clamp(3.5rem, 6vw, 7rem) 0; }
 .section.tight { padding: clamp(2.5rem, 5vw, 5rem) 0; }
 .section::after { position: absolute; top: 0; bottom: 0; left: clamp(1.5rem, 7vw, 7rem); width: 1px; pointer-events: none; content: ''; background: rgba(255,255,255,.08); }
 @media (max-width: 720px) { .section::after { display: none; } }
@@ -578,11 +588,18 @@ button:disabled { cursor: not-allowed; }
 .banner.success { background: #0b2a1a; color: #c7f5da; } .banner.success .tag { color: #59d78d; }
 
 /* tables */
-.table-wrap { overflow-x: auto; max-width: 100%; }
-.data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: .9rem; }
-.data-table th { padding: 1rem .5rem; border-bottom: 1px solid rgba(255,255,255,.2); color: #858585; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .75rem; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
-.data-table td { padding: .9rem .5rem; border-bottom: 1px solid rgba(255,255,255,.1); vertical-align: middle; }
-.data-table .r { text-align: right; } .data-table .m { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .85rem; }
+/* A twelve-column board did not fit the page and cut its last column off with nothing to say so.
+   Tighter gutters and figures buy the width back; the fade marks the edge if it still has to scroll. */
+.table-wrap { position: relative; overflow-x: auto; max-width: 100%; }
+.table-wrap::after {
+  position: sticky; float: right; top: 0; right: 0; width: 2.5rem; height: 100%; margin-left: -2.5rem;
+  pointer-events: none; content: '';
+  background: linear-gradient(90deg, rgba(8,11,20,0), rgba(8,11,20,.92));
+}
+.data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: .86rem; }
+.data-table th { padding: .9rem .4rem; border-bottom: 1px solid rgba(255,255,255,.2); color: #858585; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .7rem; font-weight: 400; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+.data-table td { padding: .85rem .4rem; border-bottom: 1px solid rgba(255,255,255,.1); vertical-align: middle; }
+.data-table .r { text-align: right; } .data-table .m { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .8rem; font-variant-numeric: tabular-nums; }
 .data-table .xs { font-size: .75rem; }
 .data-table tr.me td { background: rgba(49,94,251,.12); }
 .data-table.small { font-size: .8rem; }
@@ -640,7 +657,10 @@ details.faq p { margin-top: .75rem; color: #bdbdbd; line-height: 1.7; max-width:
 details.plain summary { cursor: pointer; }
 
 /* prose (markdown) */
-.prose { max-width: 52rem; color: #bdbdbd; font-size: 1rem; line-height: 1.8; min-width: 0; }
+/* 52rem ran to about 100 characters a line, well past the point where the eye loses its place. */
+.prose { max-width: 46rem; color: #bdbdbd; font-size: 1rem; line-height: 1.78; min-width: 0; text-wrap: pretty; }
+/* The docs page already gives its column a contents list to sit beside, so it can carry a wider line. */
+.docs-body .prose { max-width: 54rem; }
 .prose h1 { margin: 0 0 1rem; font-size: clamp(1.75rem, 3vw, 2.5rem); color: #f5f5f5; letter-spacing: -.04em; }
 .prose h2 { margin: 3rem 0 1rem; font-size: clamp(1.5rem, 2.4vw, 2.25rem); color: #f5f5f5; letter-spacing: -.035em; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,.2); font-weight: 600; line-height: 1.15; }
 .prose h2:first-child { margin-top: 0; }
@@ -955,7 +975,9 @@ a:focus-visible, button:focus-visible, [role="tab"]:focus-visible, input:focus-v
 @keyframes register-pulse { 0%, 100% { box-shadow: 0 10px 34px rgba(63,94,251,.45); } 50% { box-shadow: 0 10px 44px rgba(124,92,255,.6); } }
 @media (prefers-reduced-motion: reduce) { .register-float { animation: none; } }
 
-.team-cell { display: inline-flex; align-items: center; gap: .55rem; }
+.team-cell { display: inline-flex; align-items: center; gap: .55rem; max-width: 11rem; vertical-align: middle; }
+/* Chinese has no spaces, so a name in a narrow cell breaks one character to a line. Keep it whole. */
+.team-cell .team-name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .team-avatar { display: inline-grid; place-items: center; width: 1.55rem; height: 1.55rem; flex: none;
   border-radius: 50% !important; font-style: normal; font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
   font-size: .72rem; font-weight: 700; color: #fff;

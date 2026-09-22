@@ -10,7 +10,7 @@ const cardItems = computed(() => t('home.mission.cardItems') as { term: string; 
 </script>
 
 <template>
-  <section id="mission" class="poster-section poster-canvas py-24 md:py-40">
+  <section id="mission" class="poster-section poster-canvas py-20 md:py-28">
     <div class="mission-aura plasma-field" aria-hidden="true"></div>
     <div class="mx-auto max-w-[1600px] px-5 md:px-10 xl:px-14">
       <div class="grid gap-14 lg:grid-cols-[.85fr_1.15fr] lg:gap-24">

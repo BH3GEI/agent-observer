@@ -11,7 +11,7 @@ const items = computed(() => (t('faq.items') as (Item & { gated?: boolean })[])
 </script>
 
 <template>
-  <main class="poster-canvas">
+  <main class="poster-canvas page-read">
     <PageHead :kicker="t('faq.kicker')" :title="t('faq.title')" />
     <section class="section"><div class="wrap-narrow">
       <details v-for="(item, index) in items" :key="index" class="faq" :id="`q${index + 1}`" :open="index < 3">

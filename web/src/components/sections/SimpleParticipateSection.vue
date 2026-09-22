@@ -16,7 +16,7 @@ const timeline = computed(() => t('home.participate.timeline') as TimelineItem[]
 </script>
 
 <template>
-  <section id="participate" class="poster-section poster-canvas py-24 md:py-40">
+  <section id="participate" class="poster-section poster-canvas py-20 md:py-28">
     <div class="mx-auto max-w-[1600px] px-5 md:px-10 xl:px-14">
       <div class="paper-sheet reveal p-6 md:p-12 lg:p-16">
         <div class="paper-marker paper-marker-top" aria-hidden="true"></div>

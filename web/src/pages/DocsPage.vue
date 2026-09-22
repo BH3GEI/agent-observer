@@ -51,7 +51,7 @@ onUnmounted(() => observer?.disconnect())
             <a v-for="item in toc" :key="item.id" :href="`#${item.id}`" :class="{ lvl3: item.level === 3, active: item.id === activeId }">{{ item.text }}</a>
           </nav>
         </aside>
-        <div class="min-w-0">
+        <div class="docs-body min-w-0">
           <MarkdownArticle :source="source" @toc="toc = $event" />
           <ProtocolExplorer class="mt-16" />
         </div>

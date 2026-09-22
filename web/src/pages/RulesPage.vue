@@ -14,7 +14,7 @@ const source = computed(() => pick(rulesEn, rulesZh))
 </script>
 
 <template>
-  <main class="poster-canvas">
+  <main class="poster-canvas page-read">
     <PageHead :kicker="t('rules_page.kicker')" :title="t('rules_page.title')" :note="t('rules_page.version')" />
     <section class="section tight"><div class="wrap">
       <h2 class="label accent mb-4">{{ t('rules_page.phases_title') }}</h2>

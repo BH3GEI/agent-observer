@@ -7,7 +7,7 @@ const items = computed(() => t('home.submission.items') as Item[])
 </script>
 
 <template>
-  <section id="submission" class="poster-section poster-canvas py-24 md:py-40">
+  <section id="submission" class="poster-section poster-canvas py-20 md:py-28">
     <div class="mx-auto max-w-[1600px] px-5 md:px-10 xl:px-14">
       <div class="reveal max-w-3xl">
         <span class="poster-kicker">{{ t('home.submission.kicker') }}</span>

@@ -47,10 +47,10 @@ const stats = computed(() => { const value = t('home.vision.stats'); return Arra
 </script>
 
 <template>
-  <section id="about" class="poster-section poster-canvas py-24 md:py-40">
+  <section id="about" class="poster-section poster-canvas py-20 md:py-28">
     <div class="mx-auto max-w-[1600px] px-5 md:px-10 xl:px-14">
-      <div class="grid gap-12 lg:grid-cols-[.66fr_1.34fr] lg:gap-16">
-        <div class="reveal lg:pt-4">
+      <div class="grid gap-12 lg:grid-cols-[.78fr_1.22fr] lg:gap-16">
+        <div class="reveal lg:sticky lg:top-28 lg:self-start lg:pt-4">
           <span class="poster-kicker mt-14">{{ t('home.vision.kicker') }}</span>
           <h2 class="section-title distressed-type mt-8">{{ t('home.vision.title') }}</h2>
         </div>

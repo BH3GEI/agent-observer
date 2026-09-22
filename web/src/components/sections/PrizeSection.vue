@@ -8,7 +8,7 @@ const prizes = computed(() => t('home.prizes.tiers') as Prize[])
 </script>
 
 <template>
-  <section id="prizes" class="poster-section poster-canvas py-24 md:py-40">
+  <section id="prizes" class="poster-section poster-canvas py-20 md:py-28">
     <div class="mx-auto max-w-[1600px] px-5 md:px-10 xl:px-14">
       <div class="reveal grid gap-14 border-y poster-rule py-14 lg:grid-cols-[.65fr_1.35fr] lg:gap-20 lg:py-20">
         <div>

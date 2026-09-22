@@ -42,7 +42,7 @@ const statItems = computed(() => stats.value ? [
 </script>
 
 <template>
-  <section id="participants" class="poster-section poster-canvas py-24 md:py-36" data-testid="participants-wall">
+  <section id="participants" class="poster-section poster-canvas py-20 md:py-28" data-testid="participants-wall">
     <div class="mx-auto max-w-[1600px] px-5 md:px-10 xl:px-14">
       <div class="reveal flex flex-wrap items-end justify-between gap-6">
         <div>

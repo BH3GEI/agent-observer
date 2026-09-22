@@ -20,7 +20,7 @@ const source = computed(() => {
 </script>
 
 <template>
-  <main class="poster-canvas">
+  <main class="poster-canvas page-read">
     <PageHead :kicker="t('start_page.kicker')" :title="t('start_page.title')" :lede="t('start_page.lede')">
       <p class="actions-inline mt-8">
         <router-link v-if="!isLoggedIn" class="btn primary" to="/register">{{ t('start_page.cta_register') }} →</router-link>

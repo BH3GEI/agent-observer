@@ -7,7 +7,7 @@ const criteria = computed(() => t('home.evaluation.criteria') as Criterion[])
 </script>
 
 <template>
-  <section id="evaluation" class="poster-section poster-canvas py-24 md:py-40">
+  <section id="evaluation" class="poster-section poster-canvas py-20 md:py-28">
     <div class="mx-auto max-w-[1600px] px-5 md:px-10 xl:px-14">
       <div class="grid gap-14 lg:grid-cols-[.85fr_1.15fr] lg:gap-20">
         <div class="reveal">
