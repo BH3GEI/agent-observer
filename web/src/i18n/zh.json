@@ -322,7 +322,7 @@
         {
           "n": "03",
           "title": "提交评测",
-          "desc": "为天气公开的场景上传 decisions.csv，或上传智能体程序包，让平台在一个全局时钟下对隐藏天气运行它。每支队伍由同一个冻结的评分器评分。"
+          "desc": "上传 decisions.csv，或上传智能体程序包由平台在一个全局时钟下运行。两种方式在 Playground 和线上比赛都接受，每支队伍由同一个冻结的评分器评分。"
         }
       ],
       "timeline": [
@@ -410,7 +410,7 @@
       "items": [
         {
           "title": "结果文件",
-          "desc": "上传本地运行入门包产出的 decisions.csv（限天气公开的练习场景），几秒钟出分。"
+          "desc": "上传本地运行入门包产出的 decisions.csv，几秒钟出分。Playground 和线上比赛都收。"
         },
         {
           "title": "限制",
@@ -701,7 +701,7 @@
         "kicker": "05 / 参赛任务",
         "title": "构建可复现运行的观测智能体项目",
         "paragraphs": [
-          "本地练习不限语言：在天气公开的练习场景上自行运行智能体，提交生成的 decisions.csv 即可。线上比赛的智能体程序包须在平台上以 Python 3.12 入口脚本（minimal_agent.py、agent.py 或 main.py）运行，通过 participant-agent-protocol-v1/v2 收发 JSON 消息；权威接口约定见「文档」页。",
+          "本地不限语言：自行运行智能体，提交生成的 decisions.csv 即可，Playground 与线上比赛都接受。智能体程序包须在平台上以 Python 3.12 入口脚本（minimal_agent.py、agent.py 或 main.py）运行，通过 participant-agent-protocol-v1/v2 收发 JSON 消息；权威接口约定见「文档」页。",
           "在平台上运行智能体完成评测场景，由同一评分器给出分数。",
           "下载入门包，研究公开开发场景与可视化报告，依据协议开发原型，在开发场景中评测并检查回放；Playground可提交 decisions.csv，线上比赛提交智能体程序包。",
           "每次评测的完整运行记录——决策文件、运行日志与逐时隙回放——平台都会保留，供主办方复核，也供你自己检查每一步为什么这么走。"
@@ -1538,7 +1538,7 @@
     "quota_left": "今日剩余 {n} 次",
     "phase_closed": "已关闭",
     "phase_upcoming": "{date} 开放",
-    "help_results": "对天气公开的练习场景评分你在本地生成的 decisions.csv。",
+    "help_results": "评分你在本地生成的 decisions.csv。",
     "help_agent": "平台会在这个阶段的每个场景上跑你的程序（含看不到的隐藏天气），每个场景一个总时长，最后取平均分。",
     "errors": {
       "need_team": "请先创建或加入队伍。",
@@ -1562,7 +1562,7 @@
     "hashing": "正在计算校验和…",
     "queued": "提交已排队。",
     "no_phase": "当前没有开放提交的阶段。",
-    "no_scenario": "本阶段没有天气公开的场景，请改为提交智能体程序包。",
+    "no_scenario": "本阶段还没有配置场景。",
     "all_scenarios": "本阶段全部场景",
     "agent_hints": [
       "只改动 my_strategy.py 时，直接上传这一个文件即可，平台会用入门包的标准文件补齐程序包。",
@@ -1570,7 +1570,7 @@
       "完全自写的智能体：根目录含 minimal_agent.py、agent.py 或 main.py 的 .zip，通过 stdin/stdout 使用 participant-agent-protocol-v1/v2。",
       "限制：单次 20 MB、2,000 个文件、解压后 50 MB、不含符号链接。缓存、scratch/ 与 run_output/ 会自动剔除。"
     ],
-    "results_public_only": "这里只列出天气公开的场景——评分器要拿到完整天气才能复核你本地跑出的结果。",
+    "results_public_only": "练习场景的天气是公开的，你本地算出的分数与平台一致；比赛场景的天气不公开，平台用自己手上的天气真值评分。",
     "wallclock": "总时长",
     "wallclock_note": "每个场景给你一个总时长，从 initialize 消息发出时开始倒数；单步不限时。倒计时归零前提交的动作照常算分。",
     "wallclock_results_note": "结果文件是离线回放，不占用总时长；总时长只在平台上跑智能体时才计。",
@@ -1795,7 +1795,7 @@
       },
       {
         "q": "可以用什么语言？",
-        "a": "本地不限语言：在天气公开的练习场景上自己运行智能体并上传 decisions.csv。平台在隐藏天气上运行时，入口脚本须为通过 stdin/stdout 使用 participant-agent-protocol-v1/v2 的 Python 3.12（minimal_agent.py、agent.py 或 main.py）；它可以按 requirements.txt 安装依赖，并在沙箱内启动所需的子进程。"
+        "a": "本地不限语言：自己运行智能体并上传 decisions.csv，两个阶段都接受。平台运行智能体程序包时，入口脚本须为通过 stdin/stdout 使用 participant-agent-protocol-v1/v2 的 Python 3.12（minimal_agent.py、agent.py 或 main.py）；它可以按 requirements.txt 安装依赖，并在沙箱内启动所需的子进程。"
       },
       {
         "q": "可以使用大模型或商业 API 吗？",

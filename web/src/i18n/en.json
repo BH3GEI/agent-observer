@@ -322,7 +322,7 @@
         {
           "n": "03",
           "title": "Submit for evaluation",
-          "desc": "Upload a decisions.csv for a public-weather scenario, or upload your agent package and let the platform run it against hidden weather under one global wall clock. Every team is scored by the same frozen scorer."
+          "desc": "Upload a decisions.csv, or upload your agent package and let the platform run it under one global wall clock. Both are accepted in the Playground and in the online competition, and every team is scored by the same frozen scorer."
         }
       ],
       "timeline": [
@@ -410,7 +410,7 @@
       "items": [
         {
           "title": "Results file",
-          "desc": "Upload the decisions.csv from a local kit run (public-weather practice scenarios only); it scores within seconds."
+          "desc": "Upload the decisions.csv from a local kit run; it scores within seconds. Accepted in the Playground and in the online competition."
         },
         {
           "title": "Limits",
@@ -701,7 +701,7 @@
         "kicker": "05 / Participant Job",
         "title": "Build a reproducibly runnable observer project",
         "paragraphs": [
-          "Local practice is language-agnostic: run your agent on the public-weather practice scenarios and submit the generated decisions.csv. For the online competition the agent package runs on the platform with a Python 3.12 entry script (minimal_agent.py, agent.py or main.py) exchanging JSON messages over participant-agent-protocol-v1/v2; the authoritative contract is on the Docs page.",
+          "Running locally is language-agnostic: run your agent and submit the generated decisions.csv — accepted in both phases. An agent package runs on the platform with a Python 3.12 entry script (minimal_agent.py, agent.py or main.py) exchanging JSON messages over participant-agent-protocol-v1/v2; the authoritative contract is on the Docs page.",
           "The platform runs your agent against the evaluation scenarios and scores it with the same frozen scorer.",
           "Download the starter kit, study the public development scenarios and visual reports, prototype against the protocol, evaluate on development scenarios, inspect the replays; the practice phase accepts decisions.csv, the online competition accepts agent packages.",
           "The platform keeps the full record of every evaluation — the decisions file, the run log, and a slot-by-slot replay — for organizer review, and for you to inspect why each step went the way it did."
@@ -1538,7 +1538,7 @@
     "quota_left": "{n} left today",
     "phase_closed": "closed",
     "phase_upcoming": "opens {date}",
-    "help_results": "Score a decisions.csv you produced locally against a practice scenario whose weather is public.",
+    "help_results": "Scores the decisions.csv you produced locally.",
     "help_agent": "The platform runs your program on every scenario in this phase, hidden weather included, with one time budget per scenario, and averages the scores.",
     "errors": {
       "need_team": "Create or join a team first.",
@@ -1562,7 +1562,7 @@
     "hashing": "Computing checksum…",
     "queued": "Submission queued.",
     "no_phase": "No phase is open for submissions right now.",
-    "no_scenario": "No public-weather scenario in this phase. Submit an agent package instead.",
+    "no_scenario": "No scenarios are configured for this phase yet.",
     "all_scenarios": "All scenarios of the phase",
     "agent_hints": [
       "If you changed only my_strategy.py, upload that single file; the platform completes the package with the kit's standard files.",
@@ -1570,7 +1570,7 @@
       "For a fully self-written agent: a .zip with minimal_agent.py, agent.py or main.py at the root, speaking participant-agent-protocol-v1/v2 over stdin/stdout.",
       "Limits: 20 MB per upload, 2,000 files, 50 MB uncompressed, no symlinks. Caches, scratch/ and run_output/ are left out automatically."
     ],
-    "results_public_only": "Only scenarios with public weather are listed — the scorer needs the full weather to re-check what you produced locally.",
+    "results_public_only": "Practice weather is public, so your local score matches the platform's; competition weather is not published and the platform scores against the weather truth it holds.",
     "wallclock": "Time budget",
     "wallclock_note": "Each scenario gives you one time budget, counting down from the initialize message; no per-step timeout. Anything committed before it runs out still scores.",
     "wallclock_results_note": "A results file is replayed offline and costs no budget; the budget only applies to agents running on the platform.",
@@ -1795,7 +1795,7 @@
       },
       {
         "q": "Which languages can I use?",
-        "a": "Locally, any language: run your agent yourself on a public-weather practice scenario and upload decisions.csv. For platform runs on hidden weather the entry script is Python 3.12 (minimal_agent.py, agent.py or main.py) speaking participant-agent-protocol-v1/v2 over stdin/stdout; it may install packages from requirements.txt and spawn whatever it needs inside the sandbox."
+        "a": "Locally, any language: run your agent yourself and upload decisions.csv — accepted in both phases. For platform runs the entry script is Python 3.12 (minimal_agent.py, agent.py or main.py) speaking participant-agent-protocol-v1/v2 over stdin/stdout; it may install packages from requirements.txt and spawn whatever it needs inside the sandbox."
       },
       {
         "q": "Can I use an LLM or a commercial API?",

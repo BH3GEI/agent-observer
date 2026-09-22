@@ -36,7 +36,7 @@ const agentHints = computed(() => t('submit.agent_hints') as string[])
 const selectable = computed(() => phases.value.filter(p => isAdmin.value || p.status === 'open'))
 const phase = computed(() => phases.value.find(p => p.slug === form.value.phase) ?? null)
 /** Results files can only be scored against scenarios whose weather is public (the scorer needs the full weather truth). */
-const resultScenarios = computed(() => (phase.value?.scenarios ?? []).filter(s => s.is_active && (s.weather_public || isAdmin.value)))
+const resultScenarios = computed(() => (phase.value?.scenarios ?? []).filter(s => s.is_active))
 const agentScenarios = computed(() => (phase.value?.scenarios ?? []).filter(s => s.is_active))
 const selectedScenario = computed<Scenario | null>(() => resultScenarios.value.find(s => s.slug === form.value.scenario) ?? null)
 const accept = computed(() => form.value.kind === 'results' ? '.csv' : '.zip,.py')

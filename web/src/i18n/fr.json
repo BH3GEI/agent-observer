@@ -439,7 +439,7 @@
         {
           "n": "03",
           "title": "Soumettre pour évaluation",
-          "desc": "Téléversez un decisions.csv pour un scénario à météo publique, ou votre paquet d'agent que la plateforme exécute contre une météo cachée sous une horloge globale unique. Toutes les équipes sont notées par le même correcteur figé."
+          "desc": "Téléversez un decisions.csv, ou votre paquet d'agent que la plateforme exécute sous une horloge globale unique. Les deux sont acceptés au Playground comme en compétition en ligne, et toutes les équipes sont notées par le même correcteur figé."
         }
       ],
       "timeline": [
@@ -499,7 +499,7 @@
       "items": [
         {
           "title": "Fichier de résultats",
-          "desc": "Téléversez le decisions.csv produit par le kit en local (scénarios d'entraînement à météo publique uniquement) ; le score tombe en quelques secondes."
+          "desc": "Téléversez le decisions.csv produit par le kit en local ; le score tombe en quelques secondes. Accepté au Playground comme en compétition en ligne."
         },
         {
           "title": "Limites",

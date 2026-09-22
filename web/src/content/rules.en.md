@@ -9,15 +9,15 @@
 
 | Phase | Dates (UTC) | Submissions | Board |
 |---|---|---|---|
-| Practice | from registration until Awards Day | decisions.csv (public-weather scenarios) or agent package, 50 per team per day | informational |
-| Online Competition | 2026-10-04 16:00 to 2026-10-07 15:59 (Oct 5–7 in UTC+8) | agent package only, 10 per team per day | decides the awards |
+| Practice | from registration until Awards Day | decisions.csv or agent package, 50 per team per day | informational |
+| Online Competition | 2026-10-04 16:00 to 2026-10-07 15:59 (Oct 5–7 in UTC+8) | decisions.csv or agent package, 10 per team per day | decides the awards |
 | Awards Day | 2026-10-17 at GOSIM Shenzhen | none | final results announced |
 
 The live phase configuration table above this document is authoritative if the two differ.
 
 ## 3. What you submit
 
-1. **Results file.** A `decisions.csv` with the columns `decision_id, slot_id, action, tile_id, program, request_id, reason`, produced by running your agent locally against a scenario whose weather is public. Scored immediately by the frozen scorer.
+1. **Results file.** A `decisions.csv` with the columns `decision_id, slot_id, action, tile_id, program, request_id, reason`, produced by running your agent locally. Accepted in both phases and scored immediately by the frozen scorer. Competition weather is not published; the platform scores your decision sequence against the weather truth it holds.
 2. **Agent package.** A `.zip` whose root (or single top-level folder) contains the entry script `minimal_agent.py`, `agent.py` or `main.py`, optionally `requirements.txt` and `.env`, and any other files the script imports. A bare `.py` file is accepted when it needs nothing else. The platform runs the package against every scenario of the phase through `participant-agent-protocol-v2` and scores the committed decisions. The competition weather, forecasts and events are never downloadable.
 3. Files are limited to 20 MB. Archives are limited to 2,000 files and 50 MB uncompressed. Symbolic links and paths outside the archive root are rejected.
 

@@ -8,7 +8,7 @@ A scenario is one exercise, shipped as a folder: six configuration files under `
 
 There are two ways to get a score:
 
-1. **Results file.** Run your agent yourself on a scenario whose weather is public and upload `decisions.csv`. Only practice scenarios with public weather accept results files; the scorer needs the full weather truth.
+1. **Results file.** Run your agent yourself and upload `decisions.csv`. Accepted in both the Playground and the online competition. Practice weather is public, so your local score matches the platform's; competition weather is not published, and the platform scores the same decision sequence against the weather truth it holds.
 2. **Agent package.** Upload your agent as a `.zip`. The platform starts it once per scenario, streams the published snapshots to it through the JSON-Lines protocol, commits its actions against the hidden weather, and scores the committed trace. One global wall clock per scenario; no per-decision timeout.
 
 Both paths use the same `scoring_core.py`. The starter kit contains the workflow, the scorer, the minimal agent and the public scenario files.
@@ -22,15 +22,15 @@ Two arenas: **the Playground** is for practice — submit freely, scores land in
 | | Practice | Online competition |
 |---|---|---|
 | Scenarios | `demo-week` (7 nights), `dev-fortnight` (14 nights) and `dev-reference` (180 nights, the published example); weather, forecasts and events public | `eval-a`, `eval-b` (30 nights each); weather, forecasts and events hidden |
-| Submissions | results files or agent packages, 50 per team per day | agent packages only, 10 per team per day |
+| Submissions | results files or agent packages, 50 per team per day | results files or agent packages, 10 per team per day |
 | Score | informational board | mean over the two scenarios; decides the awards |
 
 Because the practice scenarios publish `weather_events.csv`, a local `score_decisions.py` run reproduces the platform report exactly. On the competition scenarios only the platform can score, and only through the protocol.
 
 The two submission types serve two different purposes and the platform supports both:
 
-- **Results file (`decisions.csv`)**: you replay the weather locally with the simulators, run the whole survey and hand the decision sequence to the scorer. With public weather this is the shortest loop and your local score equals the platform score, which is why practice accepts it.
-- **Agent package**: you upload the program and its dependencies, and the platform runs it against hidden weather, handing it only the snapshot visible at the current slot. Participants never see future weather, so no strategy can optimise over the whole weather sequence — which is why the online competition accepts only this.
+- **Results file (`decisions.csv`)**: you run the whole survey locally and hand the decision sequence to the scorer. On public-weather practice scenarios this is the shortest loop and your local score equals the platform score; on competition scenarios you cannot see the weather, so the sequence cannot react to it, but the platform still accepts and scores it.
+- **Agent package**: you upload the program and its dependencies, and the platform runs it against hidden weather, handing it only the snapshot visible at the current slot. The program can read the weather as it goes and change its mind, which a results file cannot — usually the stronger option in the competition.
 
 Both go through the same scorer and the same `score_config.json` and produce the same report format, so a strategy tuned in practice carries over to the competition.
 
@@ -65,7 +65,7 @@ How to hand your work in once you have something: drag a file onto the website, 
 
 ### From the website
 
-Dashboard → Submit. Choose the phase, the submission type, the scenario (results files only, public-weather scenarios only) and the file. The page shows the scenario's global wall clock and how many submissions your team has left today. Each submission gets a page with the score breakdown, completion, requests, wait seconds, the termination reason, the agent-run panel (committed actions, wall clock used, `agent.log`, `workflow_result.json`), the interactive decision replay, the observed-sky map, the action timeline and the downloadable `score_report.json` / `decisions.csv`.
+Dashboard → Submit. Choose the phase, the submission type, the scenario (results files only) and the file. The page shows the scenario's global wall clock and how many submissions your team has left today. Each submission gets a page with the score breakdown, completion, requests, wait seconds, the termination reason, the agent-run panel (committed actions, wall clock used, `agent.log`, `workflow_result.json`), the interactive decision replay, the observed-sky map, the action timeline and the downloadable `score_report.json` / `decisions.csv`.
 
 ### From the command line
 
