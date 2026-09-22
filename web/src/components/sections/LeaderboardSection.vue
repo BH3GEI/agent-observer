@@ -52,8 +52,8 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
 <template>
   <section id="leaderboard" class="poster-section poster-canvas py-20 md:py-28">
     <div class="relative z-10 mx-auto max-w-[1600px] px-5 md:px-10 xl:px-14">
-      <div class="grid gap-14 lg:grid-cols-[.72fr_1.28fr] lg:gap-20">
-        <div class="reveal">
+      <div class="grid gap-14 lg:grid-cols-[.54fr_1.46fr] lg:gap-14">
+        <div class="reveal lg:sticky lg:top-28 lg:self-start">
           <span class="poster-kicker mt-14">{{ t('home.leaderboard.kicker') }}</span>
           <h2 class="section-title distressed-type mt-9">{{ t('home.leaderboard.title') }}</h2>
           <p class="mt-8 max-w-lg text-base leading-relaxed text-text-secondary md:text-lg">{{ t('home.leaderboard.lede') }}</p>
@@ -100,7 +100,7 @@ onUnmounted(() => { if (timer) window.clearInterval(timer) })
                 <tbody>
                   <tr v-for="row in top" :key="row.team_id" data-testid="lb-row" class="lb-row" :class="{ me: team && team.id === row.team_id }">
                     <td class="m rank-cell" :class="row.rank <= 3 ? `rank-${row.rank}` : ''">{{ row.rank }}</td>
-                    <td class="font-medium text-text-primary"><span class="team-cell"><UserAvatar :name="row.team_name" :github="row.leader_github" /><i v-if="row.rank === 1" class="champ-star" aria-hidden="true">✦</i>{{ row.team_name }}</span></td>
+                    <td class="font-medium text-text-primary"><span class="team-cell"><UserAvatar :name="row.team_name" :github="row.leader_github" /><i v-if="row.rank === 1" class="champ-star" aria-hidden="true">✦</i><span class="team-name">{{ row.team_name }}</span></span></td>
                     <td class="r m" :class="{ 'text-[#ff6b6b]': row.total_score < 0 }">{{ num(row.total_score) }}</td>
                     <td class="r m">{{ num(row.base_science) }}</td>
                     <td class="r m">{{ num(row.program_bonus) }}</td>
