@@ -29,11 +29,30 @@ onMounted(async () => {
   const group = new THREE.Group()
   scene.add(group)
 
-  // Survey sphere: tiles distributed by the golden spiral, tinted blue -> violet -> amber.
+  // A round, soft sprite: PointsMaterial draws hard squares when it has no map.
+  const starSprite = (() => {
+    const size = 64
+    const canvas = document.createElement('canvas')
+    canvas.width = canvas.height = size
+    const g = canvas.getContext('2d')!
+    const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
+    grad.addColorStop(0, 'rgba(255,255,255,1)')
+    grad.addColorStop(0.22, 'rgba(255,255,255,.92)')
+    grad.addColorStop(0.5, 'rgba(255,255,255,.26)')
+    grad.addColorStop(1, 'rgba(255,255,255,0)')
+    g.fillStyle = grad
+    g.fillRect(0, 0, size, size)
+    return new THREE.CanvasTexture(canvas)
+  })()
+
+  // Survey sphere: tiles on the golden spiral. Starlight, so near-white — mostly a cool
+  // white, a handful warm, nothing saturated.
   const positions = new Float32Array(starCount * 3)
   const colors = new Float32Array(starCount * 3)
   const golden = Math.PI * (3 - Math.sqrt(5))
-  const palette = [new THREE.Color('#8fb4ff'), new THREE.Color('#c4b5fd'), new THREE.Color('#fbd38d'), new THREE.Color('#7dd3fc')]
+  const coolWhite = new THREE.Color('#cfe0ff')
+  const white = new THREE.Color('#ffffff')
+  const warmWhite = new THREE.Color('#ffe6c6')
   for (let i = 0; i < starCount; i += 1) {
     const y = 1 - (i / (starCount - 1)) * 2
     const radiusAtY = Math.sqrt(1 - y * y)
@@ -42,8 +61,9 @@ onMounted(async () => {
     positions[i * 3] = Math.cos(theta) * radiusAtY * r
     positions[i * 3 + 1] = y * r
     positions[i * 3 + 2] = Math.sin(theta) * radiusAtY * r
-    const color = palette[i % palette.length]
-    const dim = 0.55 + ((i * 7919) % 100) / 220
+    const h = ((i * 9301 + 49297) % 233280) / 233280
+    const color = h > 0.94 ? warmWhite : h > 0.6 ? white : coolWhite
+    const dim = 0.42 + h * 0.5
     colors[i * 3] = color.r * dim
     colors[i * 3 + 1] = color.g * dim
     colors[i * 3 + 2] = color.b * dim
@@ -51,7 +71,7 @@ onMounted(async () => {
   const starGeometry = new THREE.BufferGeometry()
   starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
   starGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-  const starMaterial = new THREE.PointsMaterial({ size: 0.045, vertexColors: true, transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true })
+  const starMaterial = new THREE.PointsMaterial({ size: 0.075, map: starSprite, vertexColors: true, transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true })
   group.add(new THREE.Points(starGeometry, starMaterial))
 
   // A brighter scatter of foreground stars for depth.
@@ -64,12 +84,12 @@ onMounted(async () => {
   }
   const nearGeometry = new THREE.BufferGeometry()
   nearGeometry.setAttribute('position', new THREE.BufferAttribute(nearPositions, 3))
-  const nearMaterial = new THREE.PointsMaterial({ size: 0.02, color: new THREE.Color('#e7eeff'), transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending })
+  const nearMaterial = new THREE.PointsMaterial({ size: 0.05, map: starSprite, color: new THREE.Color('#eef4ff'), transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true })
   scene.add(new THREE.Points(nearGeometry, nearMaterial))
 
   // Footprint rings: the survey's observing tracks around the sphere.
   const ringMaterial = new THREE.LineBasicMaterial({ color: new THREE.Color('#5b7cff'), transparent: true, opacity: 0.34 })
-  const ringMaterialWarm = new THREE.LineBasicMaterial({ color: new THREE.Color('#fbbf24'), transparent: true, opacity: 0.22 })
+  const ringMaterialWarm = new THREE.LineBasicMaterial({ color: new THREE.Color('#8fb0ff'), transparent: true, opacity: 0.16 })
   const makeRing = (radius: number, tiltX: number, tiltZ: number, material: InstanceType<typeof THREE.LineBasicMaterial>) => {
     const points: InstanceType<typeof THREE.Vector3>[] = []
     for (let i = 0; i <= 128; i += 1) {
@@ -144,7 +164,7 @@ onMounted(async () => {
     resize.disconnect()
     document.removeEventListener('visibilitychange', onHidden)
     window.removeEventListener('pointermove', onPointer)
-    starGeometry.dispose(); starMaterial.dispose()
+    starGeometry.dispose(); starMaterial.dispose(); starSprite.dispose()
     nearGeometry.dispose(); nearMaterial.dispose()
     ringMaterial.dispose(); ringMaterialWarm.dispose()
     renderer.dispose()

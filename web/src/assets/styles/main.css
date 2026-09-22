@@ -875,10 +875,10 @@ details.plain summary { cursor: pointer; }
 .fx-burst { position: fixed; z-index: 9999; width: 0; height: 0; pointer-events: none; }
 .fx-burst::before { content: ''; position: absolute; left: -18px; top: -18px; width: 36px; height: 36px; border-radius: 50%;
   border: 1.5px solid rgba(148,183,255,.85); animation: fx-ring .5s cubic-bezier(.2,.8,.3,1) forwards; }
-.fx-burst-strong::before { border-color: #fbbf24; }
+.fx-burst-strong::before { border-color: rgba(226,238,255,.95); }
 .fx-burst i { position: absolute; left: -2px; top: -2px; width: 4px; height: 4px; border-radius: 50%;
   background: #9db6ff; animation: fx-spark .55s cubic-bezier(.15,.85,.3,1) forwards; }
-.fx-burst-strong i { background: #fcd34d; }
+.fx-burst-strong i { background: #eaf1ff; }
 @keyframes fx-ring { from { transform: scale(.25); opacity: .9; } to { transform: scale(1.6); opacity: 0; } }
 @keyframes fx-spark { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(var(--fx-dx), var(--fx-dy)) scale(.2); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .fx-burst { display: none; } }
