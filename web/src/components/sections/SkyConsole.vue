@@ -45,7 +45,7 @@ function trackMeridian(nowSec: number) {
 }
 
 function frameAt(progress: number) {
-  const { slotIndex, nowSec, actionIndex, gap } = replayTimeAt(progress)
+  const { slotIndex, nowSec, skySec, actionIndex, gap } = replayTimeAt(progress)
   // Actions settled so far: everything before the current one, plus the current one once its exposure ends.
   const current = replayActions[actionIndex]
   const settled = current && current.doneSec <= nowSec ? actionIndex + 1 : actionIndex
@@ -61,7 +61,7 @@ function frameAt(progress: number) {
   // Distinct finished tiles, so a re-observation never inflates the count past the catalogue.
   let completed = 0
   for (const mark of observed.values()) if (mark.state === 'completed') completed++
-  return { slotIndex, nowSec, observed, score, completed, actionIndex, gap }
+  return { slotIndex, nowSec, skySec, observed, score, completed, actionIndex, gap }
 }
 
 /** Pick the line of commentary for what the replay is showing: an exposure, or a collapsed quiet stretch. */
@@ -79,7 +79,7 @@ function beatFor(actionIndex: number, gap: { nights: number; slots: number } | n
 
 function render() {
   const progress = clock.replayProgress()
-  const { slotIndex, nowSec, observed, score, completed, actionIndex, gap } = frameAt(progress)
+  const { slotIndex, nowSec, skySec, observed, score, completed, actionIndex, gap } = frameAt(progress)
   if (progress < lastProgress) shownScore = 0  // loop restarted
   lastProgress = progress
   if (!scrubbing.value) progressUI.value = progress
@@ -91,8 +91,8 @@ function render() {
   const nightNo = nightIds.value.indexOf(slot.night) + 1
   hud.value = { slot: slot.slot, night: slot.night, date: stamp.slice(0, 5), utc: stamp.slice(6), lst, seeing: slot.seeing, transp: slot.transp, sky: slot.sky, eff: slot.eff, open: slot.open, score: shownScore, completed, nightNo }
   beat.value = beatFor(actionIndex, gap, slot.open, nightNo)
-  trackMeridian(nowSec)
-  if (canvas.value) drawSkyMap(canvas.value, replayTiles, replaySite, { nowSec, observed, pulseSeconds: reduced.value ? 0 : PULSE })
+  trackMeridian(skySec)
+  if (canvas.value) drawSkyMap(canvas.value, replayTiles, replaySite, { nowSec: skySec, observed, pulseSeconds: reduced.value ? 0 : PULSE })
 }
 function loop() { render(); if (!reduced.value) raf = requestAnimationFrame(loop) }
 
@@ -222,6 +222,8 @@ onUnmounted(() => { cancelAnimationFrame(raf); observer?.disconnect(); if (champ
   display: flex;
   flex-direction: column;
   border: 1px solid rgba(255,255,255,.28);
+  /* Sides fall away towards the bottom instead of ruling a flat rectangle. */
+  border-image: linear-gradient(180deg, rgba(255,255,255,.4), rgba(255,255,255,.28) 45%, rgba(255,255,255,.1)) 1;
   background: rgba(2,5,12,.72);
 }
 .sky-console::before {

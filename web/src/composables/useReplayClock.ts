@@ -40,14 +40,19 @@ export const SLOT_SECONDS = 900
 /** One exposure's share of the loop, and the share a whole run of waiting collapses into. */
 const OBSERVE_UNIT = 1
 const GAP_UNIT = 0.3
-/** A gap crossing at least one night boundary reads as a bigger skip, so it holds a little longer. */
-const GAP_NIGHT_UNIT = 0.5
+/**
+ * Extra share a gap earns per full turn the sky has to travel across it. A gap over the daylight hours
+ * moves the sky most of the way round, and it needs room to do that at a speed the eye can follow.
+ */
+const GAP_SWEEP_UNIT = 0.9
 /** Real time each unit of weight is worth, and the bounds a full loop is kept inside. */
 const MS_PER_UNIT = 760
 const LOOP_MIN_MS = 45_000
 const LOOP_MAX_MS = 115_000
 /** How much sim time a collapsed gap actually shows: the quiet stretch just before the next exposure. */
 const GAP_SHOWN_SLOTS = 3
+/** One turn of the sky, used to keep a collapsed gap from sweeping the map round more than once. */
+const SIDEREAL_DAY = 86164.0905
 
 export const replayMeta = reactive({ version: 0, source: 'demo' as 'demo' | 'champion', label: '' })
 
@@ -70,6 +75,10 @@ type Segment = {
   toSec: number
   nights: number
   slots: number
+  /** Where the sky starts from, so a gap sweeps across the skipped hours instead of cutting to its end. */
+  sweepFromSec: number
+  /** This segment's share of the loop. */
+  weight: number
 }
 let segments: Segment[] = []
 let segCum: number[] = [0]
@@ -77,13 +86,51 @@ let totalWeight = 1
 
 const nightOf = (slotId: string) => slotId.split('-')[0] ?? ''
 
+/**
+ * Settle where a gap's sweep starts and what it costs. Whole turns are trimmed off first, so a gap of
+ * several nights still crosses the map once; what is left decides how long the gap holds, which keeps
+ * every sweep at roughly the same speed however many hours it stands for.
+ */
+function priceGap(seg: Segment, jumpFromSec: number): Segment {
+  let from = jumpFromSec
+  const span = seg.toSec - from
+  if (span > SIDEREAL_DAY) from = seg.toSec - (span % SIDEREAL_DAY)
+  const turn = Math.min(1, Math.max(0, (seg.toSec - from) / SIDEREAL_DAY))
+  seg.sweepFromSec = from
+  seg.weight = GAP_UNIT + turn * GAP_SWEEP_UNIT
+  return seg
+}
+
+/**
+ * A stretch of run time with no actions logged in it at all. Some runs stop writing rows while they
+ * wait, so two exposures can sit hours apart with nothing between them; without a segment of its own
+ * that stretch would cut the sky straight from one hour angle to another.
+ */
+function holeSegment(fromSec: number, toSec: number, actionIndex: number): Segment {
+  const a = slotIndexAt(fromSec), b = slotIndexAt(toSec)
+  const nights = new Set<string>()
+  for (let k = Math.min(a, b); k <= Math.max(a, b); k++) {
+    const slot = replaySlots[k]
+    if (slot) nights.add(slot.night)
+  }
+  const shown = Math.min(toSec - fromSec, GAP_SHOWN_SLOTS * SLOT_SECONDS)
+  return priceGap(
+    { kind: 'gap', actionIndex, fromSec: toSec - shown, toSec, nights: nights.size, slots: Math.abs(b - a), sweepFromSec: fromSec, weight: GAP_UNIT },
+    fromSec,
+  )
+}
+
 function buildSegments() {
   segments = []
   let i = 0
   while (i < replayActions.length) {
     const action = replayActions[i]!
     if (action.a === 'observe') {
-      segments.push({ kind: 'observe', actionIndex: i, fromSec: action.startSec, toSec: action.doneSec, nights: 0, slots: 0 })
+      const prev = segments[segments.length - 1]
+      if (prev && action.startSec - prev.toSec > SLOT_SECONDS) {
+        segments.push(holeSegment(prev.toSec, action.startSec, i))
+      }
+      segments.push({ kind: 'observe', actionIndex: i, fromSec: action.startSec, toSec: action.doneSec, nights: 0, slots: 0, sweepFromSec: action.startSec, weight: OBSERVE_UNIT })
       i += 1
       continue
     }
@@ -96,23 +143,26 @@ function buildSegments() {
     const last = replayActions[i - 1]!
     const endSec = i < replayActions.length ? replayActions[i]!.startSec : last.doneSec
     const shown = Math.min(Math.max(0, endSec - replayActions[start]!.startSec), GAP_SHOWN_SLOTS * SLOT_SECONDS)
-    segments.push({
-      kind: 'gap',
-      actionIndex: start,
-      fromSec: endSec - shown,
-      toSec: endSec,
-      nights: nights.size,
-      slots: i - start,
-    })
+    const prev = segments[segments.length - 1]
+    segments.push(priceGap(
+      {
+        kind: 'gap',
+        actionIndex: start,
+        fromSec: endSec - shown,
+        toSec: endSec,
+        nights: nights.size,
+        slots: i - start,
+        sweepFromSec: endSec - shown,
+        weight: GAP_UNIT,
+      },
+      prev ? prev.toSec : endSec - shown,
+    ))
   }
   if (!segments.length) {
-    segments.push({ kind: 'gap', actionIndex: 0, fromSec: 0, toSec: 1, nights: 0, slots: 0 })
+    segments.push({ kind: 'gap', actionIndex: 0, fromSec: 0, toSec: 1, nights: 0, slots: 0, sweepFromSec: 0, weight: GAP_UNIT })
   }
   segCum = [0]
-  for (const seg of segments) {
-    const weight = seg.kind === 'observe' ? OBSERVE_UNIT : (seg.nights > 1 ? GAP_NIGHT_UNIT : GAP_UNIT)
-    segCum.push(segCum[segCum.length - 1]! + weight)
-  }
+  for (const seg of segments) segCum.push(segCum[segCum.length - 1]! + seg.weight)
   totalWeight = Math.max(1e-6, segCum[segCum.length - 1]!)
   LOOP_MS = Math.min(LOOP_MAX_MS, Math.max(LOOP_MIN_MS, Math.round(totalWeight * MS_PER_UNIT)))
 }
@@ -166,6 +216,12 @@ export interface ReplayFrame {
   actionIndex: number
   slotIndex: number
   nowSec: number
+  /**
+   * Time to draw the sky at. Equal to nowSec during an exposure. Across a collapsed gap it sweeps
+   * the whole skipped stretch instead, so the meridian and the visibility rings travel there rather
+   * than reappearing half a turn away.
+   */
+  skySec: number
   frac: number
   /** Set while a run of waiting is being shown, with how much of the run it stands for. */
   gap: { nights: number; slots: number } | null
@@ -182,10 +238,19 @@ export function replayTimeAt(progress: number): ReplayFrame {
   const span = Math.max(1e-6, segCum[lo + 1]! - segCum[lo]!)
   const frac = Math.max(0, Math.min(1, (v - segCum[lo]!) / span))
   const nowSec = seg.fromSec + frac * (seg.toSec - seg.fromSec)
+  // The readout skips to the quiet stretch before the next exposure; the sky travels the whole way.
+  // Whole turns of the sky are trimmed off first, so a gap of several nights still crosses once.
+  let skySec = nowSec
+  if (seg.kind === 'gap') {
+    // Eased, so the sky pulls away and settles rather than snapping into and out of the sweep.
+    const e = frac * frac * (3 - 2 * frac)
+    skySec = seg.sweepFromSec + e * (seg.toSec - seg.sweepFromSec)
+  }
   return {
     actionIndex: seg.actionIndex,
     slotIndex: slotIndexAt(nowSec),
     nowSec,
+    skySec,
     frac,
     gap: seg.kind === 'gap' ? { nights: seg.nights, slots: seg.slots } : null,
   }

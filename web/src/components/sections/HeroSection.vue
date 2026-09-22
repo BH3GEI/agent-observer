@@ -130,12 +130,12 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
         </div>
       </div>
 
-      <div class="hero-metrics hero-metrics-strong grid grid-cols-2 border-t border-white/22 reveal reveal-delay-3" :style="`--metric-cols:${metrics.length}`">
+      <div class="hero-metrics hero-metrics-strong grid grid-cols-2 reveal reveal-delay-3" :style="`--metric-cols:${metrics.length}`">
         <div
           v-for="(metric, index) in metrics"
           :key="metric.label"
-          class="hero-metric border-white/16 py-5 md:py-6"
-          :class="{ 'border-r': index % 2 === 0 && index !== metrics.length - 1, 'md:border-r': index !== metrics.length - 1, 'md:border-r-0': index === metrics.length - 1 }"
+          class="hero-metric py-5 md:py-6"
+          :class="{ 'metric-rule-sm': index % 2 === 0 && index !== metrics.length - 1, 'metric-rule-md': index !== metrics.length - 1 }"
         >
           <b v-countup class="hero-metric-value block text-[clamp(1.7rem,2.8vw,2.6rem)] font-semibold leading-[1.05] tracking-[-.04em]">{{ metric.value }}</b>
           <span class="mt-2 block font-mono text-[.7rem] uppercase leading-snug tracking-[.06em] text-white/50">{{ metric.label }}</span>
@@ -233,7 +233,13 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
 }
 .phase-strip > div { display: flex; flex-direction: column; justify-content: center; padding: .9rem 0; min-width: 0; }
-.phase-strip-now { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; border-bottom: 1px solid rgba(255,255,255,.12); }
+.phase-strip-now {
+  position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem;
+}
+.phase-strip-now::after {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 1px; content: '';
+  background: linear-gradient(90deg, rgba(255,255,255,.2), rgba(255,255,255,.03));
+}
 .phase-strip-label { font-size: .64rem; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.5); }
 .phase-countdown { display: flex; gap: 1.25rem; margin-top: .45rem; font-variant-numeric: tabular-nums; }
 .phase-countdown span { display: flex; align-items: baseline; gap: .35rem; }
@@ -246,17 +252,33 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
 .phase-countdown small { font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.45); }
 @media (min-width: 768px) {
   .phase-strip { grid-template-columns: auto 1fr; }
-  .phase-strip-now { border-bottom: 0; border-right: 1px solid rgba(255,255,255,.12); padding-right: 1.5rem; }
+  .phase-strip-now { padding-right: 1.5rem; }
+  .phase-strip-now::after {
+    left: auto; right: 0; top: .3rem; bottom: .3rem; width: 1px; height: auto;
+    background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.24) 40%, rgba(255,255,255,.1) 80%, rgba(255,255,255,0));
+  }
   .phase-strip-next { padding-left: 1.5rem; }
 }
 
-.hero-metrics > div { padding-left: clamp(.65rem, 2vw, 1.5rem); padding-right: clamp(.65rem, 2vw, 1.5rem); }
+.hero-metrics { position: relative; }
+.hero-metrics > div { position: relative; padding-left: clamp(.65rem, 2vw, 1.5rem); padding-right: clamp(.65rem, 2vw, 1.5rem); }
 @media (min-width: 768px) { .hero-metrics { grid-template-columns: repeat(var(--metric-cols, 3), minmax(0, 1fr)); } }
 .hero-metrics > div:first-child { padding-left: 0; }
+
+/* Every rule in this strip fades out at its ends rather than stopping on a hard edge. */
+.hero-metric::after {
+  position: absolute; top: .25rem; bottom: .25rem; right: 0; width: 1px; content: '';
+  background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.32) 36%, rgba(255,255,255,.15) 76%, rgba(255,255,255,0));
+  opacity: 0;
+}
+@media (min-width: 768px) { .hero-metric.metric-rule-md::after { opacity: 1; } }
 @media (max-width: 767px) {
+  .hero-metric.metric-rule-sm::after { opacity: 1; }
   .hero-metrics > div:nth-child(odd) { padding-left: 0; }
-  .hero-metrics > div:nth-child(even) { border-right: 0; }
-  .hero-metrics > div:nth-child(-n+2) { border-bottom: 1px solid rgba(255,255,255,.16); }
+  .hero-metrics > div:nth-child(-n+2)::before {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 1px; content: '';
+    background: linear-gradient(90deg, rgba(255,255,255,.26), rgba(255,255,255,.04));
+  }
 }
 
 .hero-timeline-note { display: block; margin-top: .3rem; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .62rem; letter-spacing: .05em; color: rgba(214,226,255,.8); }
@@ -284,7 +306,11 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
 .hero-timeline-note { display: block; margin-top: .15rem; max-width: 16rem; font-size: .8rem; line-height: 1.55; color: rgba(226,234,255,.92); }
 
 .hero-metric-value { color: #f7f9ff; }
-.hero-metrics-strong { border-top-color: rgba(255,255,255,.32); background: linear-gradient(180deg, rgba(49,94,251,.1), transparent 70%); }
+.hero-metrics-strong { background: linear-gradient(180deg, rgba(49,94,251,.1), transparent 70%); }
+.hero-metrics-strong::before {
+  position: absolute; top: 0; left: 0; right: 0; height: 1px; content: '';
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.44) 10%, rgba(255,255,255,.44) 86%, rgba(255,255,255,0));
+}
 
 .hero-side-note {
   position: absolute; z-index: 3; top: 50%; right: -8.4rem;
