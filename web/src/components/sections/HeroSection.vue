@@ -160,11 +160,16 @@ const stages = computed(() => t('hero.pipeline') as Stage[])
     linear-gradient(0deg, rgba(2,5,12,.92), transparent 38%, transparent 76%, rgba(2,5,12,.7));
 }
 .hero-wash-video {
-  width: 100%; height: 100%; object-fit: contain; object-position: right center;
-  opacity: .5;
+  /* A square box pinned to the bottom-right corner, so the radial mask below lines up with the
+     footage itself and the frame dissolves into the page instead of ending on a hard edge. */
+  position: absolute; right: 0; bottom: 0;
+  height: 100%; width: auto; aspect-ratio: 1 / 1; object-fit: cover;
+  opacity: .52;
   filter: saturate(1.2) contrast(1.22) brightness(1.12);
-  transform: translate3d(3%, var(--parallax-y, 0px), 0) scale(.8); transform-origin: right center;
+  transform: translate3d(0, var(--parallax-y, 0px), 0) scale(.5); transform-origin: right bottom;
   transition: transform .18s linear;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 34%, rgba(0,0,0,.72) 58%, rgba(0,0,0,.22) 78%, rgba(0,0,0,0) 92%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 34%, rgba(0,0,0,.72) 58%, rgba(0,0,0,.22) 78%, rgba(0,0,0,0) 92%);
 }
 .hero-beam {
   position: absolute; z-index: 1; top: 0; bottom: 0; left: 34%; width: 34rem; pointer-events: none;
