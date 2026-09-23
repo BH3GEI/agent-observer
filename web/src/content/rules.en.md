@@ -1,7 +1,7 @@
 ## 1. Eligibility and teams
 
 1. Participation is open worldwide to individuals and teams. One account per person.
-2. A team has 1 to 8 members. A person belongs to at most one team. Submissions are made on behalf of a team.
+2. A team has 1 to 3 members. A person belongs to at most one team. Submissions are made on behalf of a team.
 3. Organizers, evaluation-platform maintainers, and their immediate collaborators may participate in the Playground phase but are excluded from awards. Their teams are marked hidden on the boards.
 4. Team names and content must follow the code of conduct (section 8).
 
