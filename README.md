@@ -58,6 +58,16 @@ legacy/fastapi/      first self-hosted version (reference only)
 6. Website: GitHub Pages via `.github/workflows/deploy-pages.yml` (repo variables `VITE_SUPABASE_URL`,
    `VITE_SUPABASE_ANON_KEY`, `VITE_SITE_URL`, `VITE_BASE_PATH`).
 
+### Stopping / re-enabling the evaluation worker
+
+The job and its self-redispatch step both check the repo variable `EVALUATION_WORKER_ENABLED`.
+
+- Stop the self-redispatching chain: `gh variable set EVALUATION_WORKER_ENABLED --body false -R BH3GEI/agent-observer`,
+  then cancel any run still queued/in progress with `gh run cancel <run-id> -R BH3GEI/agent-observer`.
+- Re-enable it: `gh variable set EVALUATION_WORKER_ENABLED --body true -R BH3GEI/agent-observer`, then kick off
+  the first run with `gh workflow run worker.yml -R BH3GEI/agent-observer` (it will keep re-dispatching itself
+  after that, same as before).
+
 ## Tests
 
 ```bash
