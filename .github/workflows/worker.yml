@@ -25,6 +25,9 @@ jobs:
   evaluate:
     runs-on: ubuntu-latest
     timeout-minutes: 350
+    # Gate: set the repo variable EVALUATION_WORKER_ENABLED to "false" to stop the chain
+    # (both this job and the self-redispatch step below check it; see README for re-enabling).
+    if: vars.EVALUATION_WORKER_ENABLED != 'false'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -46,7 +49,7 @@ jobs:
           SAC_DATA_DIR: ${{ runner.temp }}/sac
         run: python -m worker.main run --max-seconds "$WORKER_RUN_SECONDS"
       - name: Dispatch the next worker run
-        if: always()
+        if: always() && vars.EVALUATION_WORKER_ENABLED != 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run worker.yml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"
